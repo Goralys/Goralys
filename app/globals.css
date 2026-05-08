@@ -6,6 +6,7 @@
     --text-2xs--line-height: 1.2;
     --breakpoint-admins-pannel: 106rem;
     --breakpoint-users-pannel: 120rem;
+    --breakpoint-landing-page: 96rem;
 }
 
 input:-webkit-autofill,
