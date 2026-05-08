@@ -37,7 +37,7 @@ export default function InputTextFile({text, maxSizeKB, onFileSelected}: {text: 
     return (
         <label htmlFor="doc" key={`input-file-label-${text}-max-size-${maxSizeKB}-kb`}
                className={clsx(
-                   "flex items-center gap-0 rounded-xs border border-sky-400 border-dashed bg-sky-300 cursor-pointer",
+                   "flex items-center gap-0 rounded-xs border border-sky-400 border-dashed bg-sky-200 cursor-pointer",
                    {
                        "bg-sky-300": dragging,
                    }

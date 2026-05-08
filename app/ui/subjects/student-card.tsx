@@ -21,35 +21,20 @@ export default function StudentCard({subjectData, onUpdateAction}: {subjectData:
 
     async function saveDraft() {
         const csrfToken = await fetchCsrfClient("save-draft");
-        const result = await modal.showDraftModal();
 
-        if (result.type === "closed") return;
-
-        if (result.type == "withDraft" && !result.file) {
-            toast.showToast({
-                type: "warning",
-                title: "Envoi",
-                message: "Veuillez choisir un brouillon ou envoyer la question seule."
-            });
-            return;
-        }
-
-        const formData = new FormData();
-        formData.append('teacher-token', subjectData.teacherToken);
-        formData.append('student-token', subjectData.studentToken);
-        formData.append('topic', subjectData.topic);
-        formData.append('draft', subject ?? '');
-        formData.append('csrf-token', csrfToken ?? '');
-        formData.append('interdisciplinary', isInterdisciplinary ? '1' : '0');
-
-        if (result.type == "withDraft") {
-            formData.append('draft-file', result.file ?? "");
-        }
+        const payload = {
+            'teacher-token': subjectData.teacherToken,
+            'student-token': subjectData.studentToken,
+            'topic': subjectData.topic,
+            'draft': subject,
+            'interdisciplinary': isInterdisciplinary,
+            'csrf-token': csrfToken,
+        };
 
         const res = await goralysFetchClient("subjects/save-draft", {
             method: "POST",
             credentials: "include",
-            body: formData,
+            body: JSON.stringify(payload),
         });
 
         const data = await res.json();
@@ -80,11 +65,10 @@ export default function StudentCard({subjectData, onUpdateAction}: {subjectData:
 
         if (!await confirm.showConfirm({
             title: "Envoi",
-            message: "Êtes-vous sûr de vouloir envoyer cette question au professeur ? Pour joindre un fichier, annulez " +
-                "et utilisez \"Enregistrer comme brouillon\" à la place."
+            message: "Êtes-vous sûr de vouloir envoyer cette question au professeur ?"
         })) return;
 
-        if (subject.trim() === subjectData.lastRejected?.trim()) {
+        if (subject?.trim() === subjectData.lastRejected?.trim()) {
             toast.showToast({
                 type: "warning",
                 title: "Envoi",
@@ -94,22 +78,37 @@ export default function StudentCard({subjectData, onUpdateAction}: {subjectData:
         }
 
         const csrfToken = await fetchCsrfClient("submit-subject");
+        const result = await modal.showDraftModal();
 
-        const payload = {
-            'teacher-token': subjectData.teacherToken,
-            'student-token': subjectData.studentToken,
-            'topic': subjectData.topic,
-            'subject': subject,
-            'interdisciplinary': isInterdisciplinary,
-            'csrf-token': csrfToken,
-        };
+        if (result.type === "closed") return;
+
+        if (result.type == "withDraft" && !result.file) {
+            toast.showToast({
+                type: "warning",
+                title: "Envoi",
+                message: "Veuillez choisir un brouillon ou envoyer la question seule."
+            });
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('teacher-token', subjectData.teacherToken);
+        formData.append('student-token', subjectData.studentToken);
+        formData.append('topic', subjectData.topic);
+        formData.append('subject', subject ?? '');
+        formData.append('csrf-token', csrfToken ?? '');
+        formData.append('interdisciplinary', isInterdisciplinary ? '1' : '0')
+
+        if (result.type == "withDraft") {
+            formData.append('draft-file', result.file ?? "");
+        }
 
         const res = await goralysFetchClient(
             "subjects/submit",
             {
                 method: "POST",
                 credentials: "include",
-                body: JSON.stringify(payload),
+                body: formData,
             }
         );
 

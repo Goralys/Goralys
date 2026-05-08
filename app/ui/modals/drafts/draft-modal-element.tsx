@@ -41,7 +41,7 @@ export default function DraftModalElement({ visible, onChooseDraftAction, onCanc
                 <div className="flex flex-col justify-center flex-1">
                     <strong className="text-md">Choix du brouillon</strong>
                     <span className="text-sm">
-                        Vous pouvez joindre un brouillon a votre question avant de l&apos;enregistrer. Le professeur pourra
+                        Vous pouvez joindre un brouillon à votre question avant de l&apos;envoyer. Le professeur pourra
                         ensuite le télécharger et le consulter.
                     </span>
                 </div>
@@ -51,14 +51,14 @@ export default function DraftModalElement({ visible, onChooseDraftAction, onCanc
 
             <div className="flex justify-between gap-2 mt-2">
                 <Button
-                    className="bg-gray-400! before:bg-gray-500! text-white! border-none! shadow-none! mt-0! mb-0! h-11! w-53!"
-                    text="Enregistrer la question seule"
+                    className="bg-gray-400! before:bg-gray-500! text-white! border-none! shadow-none! mt-0! mb-0! h-11! w-50!"
+                    text="Envoyer la question seule"
                     type="button"
                     onClick={onCancelAction}
                 />
                 <Button
-                    className="bg-blue-500! before:bg-blue-600! text-white! border-none! shadow-none! mt-0! mb-0! h-11! w-53!"
-                    text="Enregistrer le brouillon"
+                    className="bg-blue-500! before:bg-blue-600! text-white! border-none! shadow-none! mt-0! mb-0! h-11! w-50!"
+                    text="Envoyer le brouillon"
                     type="button"
                     onClick={onConfirm}
                 />
