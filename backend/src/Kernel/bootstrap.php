@@ -16,6 +16,10 @@ use Goralys\Kernel\GoralysKernel;
  */
 function bootstrapAPI(GoralysKernel $kernel): void
 {
+    if (isset($_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'])) {
+        $_SERVER['REQUEST_METHOD'] = $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'];
+    }
+
     error_log("BOOTSTRAP - 1: " . $_SERVER['REQUEST_METHOD'] . " " . $_SERVER['REQUEST_URI']);
 
     $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
@@ -30,9 +34,9 @@ function bootstrapAPI(GoralysKernel $kernel): void
         header('Vary: Origin');
     }
 
-    header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+    header('Access-Control-Allow-Methods: GET, POST, OPTIONS, DELETE, UPDATE, BREW, WHEN');
     header('Access-Control-Max-Age: 86400'); // 1 day
-    header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
+    header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, X-HTTP-Method-Override');
 
     // Preflight requests
     error_log("BOOTSTRAP - 2: preflight check, method=" . $_SERVER['REQUEST_METHOD']);
