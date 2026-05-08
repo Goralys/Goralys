@@ -40,7 +40,7 @@ final readonly class UserGetDTO implements JsonSerializable
     public static function fromFull(UserFullDTO $user, string $publicId): self
     {
         $username = $user->username;
-        $obfuscated = substr($username, 0, 2) . str_repeat('*', max(0, strlen($username) - 2));
+        $obfuscated = substr($username, 0, 2) . str_repeat('*', max(2, strlen($username) - rand(3, 7) - 2));
 
         return new self(
             $obfuscated,
@@ -59,7 +59,7 @@ final readonly class UserGetDTO implements JsonSerializable
     public static function fromVirtual(VirtualUserDTO $user, string $publicId): self
     {
         $username = $user->username;
-        $obfuscated = substr($username, 0, 2) . str_repeat('*', max(0, strlen($username) - 2));
+        $obfuscated = substr($username, 0, 2) . str_repeat('*', max(2, strlen($username) - rand(3, 7) - 2));
 
         return new self(
             $obfuscated,

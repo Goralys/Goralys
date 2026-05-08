@@ -3,7 +3,7 @@ import { ButtonSkeleton } from "@/app/ui/skeletons/button";
 
 export default function AdminPannelCardSkeleton() {
     return (
-        <Card className="flex-col w-200! bg-sky-200 gap-1 p-1 mb-1 mt-1">
+        <Card className="flex-col w-175! bg-sky-200 gap-1 p-1 mb-1 mt-1">
             <div className="flex flex-row justify-between items-center">
                 <div className="flex flex-row">
                     <div className="skeleton h-7 w-7 rounded-xs mr-1.5" />

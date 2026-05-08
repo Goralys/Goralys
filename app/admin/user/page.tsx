@@ -19,7 +19,8 @@ export default function Page() {
 
     return (
         <div className="relative flex flex-col grow h-fit items-center top-10">
-            <div className="h-auto w-fit p-2 mt-4 flex flex-col 3xl:flex-row 3xl:items-start 3xl:gap-10">
+            <div className="h-auto w-fit p-2 mt-4 flex flex-col users-pannel:flex-row users-pannel:items-start
+                            users-pannel:gap-10">
                 <div className="mb-5">
                     <p className="underline text-2xl self-start mb-3">Les utilisateurs de l&apos;établissement :</p>
                     <Suspense fallback={<div className="flex flex-col gap-2">{skeletons}</div>}>

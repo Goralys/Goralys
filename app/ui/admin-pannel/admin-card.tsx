@@ -58,18 +58,17 @@ export default function AdminCard({ admin, onUpdateAction, syncKey }
     };
 
     const revokeAccess = async () => await fetchAdmin('admin/revoke', 'revoke-admin');
-
     return (
-        <Card className="flex-col w-200! bg-sky-200 gap-1 p-1 mb-1 mt-1">
+        <Card className="flex-col w-175! bg-sky-200 gap-1 p-1 mb-1 mt-1">
             <div className="flex flex-row justify-between items-center">
                 <div className="flex flex-row">
                     <ShieldExclamationIcon width={27.5} className="mr-1.5" />
                     <strong>{admin.fullName} ({admin.username})</strong>
                 </div>
-                <div className="flex flex-row w-100 gap-1">
+                <div className="flex flex-row w-100 gap-1 justify-end">
                     {
                         cookies.get("public-id") === admin.publicId
-                            ? <p>(vous)</p>
+                            ? <p className="ml-auto">(vous)</p>
                             : <Button color="red" className="w-50!" type="button" text="Révoquer l'accès" onClick={revokeAccess} />
                     }
                 </div>

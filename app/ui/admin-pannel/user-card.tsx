@@ -85,7 +85,7 @@ export default function UserCard({ user, onUpdateAction, syncKey }
                             : <AcademicCapIcon width={27.5} className="mr-1.5"/>
                     }
                     <button title="Consulter l'identifiant" className="cursor-pointer" onClick={showUsername}>
-                        <strong>{user.fullName} ({user.username})</strong>
+                        <strong>{user.fullName.length > 25 ? user.fullName.substring(0, 24) + "..." : user.fullName} ({user.username})</strong>
                     </button>
                 </div>
                 <div className="flex flex-row w-100 gap-1">
