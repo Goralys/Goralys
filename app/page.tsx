@@ -11,7 +11,6 @@
 'use client';
 
 import Image from "next/image";
-
 export default function Home() {
     return (
         <div className="flex flex-col min-h-screen w-full">
@@ -24,7 +23,7 @@ export default function Home() {
                         alt="Affiche du Grand Oral"
                         width={600}
                         height={800}
-                        className="rounded-md shadow-md w-full h-auto mt-5 landing-page:mt-0"
+                        className="rounded-md shadow-md w-auto max-h-screen mt-5 landing-page:mt-0"
                     />
                 </div>
 

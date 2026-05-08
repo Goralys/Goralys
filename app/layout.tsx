@@ -7,6 +7,7 @@ import {AuthListener} from "@/app/lib/auth/auth-listener";
 import FlashToastListener from "@/app/ui/toast/flash-toast-listener";
 import {UserListener} from "@/app/lib/auth/user-listerner";
 import {Providers} from "@/app/ui/modals/providers";
+import CookieBanner from "@/app/ui/basic/cookies-banner";
 
 export const metadata: Metadata = {
   title: "Goralys",
@@ -41,6 +42,7 @@ export default function RootLayout({children}: Readonly<{children: React.ReactNo
             <SideNav />
             <main className="flex ml-55 w-full">
                 {children}
+                <CookieBanner />
             </main>
         </div>
     </Providers>

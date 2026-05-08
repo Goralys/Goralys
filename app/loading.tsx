@@ -1,4 +1,4 @@
-import GoralysLogoLoader from "@/app/ui/logo/goralys-logo-loader";
+import GoralysLogoLoader from "@/app/ui/basic/goralys-logo-loader";
 
 export default function Loading() {
     return (

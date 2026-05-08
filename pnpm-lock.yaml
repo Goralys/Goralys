@@ -11,6 +11,9 @@ importers:
       '@heroicons/react':
         specifier: ^2.2.0
         version: 2.2.0(react@19.2.1)
+      '@sidekickicons/react':
+        specifier: ^0.15.0
+        version: 0.15.0(react@19.2.1)
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
@@ -444,6 +447,11 @@ packages:
 
   '@rtsao/scc@1.1.0':
     resolution: {integrity: sha512-zt6OdqaDoOnJ1ZYsCYGt9YmWzDXl4vQdKTyJev62gFhRGKdx7mcT54V9KIjg+d2wi9EXsPvAPKe7i7WjfVWB8g==}
+
+  '@sidekickicons/react@0.15.0':
+    resolution: {integrity: sha512-z59NZ/Pb58aqVDrSuvpDTscudkKU4DFrhawA05TU+zRpwJYiGP21qXgAcgPeHNm38FJm/lygw8ZVCHI7kYr0Sg==}
+    peerDependencies:
+      react: '>= 16 || ^19.0.0-rc'
 
   '@swc/helpers@0.5.15':
     resolution: {integrity: sha512-JQ5TuMi45Owi4/BIMAJBoSQoOJu12oOk/gADqlcUL9JEdHB8vyjUSsxqeNXnmXHjYKMi2WcYtezGEEhqUI/E2g==}
@@ -2447,6 +2455,10 @@ snapshots:
   '@nolyfill/is-core-module@1.0.39': {}
 
   '@rtsao/scc@1.1.0': {}
+
+  '@sidekickicons/react@0.15.0(react@19.2.1)':
+    dependencies:
+      react: 19.2.1
 
   '@swc/helpers@0.5.15':
     dependencies:

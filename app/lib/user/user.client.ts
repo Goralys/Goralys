@@ -30,6 +30,7 @@ export function emptyUserCacheClient() {
 
     Object.keys(cookies.getAll())
         .forEach((name) => {
+            if (name == "cookie-banner-dismissed") return;
             cookies.remove(name, { path: "/" });
         });
 
