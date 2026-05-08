@@ -38,7 +38,6 @@ final class AuthMiddleware implements MiddlewareInterface
     public function handle(GoralysKernel $kernel, callable $next): mixed
     {
         if (in_array('weak', $this->options)) {
-            $kernel->logger->debug(LoggerInitiator::APP, "Running weak auth middleware\n" . print_r($_SESSION, true));
             if (!$kernel->checkAuth()) {
                 unset($_SESSION["current_username"]);
                 unset($_SESSION["current_role"]);
@@ -49,7 +48,6 @@ final class AuthMiddleware implements MiddlewareInterface
 
             return $next($kernel);
         }
-        $kernel->logger->debug(LoggerInitiator::APP, "Running string auth middleware\n" . print_r($_SESSION, true));
         $kernel->requireAuth($this->endpoint);
         return $next($kernel);
     }

@@ -515,11 +515,6 @@ class GoralysKernel
 
     public function deferredResponse(int $code = 200): DeferredResponseInterface
     {
-        $this->logger->debug(
-            LoggerInitiator::KERNEL,
-            "Sending deferred response with context:\n"
-            . print_r($this->context, true),
-        );
         return new DeferredResponse($this->context, $code);
     }
 

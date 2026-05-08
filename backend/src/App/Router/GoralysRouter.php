@@ -36,6 +36,8 @@ final class GoralysRouter
         'GET' => [],
         'UPDATE' => [],
         'DELETE' => [],
+        'BREW' => [],
+        'WHEN' => [],
     ];
     /** @var array<string, class-string<MiddlewareInterface>>  */
     private array $middlewaresMap = [
@@ -122,6 +124,18 @@ final class GoralysRouter
     }
 
     /**
+     * Registers a BREW route.
+     * @param string $route The route path.
+     * @param Closure $handler The route handler.
+     * @param array ...$options Optional middleware and input option arrays.
+     * @return Route The registered route.
+     */
+    public function brew(string $route, Closure $handler, array ...$options): Route
+    {
+        return $this->add('BREW', $route, $handler, ...$options);
+    }
+
+    /**
      * @param list<MiddlewareInterface> $middlewares
      * @param callable $destination
      * @return mixed
@@ -160,10 +174,6 @@ final class GoralysRouter
         $route = $this->routes[$method][$path];
         $request = $this->kernel->request();
         $resolved = [];
-        $this->kernel->logger->debug(
-            LoggerInitiator::APP,
-            "Middlewares raw for $path: " . print_r($route->middlewares, true),
-        );
         foreach ($route->middlewares as $middleware) {
             $class = $this->middlewaresMap[$middleware->name] ?? null;
             if ($class === null) {

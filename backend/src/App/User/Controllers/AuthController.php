@@ -104,7 +104,6 @@ final class AuthController
 
             session_regenerate_id(true);
             $sessionData = $this->repo->getByUsername($userData->username);
-            $this->logger->debug(LoggerInitiator::APP, "Received user data: " . print_r($sessionData, true));
 
             $_SESSION['current_id'] = $sessionData->id;
             $_SESSION['current_full_name'] = $sessionData->fullName;

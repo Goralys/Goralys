@@ -57,11 +57,6 @@ final class CSRFService
                 array_shift($_SESSION["csrf-tokens-table"][$formId]);
             }
 
-            $this->logger->debug(
-                LoggerInitiator::APP,
-                "Successfully created new token for form " . $formId . ", token : " . $token
-                . ". New session : " . print_r($_SESSION, true),
-            );
             return true;
         } catch (RandomException $e) {
             $this->logger->error(
@@ -86,10 +81,6 @@ final class CSRFService
             $this->logger->error(
                 LoggerInitiator::APP,
                 "Foreign token form id encountered : " . $formId,
-            );
-            $this->logger->debug(
-                LoggerInitiator::APP,
-                "Current session : " . print_r($_SESSION, true),
             );
             return false;
         }
