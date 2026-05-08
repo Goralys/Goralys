@@ -8,7 +8,8 @@ import { useSubjects } from "@/app/hooks/useSubjects";
 import AdminCard from "@/app/ui/subjects/admin-card";
 import { Subject } from "@/app/lib/types";
 import { SubjectsSearchBar } from "@/app/ui/subjects/subjects-search-bar";
-import { useState } from "react";
+import { useState, Suspense } from "react";
+import AdminSubjectCardSkeleton from "@/app/ui/skeletons/subjects/admin-card";
 import { useConfirm } from "@/app/ui/modals/confirm/confirm-provider";
 import Cookies from "universal-cookie";
 
@@ -145,6 +146,8 @@ export default function Page() {
         }
     }
 
+    const skeletons = Array.from({ length: 3 }, (_, i) => <AdminSubjectCardSkeleton key={i} />);
+
     return (
         <div className="relative flex flex-col grow h-fit items-center top-10">
             <div className="h-auto w-fit p-2 bg-sky-200 rounded-md">
@@ -157,12 +160,20 @@ export default function Page() {
             </div>
             <div className="h-auto w-fit p-2 mt-4">
                 <p className="underline text-2xl self-start mb-3">Les questions de l&apos;établissement :</p>
-                <SubjectsSearchBar subjects={subjects} setCurrentSubjects={setCurrentSubjects} />
-                <div className="flex flex-col gap-2">
-                    {currentSubjects?.map((s) => (
-                        <AdminCard key={s.studentToken + s.teacherToken} subjectData={s} />
-                    ))}
-                </div>
+                <Suspense fallback={<div className="flex flex-col gap-2 items-center w-full">{skeletons}</div>}>
+                    {subjects === null ? (
+                        <div className="flex flex-col gap-2">{skeletons}</div>
+                    ) : (
+                        <>
+                            <SubjectsSearchBar subjects={subjects} setCurrentSubjects={setCurrentSubjects} />
+                            <div className="flex flex-col gap-2 items-center w-full">
+                                {currentSubjects?.map((s) => (
+                                    <AdminCard key={s.studentToken + s.teacherToken} subjectData={s} />
+                                ))}
+                            </div>
+                        </>
+                    )}
+                </Suspense>
             </div>
         </div>
     );

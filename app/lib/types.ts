@@ -173,3 +173,19 @@ export const searchFields = {
 } as const;
 
 export type SubjectsSearchField = keyof typeof searchFields
+
+export type SubjectInputSkeletonProps = {
+    showMeta?: boolean;
+}
+
+export type StudentCardSkeletonProps = {
+    showButtons?: boolean;
+}
+
+export type TeacherCardSkeletonProps = {
+    showButtons?: boolean;
+}
+
+export type UserCardSkeletonProps = {
+    showReplaceTeacher?: boolean;
+}
