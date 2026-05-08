@@ -49,6 +49,17 @@ input:not(:-webkit-autofill) {
     animation-duration: 1ms;
 }
 
+@keyframes skeleton-shimmer {
+    0%   { background-position: -800px 0; }
+    100% { background-position: 800px 0; }
+}
+
+.skeleton {
+    background: linear-gradient(90deg, #7dd3fc 25%, #e0f2fe 50%, #7dd3fc 75%);
+    background-size: 1600px 100%;
+    animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
 @media (max-width: 1023px) {
     html, body {
         overflow: hidden;

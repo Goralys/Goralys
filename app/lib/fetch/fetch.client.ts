@@ -44,6 +44,17 @@ export async function goralysFetchClient(input: string | URL | Request, requestO
         }
     }
 
+    // Tea pot
+    if (res.status === 418) {
+        const data = await res.json();
+        const params = encodeURIComponent(JSON.stringify({
+            toastType: data.toastType,
+            toastTitle: data.toastTitle,
+            toastMessage: data.toastMessage,
+        }));
+        window.location.href = `/errors/teapot?toast=${params}`;
+    }
+
     await actionHandler.handle(res);
     return res;
 }
