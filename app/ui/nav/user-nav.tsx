@@ -24,7 +24,7 @@ export function UserNav() {
             setLoggedIn(isLoggedIn);
 
             let name = isLoggedIn ? (cookies.get("full-name") ?? "") : "Se connecter";
-            if (name.length > 20) name = name.substring(0, 17) + "...";
+            if (name.length > 20) name = name.substring(0, 19) + "...";
             setText(name);
         };
 
@@ -55,7 +55,7 @@ export function UserNav() {
     return (
         <Link
             className={clsx(
-                "h-12.5 w-full flex items-center gap-2 rounded-md transition-colors p-2",
+                "h-12.5 w-full flex items-center gap-2 rounded-md transition-colors p-1.5",
                 "hover:bg-sky-200 hover:text-sky-600",
                 {
                     "bg-sky-200 text-sky-600": isActive,

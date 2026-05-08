@@ -89,48 +89,10 @@ function createSubjectsRoutes(GoralysRouter $router): void
         function (GoralysKernel $kernel, RequestInterface $request) {
             $kernel->guard->matchCurrentUser($request, 'student-token')?->send();
 
-            $result = $kernel->subjects->updateField(
-                $kernel->usernameManager->get($request->get('teacher-token')),
-                $kernel->usernameManager->get($request->get('student-token')),
-                $request->get('topic'),
-                SubjectFields::SUBJECT,
-                $request->get('draft'),
-                (bool) $request->get('interdisciplinary'),
-            );
-
-            if (!$result) {
-                $kernel->deferredResponse(500)->error( // Internal server error
-                    "Une erreur interne est survenue lors de l'enregistrement de votre brouillon, 
-            veuillez réessayer ultérieurement.",
-                )
-                ->send();
-            }
-
-            $kernel->deferredResponse()->toast(
-                ToastType::INFO,
-                "Question",
-                "Votre brouillon a bien été enregistré.",
-            )
-            ->send();
-        },
-        ...RouterOptions::$INPUT::require("draft", "topic", "teacher-token", "student-token"),
-        ...RouterOptions::$INPUT::onFailure(
-            "Une erreur interne est survenue lors de l'enregistrement de votre brouillon, 
-            veuillez réessayer ultérieurement.",
-            "/subject/",
-        ),
-    )
-            ->middlewares(...MiddlewareSets::subjectsRoute('save-draft', UserRole::STUDENT));
-
-    $router->post(
-        'subjects/submit',
-        function (GoralysKernel $kernel, RequestInterface $request) {
-            $kernel->guard->matchCurrentUser($request, 'student-token')?->send();
-
             $teacherUsername = $kernel->usernameManager->get($request->get('teacher-token'));
             $studentUsername = $kernel->usernameManager->get($request->get('student-token'));
             $topic = $request->get('topic');
-            $subject = $request->get('subject');
+            $subject = $request->get('draft');
             $interdisciplinary = (bool) $request->get('interdisciplinary');
             $draftFile = $kernel->fileManager->get("draft-file");
 
@@ -160,6 +122,65 @@ function createSubjectsRoutes(GoralysRouter $router): void
                 );
             }
 
+            if ($draftFile) {
+                $updateResult = $kernel->subjects->draftsManager->update($studentUsername, $teacherUsername, $topic);
+
+                if (!$updateResult) {
+                    $kernel->db->rollback();
+                    $kernel->toast->fatalError(
+                        500,
+                        "Votre question n'a pas pu être envoyée, car votre brouillon n'a pas pu être enregistré. 
+                        Veuillez réessayer ultérieurement.",
+                    );
+                }
+            }
+
+            $kernel->db->commit();
+            $kernel->deferredResponse()->toast(
+                ToastType::INFO,
+                "Question",
+                "Votre brouillon a bien été enregistré.",
+            )
+            ->send();
+        },
+        ...RouterOptions::$INPUT::require("draft", "topic", "teacher-token", "student-token"),
+        ...RouterOptions::$INPUT::onFailure(
+            "Une erreur interne est survenue lors de l'enregistrement de votre brouillon, 
+            veuillez réessayer ultérieurement.",
+            "/subject/",
+        ),
+    )
+            ->middlewares(...MiddlewareSets::subjectsRoute('save-draft', UserRole::STUDENT, transaction: true));
+
+    $router->post(
+        'subjects/submit',
+        function (GoralysKernel $kernel, RequestInterface $request) {
+            $kernel->guard->matchCurrentUser($request, 'student-token')?->send();
+
+            $teacherUsername = $kernel->usernameManager->get($request->get('teacher-token'));
+            $studentUsername = $kernel->usernameManager->get($request->get('student-token'));
+            $topic = $request->get('topic');
+            $subject = $request->get('subject');
+            $interdisciplinary = (bool) $request->get('interdisciplinary');
+
+            $subjectResult = $kernel->subjects->updateField(
+                $teacherUsername,
+                $studentUsername,
+                $topic,
+                SubjectFields::SUBJECT,
+                $subject,
+                $interdisciplinary,
+            );
+
+            if (!$subjectResult) {
+                $kernel->db->rollback();
+                $kernel->toast->fatalError(
+                    500,
+                    "Une erreur interne est survenue lors de l'enregistrement de votre question, 
+                    veuillez réessayer ultérieurement.",
+                );
+            }
+
             $statusResult = $kernel->subjects->updateField(
                 $teacherUsername,
                 $studentUsername,
@@ -176,22 +197,13 @@ function createSubjectsRoutes(GoralysRouter $router): void
                 );
             }
 
-            if ($draftFile) {
-                $updateResult = $kernel->subjects->draftsManager->update($studentUsername, $teacherUsername, $topic);
-
-                if (!$updateResult) {
-                    $kernel->db->rollback();
-                    $kernel->toast->fatalError(
-                        500,
-                        "Votre question n'a pas pu être envoyée, car votre brouillon n'a pas pu être enregistré. 
-                Veuillez réessayer ultérieurement.",
-                    );
-                }
-            }
-
             $kernel->db->commit();
-            $kernel->toast->showToast(ToastType::INFO, "Question", "Votre question a bien été envoyée.", "");
-            $kernel->response()->http();
+            $kernel->deferredResponse()->toast(
+                ToastType::INFO,
+                "Question",
+                "Votre question a bien été envoyée.",
+            )
+                ->send();
         },
         ...RouterOptions::$INPUT::require("subject", "topic", "teacher-token", "student-token"),
         ...RouterOptions::$INPUT::onFailure(
@@ -199,7 +211,7 @@ function createSubjectsRoutes(GoralysRouter $router): void
             "/subject/",
         ),
     )
-            ->middlewares(...MiddlewareSets::subjectsRoute('submit-subject', UserRole::STUDENT));
+            ->middlewares(...MiddlewareSets::subjectsRoute('submit-subject', UserRole::STUDENT, transaction: true));
 
     // -------------------------
     // [SUB SECTION] Teacher

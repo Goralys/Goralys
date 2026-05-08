@@ -22,7 +22,7 @@ export default function ToastElement({ type, title, message, visible }: ToastPro
             className={clsx(
                 "fixed flex gap-2 p-3 h-22 w-115 bg-sky-300 rounded shadow overflow-hidden left-1/2 -translate-x-1/2 top-1 ",
                 "after:absolute after:left-0 after:top-0 after:h-full after:w-1.25 after:content-['']",
-                "transition-all duration-500 z-10 ",
+                "transition-all duration-500 z-10",
                 {
                     "after:bg-blue-600": type === "info",
                     "after:bg-green-600": type === "success",

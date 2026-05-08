@@ -9,9 +9,11 @@ import {fetchCsrfClient, goralysFetchClient} from "@/app/lib/fetch/fetch.client"
 import {useToast} from "@/app/ui/toast/toast-provider";
 import Cookies from "universal-cookie";
 import {useDraftModal} from "@/app/ui/modals/drafts/draft-modal-provider";
+import {useConfirm} from "@/app/ui/modals/confirm/confirm-provider";
 
 export default function StudentCard({subjectData, onUpdateAction}: {subjectData: Subject, onUpdateAction: () => void}) {
     const toast = useToast();
+    const confirm = useConfirm();
     const [subject, setSubject] = useState<string | null>(subjectData.subject);
     const [isInterdisciplinary, setIsInterdisciplinary] = useState<boolean>(subjectData.interdisciplinary);
     const modal = useDraftModal();
@@ -19,20 +21,35 @@ export default function StudentCard({subjectData, onUpdateAction}: {subjectData:
 
     async function saveDraft() {
         const csrfToken = await fetchCsrfClient("save-draft");
+        const result = await modal.showDraftModal();
 
-        const payload = {
-            'teacher-token': subjectData.teacherToken,
-            'student-token': subjectData.studentToken,
-            'topic': subjectData.topic,
-            'draft': subject,
-            'interdisciplinary': isInterdisciplinary,
-            'csrf-token': csrfToken,
-        };
+        if (result.type === "closed") return;
+
+        if (result.type == "withDraft" && !result.file) {
+            toast.showToast({
+                type: "warning",
+                title: "Envoi",
+                message: "Veuillez choisir un brouillon ou envoyer la question seule."
+            });
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('teacher-token', subjectData.teacherToken);
+        formData.append('student-token', subjectData.studentToken);
+        formData.append('topic', subjectData.topic);
+        formData.append('draft', subject ?? '');
+        formData.append('csrf-token', csrfToken ?? '');
+        formData.append('interdisciplinary', isInterdisciplinary ? '1' : '0');
+
+        if (result.type == "withDraft") {
+            formData.append('draft-file', result.file ?? "");
+        }
 
         const res = await goralysFetchClient("subjects/save-draft", {
             method: "POST",
             credentials: "include",
-            body: JSON.stringify(payload),
+            body: formData,
         });
 
         const data = await res.json();
@@ -52,7 +69,22 @@ export default function StudentCard({subjectData, onUpdateAction}: {subjectData:
     }
 
     async function sendSubject() {
-        if (subject?.trim() === subjectData.lastRejected?.trim()) {
+        if (!subject || subject.trim() == "") {
+            toast.showToast({
+                type: "warning",
+                title: "Envoi",
+                message: "Veuillez saisir une question."
+            });
+            return;
+        }
+
+        if (!await confirm.showConfirm({
+            title: "Envoi",
+            message: "Êtes-vous sûr de vouloir envoyer cette question au professeur ? Pour joindre un fichier, annulez " +
+                "et utilisez \"Enregistrer comme brouillon\" à la place."
+        })) return;
+
+        if (subject.trim() === subjectData.lastRejected?.trim()) {
             toast.showToast({
                 type: "warning",
                 title: "Envoi",
@@ -62,37 +94,22 @@ export default function StudentCard({subjectData, onUpdateAction}: {subjectData:
         }
 
         const csrfToken = await fetchCsrfClient("submit-subject");
-        const result = await modal.showDraftModal();
 
-        if (result.type === "closed") return;
-
-        if (result.type == "withDraft" && !result.file) {
-            toast.showToast({
-                type: "warning",
-                title: "Envoi",
-                message: "Veuillez choisir un brouillon ou envoyer la question seule."
-            });
-            return;
-        }
-
-        const formData = new FormData();
-        formData.append('teacher-token', subjectData.teacherToken);
-        formData.append('student-token', subjectData.studentToken);
-        formData.append('topic', subjectData.topic);
-        formData.append('subject', subject ?? '');
-        formData.append('csrf-token', csrfToken ?? '');
-        formData.append('interdisciplinary', isInterdisciplinary ? '1' : '0')
-
-        if (result.type == "withDraft") {
-            formData.append('draft-file', result.file ?? "");
-        }
+        const payload = {
+            'teacher-token': subjectData.teacherToken,
+            'student-token': subjectData.studentToken,
+            'topic': subjectData.topic,
+            'subject': subject,
+            'interdisciplinary': isInterdisciplinary,
+            'csrf-token': csrfToken,
+        };
 
         const res = await goralysFetchClient(
             "subjects/submit",
             {
                 method: "POST",
                 credentials: "include",
-                body: formData,
+                body: JSON.stringify(payload),
             }
         );
 
@@ -134,8 +151,8 @@ export default function StudentCard({subjectData, onUpdateAction}: {subjectData:
             />
             {!(subjectData.status === "submitted" || subjectData.status === "approved")
             && <>
-                <Button className="mb-1! mt-1!" text="Envoyer la question" type="button" onClick={sendSubject} />
                 <Button className="mb-1! mt-1!" text="Enregistrer comme brouillon" type="button" onClick={saveDraft} />
+                <Button className="mb-1! mt-1!" text="Envoyer la question" type="button" onClick={sendSubject} />
             </>}
         </div>
     );
