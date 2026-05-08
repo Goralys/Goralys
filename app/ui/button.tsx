@@ -2,9 +2,9 @@ import {ButtonProps} from "@/app/lib/types";
 
 const colors: Record<NonNullable<ButtonProps['color']>, string> = {
     "sky": "bg-sky-100 border-sky-300 before:bg-sky-300",
-    "red": "bg-red-100 border-red-300 before:bg-red-300",
-    "green": "bg-green-100 border-green-300 before:bg-green-300",
-    "amber": "bg-amber-100 border-amber-300 before:bg-amber-300",
+    "red": "bg-red-50 border-red-300 before:bg-red-300",
+    "green": "bg-green-50 border-green-300 before:bg-green-300",
+    "amber": "bg-amber-50 border-amber-300 before:bg-amber-300",
 }
 
 export function Button({ text, type, className, onClick, color = "sky"}: ButtonProps) {

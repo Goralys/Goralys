@@ -53,10 +53,11 @@ export function SubjectInputTeacher({ id, label, helper, subjectData, onChangeAc
                         <input type="hidden" name="student-token" value={subjectData.studentToken} />
                         <input type="hidden" name="topic" value={subjectData.topic} />
                         <input type="hidden" name="file-name" value={`Brouillon - ${subjectData.student} ${subjectData.topic}`} />
-                        <button className="h-6 w-6 cursor-pointer bg-sky-300 rounded-xs"
+                        <button className="h-6 w-6 cursor-pointer bg-sky-200 rounded-md items-center justify-center
+                        hover:bg-sky-300 hover:shadow-md hover:-translate-y-1 transition-all ease-out duration-500"
                                 type="submit"
                                 title="Télécharger le brouillon de l'élève">
-                            <ArrowDownTrayIcon className="size-5" />
+                            <ArrowDownTrayIcon className="size-5 m-auto" />
                         </button>
                     </form>
                 }
