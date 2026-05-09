@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import {useEffect} from "react";
-import {goralysFetchClient} from "@/app/lib/fetch/fetch.client";
+import { useEffect } from "react";
+import { goralysFetchClient } from "@/app/lib/fetch/fetch.client";
 
-export default function Page() {
+export default function TeaPage(): void {
     useEffect(() => {
-        goralysFetchClient('tea', {
+        goralysFetchClient("tea", {
             method: "POST",
             headers: {
-                'X-HTTP-Method-Override': 'BREW',
-            }
+                "X-HTTP-Method-Override": "BREW",
+            },
         }).then();
     }, []);
 }

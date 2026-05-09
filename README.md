@@ -13,29 +13,31 @@ Goralys is a lightweight web app to manage "Grand Oral" topics for students and 
 ## Quick start (development)
 
 Prerequisites:
+
 - PHP 8.5+ with mysqli
 - Composer
 - pnpm package manager
 
 Steps:
+
 1. Run setup script:
-   ```bash
-   .\scripts\setup.bat
-   ```
-   Or if you use Linux:
-   ```bash
-   ./scripts/setup.sh
-   ```
+    ```bash
+    .\scripts\setup.bat
+    ```
+    Or if you use Linux:
+    ```bash
+    ./scripts/setup.sh
+    ```
 2. Configure environment:
     - For development, modify the values inside .env (created using setup.bat)
 3. Database:
     - Create the database and tables using the schema at [backend/data_structure.sql](backend/data_structure.sql).
 4. Run dev server:
     - Run Next and PHP's built-in server for the API. By default, the next rewrite port for the API is 80:
-      ```bash
-      pnpm run dev
-      php -S localhost:80
-      ```
+        ```bash
+        pnpm run dev
+        php -S localhost:80
+        ```
 5. Access the app:
     - Visit `http://localhost/goralys/` (or `http://localhost:8000` if using built-in server).
 
@@ -61,9 +63,9 @@ format, the system will not be able to import it successfully.
 - Passwords:
     - Passwords are hashed using PHP's `password_hash` ([`RegisterService::register`](backend/src/Core/User/Services/RegisterService.php)) and verified with `password_verify` ([`LoginService::login`](backend/src/Core/User/Services/LoginService.php)).
 - Sensitive config:
-    - You *must* use `.env` to configure your project.
+    - You _must_ use `.env` to configure your project.
 
-*Note: the `develop` branch serves as a pre-production playground, so some commits may include experimental or buggy code — I try to minimize this as much as possible.*
+_Note: the `develop` branch serves as a pre-production playground, so some commits may include experimental or buggy code — I try to minimize this as much as possible._
 
 ## Key code pointers
 
@@ -78,12 +80,14 @@ format, the system will not be able to import it successfully.
 ## Project structure
 
 ### Frontend (Next.js)
+
 - `app/`: Contains the application pages and logic.
 - `app/subject/`: Student, Teacher, and Admin dashboards.
 - `app/hooks/`: React hooks for data fetching and state management.
 - `app/ui/`: Reusable UI components.
 
 ### Backend (PHP)
+
 - `backend/API/`: API endpoints, acting as entry points for the kernel.
 - `backend/src/Kernel/`: The core of the backend, handles initialization and request management.
 - `backend/src/App/`: Controllers and application-level services.
@@ -93,7 +97,7 @@ format, the system will not be able to import it successfully.
 
 ## License and contributing information
 
-This project was originally licensed under the MIT license, as of version 2.1.1, this project is now licensed under the 
+This project was originally licensed under the MIT license, as of version 2.1.1, this project is now licensed under the
 GNU Affero General Public License v3.0 (see: [`LICENSE`](LICENSE)). Third-party licenses can be found in [`THIRD-LICENSE-PARTY`](THIRD-PARTY-LICENSE).
 All contributions are welcome as long as they respect the terms inside [`Contributing`](CONTRIBUTING.md).
 

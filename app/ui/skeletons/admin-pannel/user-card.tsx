@@ -1,9 +1,13 @@
-import { UserCardSkeletonProps } from "@/app/lib/types";
 import { Card } from "@/app/ui/card";
 import { ButtonSkeleton } from "@/app/ui/skeletons/button";
 import { ReplaceTeacherSkeleton } from "@/app/ui/skeletons/admin-pannel/replace-teacher";
+import { ReactElement } from "react";
 
-export default function UserCardSkeleton({ showReplaceTeacher = false }: UserCardSkeletonProps) {
+interface UserCardSkeletonProps {
+    showReplaceTeacher?: boolean;
+}
+
+export default function UserCardSkeleton({ showReplaceTeacher = false }: UserCardSkeletonProps): ReactElement {
     return (
         <Card className="flex-col w-200! bg-sky-200 gap-1 p-1 mb-1 mt-1">
             <div className="flex flex-row justify-between items-center">

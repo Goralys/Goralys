@@ -1,9 +1,13 @@
-import { StudentCardSkeletonProps } from "@/app/lib/types";
 import { SubjectInputSkeleton } from "@/app/ui/skeletons/inputs/subject-input";
 import { CommentSkeleton } from "@/app/ui/skeletons/subjects/comment";
 import { ButtonSkeleton } from "@/app/ui/skeletons/button";
+import { ReactElement } from "react";
 
-export default function StudentCardSkeleton({ showButtons = true }: StudentCardSkeletonProps) {
+interface StudentCardSkeletonProps {
+    showButtons?: boolean;
+}
+
+export default function StudentCardSkeleton({ showButtons = true }: StudentCardSkeletonProps): ReactElement {
     return (
         <div className="h-fit w-200 flex flex-col bg-sky-200 gap-1 p-1 mb-1 mt-1">
             <div className="flex flex-row w-full justify-between">

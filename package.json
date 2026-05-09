@@ -1,35 +1,37 @@
 {
-  "name": "goralys",
-  "version": "2.0.0",
-  "private": true,
-  "license": "AGPL-3.0-or-later",
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint app",
-    "phpcs": "php backend/vendor/bin/phpcs --standard=PSR12 --ignore=vendor/* backend",
-    "phpcbf": "php backend/vendor/bin/phpcbf --standard=PSR12 --ignore=vendor/* backend",
-    "check": "npm-run-all lint phpcs"
-  },
-  "dependencies": {
-    "@heroicons/react": "^2.2.0",
-    "@sidekickicons/react": "^0.15.0",
-    "clsx": "^2.1.1",
-    "next": "16.2.3",
-    "npm-run-all": "^4.1.5",
-    "react": "19.2.1",
-    "react-dom": "19.2.1",
-    "universal-cookie": "^8.0.1"
-  },
-  "devDependencies": {
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "16.0.10",
-    "tailwindcss": "^4",
-    "typescript": "^5"
-  }
+    "name": "goralys",
+    "version": "2.0.0",
+    "private": true,
+    "license": "AGPL-3.0-or-later",
+    "scripts": {
+        "dev": "next dev",
+        "build": "next build",
+        "start": "next start",
+        "lint": "eslint app",
+        "phpcs": "php backend/vendor/bin/php-cs-fixer fix --config=backend/.php-cs-fixer.php",
+        "check": "npm-run-all lint phpcs"
+    },
+    "dependencies": {
+        "@heroicons/react": "^2.2.0",
+        "@sidekickicons/react": "^0.15.0",
+        "clsx": "^2.1.1",
+        "eslint-config-prettier": "^10.1.8",
+        "eslint-plugin-prettier": "^5.5.5",
+        "next": "16.2.3",
+        "npm-run-all": "^4.1.5",
+        "prettier": "^3.8.3",
+        "react": "19.2.1",
+        "react-dom": "19.2.1",
+        "universal-cookie": "^8.0.1"
+    },
+    "devDependencies": {
+        "@tailwindcss/postcss": "^4",
+        "@types/node": "^20",
+        "@types/react": "^19",
+        "@types/react-dom": "^19",
+        "eslint": "^9",
+        "eslint-config-next": "16.0.10",
+        "tailwindcss": "^4",
+        "typescript": "^5"
+    }
 }

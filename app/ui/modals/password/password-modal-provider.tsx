@@ -1,9 +1,9 @@
-'use client';
-'use no memo';
+"use client";
+"use no memo";
 
-import {createContext, useContext, useState, ReactNode, useCallback, useMemo} from "react";
+import { createContext, useContext, useState, ReactNode, useCallback, useMemo, ReactElement } from "react";
 import PasswordModalElement from "@/app/ui/modals/password/password-modal-element";
-import {createPortal} from "react-dom";
+import { createPortal } from "react-dom";
 
 export type PasswordModalContext = {
     showPasswordModal: () => Promise<string | null>;
@@ -11,7 +11,7 @@ export type PasswordModalContext = {
 
 const PasswordModalContext = createContext<PasswordModalContext | null>(null);
 
-export function PasswordModalProvider({ children }: { children: ReactNode }) {
+export function PasswordModalProvider({ children }: { children: ReactNode }): ReactElement {
     const [state, setState] = useState<{
         resolve: (value: string | null) => void;
     } | null>(null);
@@ -25,7 +25,7 @@ export function PasswordModalProvider({ children }: { children: ReactNode }) {
         });
     }, []);
 
-    function handleConfirm(password: string) {
+    function handleConfirm(password: string): void {
         setVisible(false);
         setTimeout(() => {
             state?.resolve(password);
@@ -33,7 +33,7 @@ export function PasswordModalProvider({ children }: { children: ReactNode }) {
         }, 500);
     }
 
-    function handleCancel() {
+    function handleCancel(): void {
         setVisible(false);
         setTimeout(() => {
             state?.resolve(null);
@@ -41,7 +41,7 @@ export function PasswordModalProvider({ children }: { children: ReactNode }) {
         }, 500);
     }
 
-    function handleClose() {
+    function handleClose(): void {
         setVisible(false);
         setTimeout(() => {
             state?.resolve(null);
@@ -55,7 +55,8 @@ export function PasswordModalProvider({ children }: { children: ReactNode }) {
         <PasswordModalContext.Provider value={value}>
             {children}
 
-            {state && typeof document !== "undefined" &&
+            {state &&
+                typeof document !== "undefined" &&
                 createPortal(
                     <div className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm">
                         <PasswordModalElement
@@ -65,14 +66,13 @@ export function PasswordModalProvider({ children }: { children: ReactNode }) {
                             onCloseModalAction={handleClose}
                         />
                     </div>,
-                    document.getElementById("password-modal-root")!
-                )
-            }
+                    document.getElementById("password-modal-root")!,
+                )}
         </PasswordModalContext.Provider>
     );
 }
 
-export function usePasswordModal() {
+export function usePasswordModal(): PasswordModalContext {
     const context = useContext(PasswordModalContext);
     if (!context) {
         throw new Error("usePasswordModal must be used within a PasswordModalProvider");

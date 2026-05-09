@@ -1,13 +1,20 @@
-'use client';
+"use client";
 
-import {clsx} from "clsx";
-import {ConfirmProps} from "@/app/lib/types";
-import {Button} from "@/app/ui/button";
-import {QuestionMarkCircleIcon} from "@heroicons/react/24/outline"
-import {useModalClose} from "@/app/lib/modals";
-import {useRef} from "react";
+import { clsx } from "clsx";
+import { Button } from "@/app/ui/button";
+import { QuestionMarkCircleIcon } from "@heroicons/react/24/outline";
+import { useModalClose } from "@/app/lib/modals";
+import { ReactElement, useRef } from "react";
 
-export default function ConfirmElement({ title, message, visible, onConfirmAction, onCancelAction }: ConfirmProps) {
+interface ConfirmProps {
+    title: string;
+    message: string;
+    visible: boolean;
+    onConfirmAction: () => void;
+    onCancelAction: () => void;
+}
+
+export default function ConfirmElement({ title, message, visible, onConfirmAction, onCancelAction }: ConfirmProps): ReactElement {
     const modalRef = useRef<HTMLDivElement>(null);
     useModalClose(modalRef, visible, onCancelAction);
 
@@ -21,7 +28,7 @@ export default function ConfirmElement({ title, message, visible, onConfirmActio
                 {
                     "translate-y-0 opacity-100": visible,
                     "-translate-y-5 opacity-0": !visible,
-                }
+                },
             )}
             role="dialog"
             aria-modal="true"
@@ -40,14 +47,14 @@ export default function ConfirmElement({ title, message, visible, onConfirmActio
             <div className="flex justify-between gap-2 mt-2">
                 <Button
                     className="bg-gray-400! before:bg-gray-500! text-white! border-none! shadow-none! mt-0! mb-0! w-25!"
-                    text="Annuler" 
-                    type="button" 
+                    text="Annuler"
+                    type="button"
                     onClick={onCancelAction}
                 />
-                <Button 
+                <Button
                     className="bg-blue-500! before:bg-blue-600! text-white! border-none! shadow-none! mt-0! mb-0! w-25!"
-                    text="Confirmer" 
-                    type="button" 
+                    text="Confirmer"
+                    type="button"
                     onClick={onConfirmAction}
                 />
             </div>

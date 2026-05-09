@@ -5,10 +5,10 @@
 
 // Client only fetches helpers.
 
-'use client';
+"use client";
 
-import {emitAuthEvent} from "@/app/lib/auth/auth-event";
-import {GoralysActionHandler} from "@/app/lib/fetch/goralys-action-handler"
+import { emitAuthEvent } from "@/app/lib/auth/auth-event";
+import { GoralysActionHandler } from "@/app/lib/fetch/goralys-action-handler";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_DOMAIN;
 const actionHandler = new GoralysActionHandler();
@@ -21,20 +21,20 @@ const actionHandler = new GoralysActionHandler();
  * @param requestOptions The options of the request, they are the same as for a normal fetch call.
  * @return Promise<Response> The result of the request.
  */
-export async function goralysFetchClient(input: string | URL | Request, requestOptions? : RequestInit): Promise <Response> {
+export async function goralysFetchClient(input: string | URL | Request, requestOptions?: RequestInit): Promise<Response> {
     const res = await fetch(`${apiUrl}/${input}`, {
         credentials: "include",
-        ...requestOptions
+        ...requestOptions,
     });
 
     // Ensure JSON before parsing:
-    const clone = res.clone()
+    const clone = res.clone();
     const contentType = clone.headers.get("Content-Type");
 
     if (!(contentType && contentType.toLowerCase().trim().includes("application/json"))) return res;
 
     const data = await clone.json();
-    console.log("[FetchClient](" + input + ") Raw data: ", data)
+    console.log("[FetchClient](" + input + ") Raw data: ", data);
     // Auth check
     if (res.status === 401) {
         try {
@@ -47,11 +47,13 @@ export async function goralysFetchClient(input: string | URL | Request, requestO
     // Tea pot
     if (res.status === 418) {
         const data = await res.json();
-        const params = encodeURIComponent(JSON.stringify({
-            toastType: data.toastType,
-            toastTitle: data.toastTitle,
-            toastMessage: data.toastMessage,
-        }));
+        const params = encodeURIComponent(
+            JSON.stringify({
+                toastType: data.toastType,
+                toastTitle: data.toastTitle,
+                toastMessage: data.toastMessage,
+            }),
+        );
         window.location.href = `/errors/teapot?toast=${params}`;
     }
 
@@ -61,20 +63,20 @@ export async function goralysFetchClient(input: string | URL | Request, requestO
 
 export async function fetchCsrfClient(formId: string): Promise<string | null> {
     const data = {
-        'form-id': formId,
+        "form-id": formId,
     };
 
     const res = await fetch(`${apiUrl}/csrf/create`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
         },
-        credentials: 'include',
+        credentials: "include",
         body: JSON.stringify(data),
     });
 
     if (!res.ok) return null;
 
     const json = await res.json();
-    return json['csrf-token'];
+    return json["csrf-token"];
 }

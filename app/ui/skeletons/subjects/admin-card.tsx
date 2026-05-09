@@ -1,6 +1,7 @@
 import { SubjectInputSkeleton } from "@/app/ui/skeletons/inputs/subject-input";
+import { ReactElement } from "react";
 
-export default function AdminSubjectCardSkeleton() {
+export default function AdminSubjectCardSkeleton(): ReactElement {
     return (
         <div className="h-fit w-200 flex flex-col bg-sky-200 gap-1 p-1 mb-1 mt-1">
             <div className="flex flex-row w-full justify-between">

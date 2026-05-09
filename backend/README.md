@@ -20,61 +20,61 @@ Layers are designed to keep dependencies directional — higher layers may depen
 
     Provides low-level, environment and specific services used by the rest of the system.
 
-   Platform content:
-   - DB (`PHP/Platform/DB`): connection handling and query helpers.
-   - Loader (`PHP/Platform/Loader`): environment and configuration loading (wrapper around `DotEnv` by vlucas).
-   - Logger (`PHP/Platform/Logger`): centralized logging APIs and configuration.
+    Platform content:
+    - DB (`PHP/Platform/DB`): connection handling and query helpers.
+    - Loader (`PHP/Platform/Loader`): environment and configuration loading (wrapper around `DotEnv` by vlucas).
+    - Logger (`PHP/Platform/Logger`): centralized logging APIs and configuration.
 
-   Platform responsibilities:
-   - Provide database connectivity and execution helpers.
-   - Load and validate environment/configuration values.
-   - Expose logging and other infrastructure services to upper layers.
+    Platform responsibilities:
+    - Provide database connectivity and execution helpers.
+    - Load and validate environment/configuration values.
+    - Expose logging and other infrastructure services to upper layers.
 
 2. Core — Domain (`PHP/Core`)
 
-   Encapsulates domain entities, business rules, and use-cases. Organize code by domain (for example `User`, `Subject`).
+    Encapsulates domain entities, business rules, and use-cases. Organize code by domain (for example `User`, `Subject`).
 
-   Core content:
-   - Data transfer objects and enums.
-   - Services implementing business use-cases. 
-   - Repository interfaces and domain-facing repository implementations.
+    Core content:
+    - Data transfer objects and enums.
+    - Services implementing business use-cases.
+    - Repository interfaces and domain-facing repository implementations.
 
-   Core responsibilities:
-   - Implement business rules and orchestrate domain workflows.
-   - Depend on repository abstractions to persist/retrieve data; repository implementations delegate to Platform.
+    Core responsibilities:
+    - Implement business rules and orchestrate domain workflows.
+    - Depend on repository abstractions to persist/retrieve data; repository implementations delegate to Platform.
 
 3. App — Application (`PHP/App`)
 
-   Hosts HTTP/web concerns, controllers, request/response mapping, session handling, and presentation helpers.
+    Hosts HTTP/web concerns, controllers, request/response mapping, session handling, and presentation helpers.
 
-   App content:
-   - Controllers.
-   - Security helpers (CSRF utilities).
-   - UI helpers (toast system).
+    App content:
+    - Controllers.
+    - Security helpers (CSRF utilities).
+    - UI helpers (toast system).
 
-   App responsibilities:
-   - Map transport-layer inputs (HTTP, forms) to Core DTOs and services.
-   - Manage session state and user-facing utilities (toasts, messages).
-   - Return HTTP responses and handle input validation.
+    App responsibilities:
+    - Map transport-layer inputs (HTTP, forms) to Core DTOs and services.
+    - Manage session state and user-facing utilities (toasts, messages).
+    - Return HTTP responses and handle input validation.
 
 4. Shared — Cross-cutting (`PHP/Shared`)
 
-   Contains reusable, domain-agnostic components used by multiple layers.
+    Contains reusable, domain-agnostic components used by multiple layers.
 
-   Shared content:
-   - Exceptions: `PHP/Shared/Exception` (typed exceptions for DB, User, etc.)
+    Shared content:
+    - Exceptions: `PHP/Shared/Exception` (typed exceptions for DB, User, etc.)
 
 5. Kernel — Bootstrapping and runtime (`PHP/Kernel`)
 
-   Initializes and wires runtime services and global application policies (error handling, logging).
+    Initializes and wires runtime services and global application policies (error handling, logging).
 
-   Kernel content:
-   - `GoralysKernel`: constructs and exposes services such as the logger, env loader, DB container, and toast controller; configures exception/error handlers and provides helpers for request handling.
-   - `bootstrap.php`: small helpers to create and start the kernel.
+    Kernel content:
+    - `GoralysKernel`: constructs and exposes services such as the logger, env loader, DB container, and toast controller; configures exception/error handlers and provides helpers for request handling.
+    - `bootstrap.php`: small helpers to create and start the kernel.
 
-   Kernel responsibilities:
-   - Provide a single place to initialize platform services and to expose them to App and Core.
-   - Enforce application-wide behaviors (logging, global error handling, configuration loading).
+    Kernel responsibilities:
+    - Provide a single place to initialize platform services and to expose them to App and Core.
+    - Enforce application-wide behaviors (logging, global error handling, configuration loading).
 
 ## Dependency rules (guidelines)
 

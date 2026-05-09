@@ -1,27 +1,32 @@
-import {FloatingInput} from "@/app/ui/inputs/floating-input";
-import {FormEvent, useEffect, useState} from "react";
-import {searchFields, Subject, SubjectsSearchBarProps, SubjectsSearchField} from "@/app/lib/types";
-import {getLongFromShort} from "@/app/lib/subjects/subjects-utils";
+import { FloatingInput } from "@/app/ui/inputs/floating-input";
+import React, { FormEvent, ReactElement, useEffect, useState } from "react";
+import { searchFields, Subject, SubjectsSearchField } from "@/app/lib/types";
+import { getLongFromShort } from "@/app/lib/subjects/subjects-utils";
 
-export function SubjectsSearchBar({subjects, setCurrentSubjects}: SubjectsSearchBarProps) {
+interface SubjectsSearchBarProps {
+    subjects: Subject[] | null;
+    setCurrentSubjects: React.Dispatch<React.SetStateAction<Subject[] | null>>;
+}
+
+export function SubjectsSearchBar({ subjects, setCurrentSubjects }: SubjectsSearchBarProps): ReactElement {
     const [currentField, setCurrentField] = useState<SubjectsSearchField>("all");
     const [searchText, setSearchText] = useState("");
-    
-    const handleSearch = (e: FormEvent<HTMLInputElement>) => {
+
+    const handleSearch = (e: FormEvent<HTMLInputElement>): void => {
         const value = e.currentTarget.value;
         setSearchText(value);
-    }
+    };
 
-    const sortSubjects = (list: Subject[]) => {
+    const sortSubjects = (list: Subject[]): Subject[] => {
         return [...list].sort((a, b) => {
             const topicA = a.topic.trim().toLowerCase();
             const topicB = b.topic.trim().toLowerCase();
             const nameA = a.student.trim().toLowerCase();
             const nameB = b.student.trim().toLowerCase();
 
-            const topicDiff = topicA.localeCompare(topicB, 'fr');
+            const topicDiff = topicA.localeCompare(topicB, "fr");
             if (topicDiff !== 0) return topicDiff;
-            return nameA.localeCompare(nameB, 'fr');
+            return nameA.localeCompare(nameB, "fr");
         });
     };
 
@@ -29,26 +34,31 @@ export function SubjectsSearchBar({subjects, setCurrentSubjects}: SubjectsSearch
         if (!subjects) return;
 
         const search = searchText.trim().toLowerCase();
-        const sorted = sortSubjects(subjects.filter((s: Subject) => {
-            if (!search) return true;
-            const searchTeachers = s.teacher.split(",").map(t => t.trim().toLowerCase());
+        const sorted = sortSubjects(
+            subjects.filter((s: Subject) => {
+                if (!search) return true;
+                const searchTeachers = s.teacher.split(",").map((t) => t.trim().toLowerCase());
 
-            switch (currentField) {
-                case "student":
-                    return s.student.trim().toLowerCase().startsWith(search);
-                case "teacher":
-                    return searchTeachers.some(t => t.startsWith(search));
-                case "topic":
-                    return s.topic.trim().toLowerCase().includes(getLongFromShort(search));
-                case "all":
-                    return s.student.trim().toLowerCase().startsWith(search) ||
-                        searchTeachers.some(t => t.startsWith(search)) ||
-                        s.topic.trim().toLowerCase().includes(getLongFromShort(search));
-                default: return true;
-            }
-        }));
+                switch (currentField) {
+                    case "student":
+                        return s.student.trim().toLowerCase().startsWith(search);
+                    case "teacher":
+                        return searchTeachers.some((t) => t.startsWith(search));
+                    case "topic":
+                        return s.topic.trim().toLowerCase().includes(getLongFromShort(search));
+                    case "all":
+                        return (
+                            s.student.trim().toLowerCase().startsWith(search) ||
+                            searchTeachers.some((t) => t.startsWith(search)) ||
+                            s.topic.trim().toLowerCase().includes(getLongFromShort(search))
+                        );
+                    default:
+                        return true;
+                }
+            }),
+        );
 
-            setCurrentSubjects(prev => {
+        setCurrentSubjects((prev) => {
             if (JSON.stringify(prev) === JSON.stringify(sorted)) return prev;
             return sorted;
         });
@@ -67,13 +77,17 @@ export function SubjectsSearchBar({subjects, setCurrentSubjects}: SubjectsSearch
                     onChange={(e) => setCurrentField(e.target.value as SubjectsSearchField)}
                 >
                     {Object.entries(searchFields).map(([key, label]) => (
-                        <option value={key} key={key}>{label}</option>
+                        <option value={key} key={key}>
+                            {label}
+                        </option>
                     ))}
                 </select>
 
-                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-sky-500
+                <span
+                    className="absolute bottom-0 left-0 w-0 h-0.5 bg-sky-500
                      transition-all duration-300 ease-in-out
-                     peer-focus:w-full subjects-search-underline" />
+                     peer-focus:w-full subjects-search-underline"
+                />
             </div>
         </div>
     );

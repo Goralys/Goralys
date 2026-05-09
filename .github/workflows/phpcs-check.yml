@@ -1,33 +1,33 @@
 name: Backend PHP Code Sniffer Tests
 on:
-  pull_request:
-  push:
+    pull_request:
+    push:
 jobs:
-  run_phpcs:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+    run_phpcs:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
 
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: "8.5"
-          tools: composer
+            - name: Setup PHP
+              uses: shivammathur/setup-php@v2
+              with:
+                  php-version: "8.5"
+                  tools: composer
 
-      - name: Validate composer.json and composer.lock
-        run: composer validate --strict --working-dir=backend
+            - name: Validate composer.json and composer.lock
+              run: composer validate --strict --working-dir=backend
 
-      - name: Cache Composer packages
-        id: composer-cache
-        uses: actions/cache@v3
-        with:
-          path: vendor
-          key: ${{ runner.os }}-php-${{ hashFiles('**/backend/composer.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-php-
+            - name: Cache Composer packages
+              id: composer-cache
+              uses: actions/cache@v3
+              with:
+                  path: vendor
+                  key: ${{ runner.os }}-php-${{ hashFiles('**/backend/composer.lock') }}
+                  restore-keys: |
+                      ${{ runner.os }}-php-
 
-      - name: Install dependencies
-        run: composer install --prefer-dist --no-progress --working-dir=backend
+            - name: Install dependencies
+              run: composer install --prefer-dist --no-progress --working-dir=backend
 
-      - name: Run unit tests
-        run: composer run-script phpcs --working-dir=backend
+            - name: Run unit tests
+              run: composer run-script phpcs --working-dir=backend

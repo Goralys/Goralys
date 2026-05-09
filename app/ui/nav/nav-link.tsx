@@ -1,16 +1,14 @@
-'use client';
+"use client";
 
 import Link from "next/link";
-import {clsx} from "clsx";
-import {usePathname} from "next/navigation";
+import { clsx } from "clsx";
+import { usePathname } from "next/navigation";
+import { ReactElement } from "react";
 
-export function NavLink({name, url, exact = false}: { name: string, url: string, exact?: boolean}) {
+export function NavLink({ name, url, exact = false }: { name: string; url: string; exact?: boolean }): ReactElement {
     const current = usePathname();
 
-    const isActive =
-        exact || url === "/"
-            ? current === url
-            : current === url || current.startsWith(`${url}/`);
+    const isActive = exact || url === "/" ? current === url : current === url || current.startsWith(`${url}/`);
 
     return (
         <Link
@@ -19,7 +17,7 @@ export function NavLink({name, url, exact = false}: { name: string, url: string,
                 {
                     "bg-sky-200 text-sky-600": isActive,
                     "bg-gray-100 text-gray-900": !isActive,
-                }
+                },
             )}
             href={url}
         >

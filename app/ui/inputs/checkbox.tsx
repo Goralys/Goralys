@@ -1,8 +1,17 @@
-'use client';
+"use client";
 
-import { CheckBoxProps } from "@/app/lib/types";
+import { ReactElement } from "react";
 
-export default function Checkbox({ id, label, setValueAction, defaultValue, className, disabled = false }: CheckBoxProps) {
+interface CheckBoxProps {
+    id?: string;
+    label: string;
+    setValueAction: (v: boolean) => void;
+    defaultValue: boolean;
+    className?: string | null;
+    disabled?: boolean;
+}
+
+export default function Checkbox({ id, label, setValueAction, defaultValue, className, disabled = false }: CheckBoxProps): ReactElement {
     return (
         <div className={`flex items-center gap-0.5 ${className ?? ""}`}>
             <label
@@ -25,8 +34,10 @@ export default function Checkbox({ id, label, setValueAction, defaultValue, clas
                     checked:before:bg-sky-500 hover:before:opacity-10
                     cursor-pointer disabled:cursor-not-allowed"
                 />
-                <span className="pointer-events-none absolute inset-0 flex items-center justify-center
-                text-white opacity-0 transition-opacity peer-checked:opacity-100">
+                <span
+                    className="pointer-events-none absolute inset-0 flex items-center justify-center
+                text-white opacity-0 transition-opacity peer-checked:opacity-100"
+                >
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
                         className="h-3.5 w-3.5"
@@ -45,10 +56,7 @@ export default function Checkbox({ id, label, setValueAction, defaultValue, clas
                 </span>
             </label>
 
-            <label
-                className={`text-black text-sm `}
-                htmlFor="ripple-on"
-            >
+            <label className={`text-black text-sm `} htmlFor="ripple-on">
                 {label}
             </label>
         </div>

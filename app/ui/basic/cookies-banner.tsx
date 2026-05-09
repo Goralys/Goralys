@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
 import Link from "next/link";
 import Cookies from "universal-cookie";
-import {useEffect, useState} from "react";
+import { ReactElement, useEffect, useState } from "react";
 import { CookieIcon } from "@sidekickicons/react/24/outline";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 
-export default function CookieBanner() {
+export default function CookieBanner(): ReactElement | null {
     const cookies = new Cookies();
     const [visible, setVisible] = useState(false);
 
@@ -20,13 +20,13 @@ export default function CookieBanner() {
 
     if (!visible) return null;
 
-    const discard = () => {
+    const discard = (): void => {
         cookies.set("cookie-banner-dismissed", "1", {
             path: "/",
-            expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365)
+            expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365),
         });
         setVisible(false);
-    }
+    };
 
     return (
         <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-fit max-w-md z-10 bg-sky-200 rounded-md shadow-lg p-4 flex flex-col gap-2">

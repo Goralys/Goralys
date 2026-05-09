@@ -3,10 +3,10 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-'use client';
+"use client";
 
-import {UserRole} from "@/app/lib/types";
-import {fetchCsrfClient, goralysFetchClient} from "@/app/lib/fetch/fetch.client";
+import { UserRole } from "@/app/lib/types";
+import { fetchCsrfClient, goralysFetchClient } from "@/app/lib/fetch/fetch.client";
 
 // Subjects fetches
 
@@ -16,10 +16,10 @@ async function fetchStudentSubjectsClient(): Promise<Response | null> {
     if (!csrfToken) return null;
 
     const data = {
-        'csrf-token': csrfToken,
-    }
+        "csrf-token": csrfToken,
+    };
 
-    return await goralysFetchClient('subjects/student', {
+    return await goralysFetchClient("subjects/student", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -34,10 +34,10 @@ async function fetchTeacherSubjectsClient(): Promise<Response | null> {
     if (!csrfToken) return null;
 
     const data = {
-        'csrf-token': csrfToken,
-    }
+        "csrf-token": csrfToken,
+    };
 
-    return await goralysFetchClient('subjects/teacher', {
+    return await goralysFetchClient("subjects/teacher", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -52,10 +52,10 @@ async function fetchAdminSubjectsClient(): Promise<Response | null> {
     if (!csrfToken) return null;
 
     const data = {
-        'csrf-token': csrfToken,
-    }
+        "csrf-token": csrfToken,
+    };
 
-    return await goralysFetchClient('subjects/admin', {
+    return await goralysFetchClient("subjects/admin", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",

@@ -1,4 +1,6 @@
-export function CommentSkeleton() {
+import { ReactElement } from "react";
+
+export function CommentSkeleton(): ReactElement {
     return (
         <div className="flex flex-row items-center gap-1.5">
             <div className="skeleton h-4 w-4 rounded-xs" />

@@ -1,20 +1,31 @@
-'use client';
+"use client";
 
-import {clsx} from "clsx";
-import {DraftModalProps} from "@/app/lib/types";
-import {Button} from "@/app/ui/button";
+import { clsx } from "clsx";
+import { Button } from "@/app/ui/button";
 import InputTextFile from "@/app/ui/inputs/input-text-file";
-import {useRef, useState} from "react";
-import {QuestionMarkCircleIcon} from "@heroicons/react/24/outline";
-import {useModalClose} from "@/app/lib/modals";
+import { ReactElement, useRef, useState } from "react";
+import { QuestionMarkCircleIcon } from "@heroicons/react/24/outline";
+import { useModalClose } from "@/app/lib/modals";
 
-export default function DraftModalElement({ visible, onChooseDraftAction, onCancelAction, onCloseModalAction }: DraftModalProps) {
+interface DraftModalProps {
+    visible: boolean;
+    onCancelAction: () => void;
+    onChooseDraftAction: (file: File | null) => void;
+    onCloseModalAction: () => void;
+}
+
+export default function DraftModalElement({
+    visible,
+    onChooseDraftAction,
+    onCancelAction,
+    onCloseModalAction,
+}: DraftModalProps): ReactElement {
     const [draftFile, setDraftFile] = useState<File | null>(null);
     const modalRef = useRef<HTMLDivElement>(null);
 
     useModalClose(modalRef, visible, onCloseModalAction);
 
-    const onConfirm = () => {
+    const onConfirm = (): void => {
         onChooseDraftAction(draftFile);
     };
 
@@ -28,7 +39,7 @@ export default function DraftModalElement({ visible, onChooseDraftAction, onCanc
                 {
                     "translate-y-0 opacity-100": visible,
                     "-translate-y-5 opacity-0": !visible,
-                }
+                },
             )}
             role="dialog"
             aria-modal="true"
@@ -41,8 +52,8 @@ export default function DraftModalElement({ visible, onChooseDraftAction, onCanc
                 <div className="flex flex-col justify-center flex-1">
                     <strong className="text-md">Choix du brouillon</strong>
                     <span className="text-sm">
-                        Vous pouvez joindre un brouillon à votre question avant de l&apos;envoyer. Le professeur pourra
-                        ensuite le télécharger et le consulter.
+                        Vous pouvez joindre un brouillon à votre question avant de l&apos;envoyer. Le professeur pourra ensuite le
+                        télécharger et le consulter.
                     </span>
                 </div>
             </div>

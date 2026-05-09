@@ -1,45 +1,43 @@
-'use client';
+"use client";
 
 import { NavLink } from "@/app/ui/nav/nav-link";
-import {UserNav} from "@/app/ui/nav/user-nav";
+import { UserNav } from "@/app/ui/nav/user-nav";
 import Cookies from "universal-cookie";
-import {useEffect, useState} from "react";
-import {UserRole, USER_ROLES, buildArray} from "@/app/lib/types";
+import { ReactElement, useEffect, useState } from "react";
+import { UserRole, USER_ROLES, buildArray } from "@/app/lib/types";
 import Image from "next/image";
 
-export function SideNav() {
-    const [role, setRole] = useState<UserRole['role']>("none");
+export function SideNav(): ReactElement {
+    const [role, setRole] = useState<UserRole["role"]>("none");
 
     useEffect(() => {
         const cookies = new Cookies();
 
-        const run = () => {
+        const run = (): void => {
             const current: string = cookies.get("user-role") ?? "none";
-            setRole(USER_ROLES.includes(current as UserRole['role'])
-                ? current as UserRole['role']
-                : "none");
-        }
+            setRole(USER_ROLES.includes(current as UserRole["role"]) ? (current as UserRole["role"]) : "none");
+        };
 
-        const onChange = () => {
+        const onChange = (): void => {
             const role: string = cookies.get("user-role") ?? "none";
-            setRole(USER_ROLES.includes(role as UserRole['role'])
-                ? role as UserRole['role']
-                : "none");
+            setRole(USER_ROLES.includes(role as UserRole["role"]) ? (role as UserRole["role"]) : "none");
         };
 
         run();
         cookies.addChangeListener(onChange);
-        return () => cookies.removeChangeListener(onChange);
+        return (): void => cookies.removeChangeListener(onChange);
     }, []);
 
-    function getSubjectLinkText() {
+    function getSubjectLinkText(): string {
         switch (role) {
             case "student":
-                return "Mes Questions"
+                return "Mes Questions";
             case "none":
                 return "Mon Espace";
-            case "teacher": return "Mes Élèves";
-            case "admin": return "Questions";
+            case "teacher":
+                return "Mes Élèves";
+            case "admin":
+                return "Questions";
         }
     }
 
@@ -47,13 +45,19 @@ export function SideNav() {
         { name: "Accueil", url: "/" },
         { name: getSubjectLinkText(), url: "/subject" },
         role == "admin" && { name: "Utilisateurs", url: "/admin/user" },
-        role == "admin" && { name: "Accès", url: "/admin/admin" }
+        role == "admin" && { name: "Accès", url: "/admin/admin" },
     );
 
     return (
         <div className="min-w-50 w-55 h-auto min-h-screen fixed top-0 flex flex-col m-0 p-2 rounded-xl">
-            <div className="flex rounded-md min-w-full h-25 bg-sky-500 mb-2">
-                <Image src="/logo/goralys-logo.svg" width={150} height={10} alt="Goralys logo" className="ml-1 self-center" />
+            <div className="flex rounded-md min-w-full h-25 bg-sky-500 mb-2 p-4">
+                <Image
+                    src="/logo/goralys-logo.svg"
+                    width={125}
+                    height={10}
+                    alt="Goralys logo"
+                    className="-ml-3 self-center w-auto h-auto"
+                />
             </div>
             <div className="flex flex-col gap-2">
                 {links.map((link) => (

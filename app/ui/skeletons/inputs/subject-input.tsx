@@ -1,6 +1,10 @@
-import { SubjectInputSkeletonProps } from "@/app/lib/types";
+import { ReactElement } from "react";
 
-export function SubjectInputSkeleton({ showMeta = true }: SubjectInputSkeletonProps) {
+interface SubjectInputSkeletonProps {
+    showMeta?: boolean;
+}
+
+export function SubjectInputSkeleton({ showMeta = true }: SubjectInputSkeletonProps): ReactElement {
     return (
         <div className="relative mt-3 min-w-50 mb-5">
             <div className="skeleton w-full h-10 rounded-xs" />

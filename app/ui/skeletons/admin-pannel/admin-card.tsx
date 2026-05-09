@@ -1,7 +1,8 @@
 import { Card } from "@/app/ui/card";
 import { ButtonSkeleton } from "@/app/ui/skeletons/button";
+import { ReactElement } from "react";
 
-export default function AdminPannelCardSkeleton() {
+export default function AdminPanelCardSkeleton(): ReactElement {
     return (
         <Card className="flex-col w-175! bg-sky-200 gap-1 p-1 mb-1 mt-1">
             <div className="flex flex-row justify-between items-center">

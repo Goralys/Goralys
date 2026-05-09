@@ -1,3 +1,8 @@
+/*
+ * Copyright (C) 2026 Sami Saubion
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
 import { NextRequest, NextResponse } from "next/server";
 import { UserRole } from "@/app/lib/types";
 
@@ -6,10 +11,7 @@ interface RoleGuardOptions {
     onSuccess?: (role: UserRole["role"], request: NextRequest) => NextResponse;
 }
 
-export async function roleGuard(
-    request: NextRequest,
-    { allowedRoles, onSuccess }: RoleGuardOptions
-): Promise<NextResponse> {
+export async function roleGuard(request: NextRequest, { allowedRoles, onSuccess }: RoleGuardOptions): Promise<NextResponse> {
     if (!request.cookies.has("GORALYSSESSID")) {
         return redirectTo(request, "/user/login?reason=unauthenticated");
     }
@@ -29,8 +31,8 @@ export async function roleGuard(
                 "User-Agent": request.headers.get("user-agent") ?? "",
                 "X-Forwarded-Origin": request.headers.get("origin") ?? request.nextUrl.origin,
                 "Cache-Control": "no-cache, no-store, must-revalidate",
-                "Pragma": "no-cache",
-                "Expires": "0",
+                Pragma: "no-cache",
+                Expires: "0",
             },
             cache: "no-store",
         });
@@ -40,7 +42,9 @@ export async function roleGuard(
     }
 
     if (res.status === 401) {
-        return redirectTo(request, "/user/login?reason=unauthenticated", { noStore: true });
+        return redirectTo(request, "/user/login?reason=unauthenticated", {
+            noStore: true,
+        });
     }
     if (!res.ok) {
         console.error("Role API returned non-ok status:", res.status);
@@ -68,11 +72,7 @@ export async function roleGuard(
     return onSuccess?.(role, request) ?? NextResponse.next();
 }
 
-function redirectTo(
-    request: NextRequest,
-    path: string,
-    options?: { noStore?: boolean }
-): NextResponse {
+function redirectTo(request: NextRequest, path: string, options?: { noStore?: boolean }): NextResponse {
     const response = NextResponse.redirect(new URL(path, request.url));
     if (options?.noStore) {
         response.headers.set("Cache-Control", "no-store, max-age=0");

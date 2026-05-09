@@ -1,22 +1,24 @@
-'use client';
+"use client";
 
-import {clsx} from "clsx";
-import {ToastProps} from "@/app/lib/types";
-import {
-    CheckCircleIcon,
-    ExclamationCircleIcon,
-    XCircleIcon,
-    InformationCircleIcon
-} from "@heroicons/react/24/outline";
+import { clsx } from "clsx";
+import { CheckCircleIcon, ExclamationCircleIcon, XCircleIcon, InformationCircleIcon } from "@heroicons/react/24/outline";
+import { ReactElement } from "react";
+
+interface ToastProps {
+    type: "info" | "warning" | "error" | "success";
+    title: string;
+    message: string;
+    visible: boolean;
+}
 
 const icons = {
-    info:    <InformationCircleIcon className="size-14 p-0 -ml-1.5 -mr-1.5 text-blue-600" />,
-    success: <CheckCircleIcon       className="size-14 p-0 -ml-1.5 -mr-1.5 text-green-600" />,
+    info: <InformationCircleIcon className="size-14 p-0 -ml-1.5 -mr-1.5 text-blue-600" />,
+    success: <CheckCircleIcon className="size-14 p-0 -ml-1.5 -mr-1.5 text-green-600" />,
     warning: <ExclamationCircleIcon className="size-14 p-0 -ml-1.5 -mr-1.5 text-amber-600" />,
-    error:   <XCircleIcon           className="size-14 p-0 -ml-1.5 -mr-1.5 text-red-600" />,
+    error: <XCircleIcon className="size-14 p-0 -ml-1.5 -mr-1.5 text-red-600" />,
 };
 
-export default function ToastElement({ type, title, message, visible }: ToastProps) {
+export default function ToastElement({ type, title, message, visible }: ToastProps): ReactElement {
     return (
         <div
             className={clsx(
@@ -32,14 +34,12 @@ export default function ToastElement({ type, title, message, visible }: ToastPro
                 {
                     "translate-y-0 opacity-100": visible,
                     "-translate-y-5 opacity-0": !visible,
-                }
+                },
             )}
             role="alert"
         >
             <div className="flex gap-3">
-                <div className="flex self-center">
-                    {icons[type]}
-                </div>
+                <div className="flex self-center">{icons[type]}</div>
 
                 <div className="flex flex-col justify-center">
                     <strong className="text-md">{title}</strong>

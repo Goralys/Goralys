@@ -1,25 +1,25 @@
-'use client';
+"use client";
 
 import Link from "next/link";
 import Cookies from "universal-cookie";
-import { useEffect, useState } from "react";
+import { ReactElement, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { onUserEvent } from "@/app/lib/auth/user-event";
 import { UserCircleIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 
-export function UserNav() {
+export function UserNav(): ReactElement {
     const [text, setText] = useState<string | null>(null);
     const [loggedIn, setLoggedIn] = useState<boolean>(false);
     const current = usePathname();
 
-    const targetUrl = loggedIn ? '/user/me' : '/user/login';
+    const targetUrl = loggedIn ? "/user/me" : "/user/login";
     const isActive = current === targetUrl || current.startsWith(`${targetUrl}/`);
 
     useEffect(() => {
         const cookies = new Cookies();
 
-        const run = () => {
+        const run = (): void => {
             const isLoggedIn = !!cookies.get("username");
             setLoggedIn(isLoggedIn);
 
@@ -49,7 +49,9 @@ export function UserNav() {
             setText(name);
         });
 
-        return () => { unsubscribe?.(); };
+        return (): void => {
+            unsubscribe?.();
+        };
     }, []);
 
     return (
@@ -60,11 +62,11 @@ export function UserNav() {
                 {
                     "bg-sky-200 text-sky-600": isActive,
                     "bg-gray-100 text-gray-900": !isActive,
-                }
+                },
             )}
             href={targetUrl}
         >
-            {loggedIn && <UserCircleIcon width={27.5} className="-mr-1.25"/>}
+            {loggedIn && <UserCircleIcon width={27.5} className="-mr-1.25" />}
             {text}
         </Link>
     );

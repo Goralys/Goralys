@@ -8,10 +8,10 @@ const routes: Array<{
     handler: (req: NextRequest) => Promise<NextResponse>;
 }> = [
     { matcher: /^\/subject/, handler: SubjectsProxy },
-    { matcher: /^\/admin/,   handler: AdminsProxy },
+    { matcher: /^\/admin/, handler: AdminsProxy },
 ];
 
-export async function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest): Promise<NextResponse | NextResponse<unknown>> {
     const { pathname } = request.nextUrl;
 
     for (const route of routes) {
