@@ -51,13 +51,16 @@ export function useSubjects(role: UserRole["role"]): {
 
         try {
             const syncValue = cookies.get(syncKey);
-            console.log("[useSubjects] syncKey:", syncKey, "=", syncValue);
 
             if (syncValue == "1") {
                 const raw = sessionStorage.getItem(cacheKey);
-                console.log("[useSubjects] cache hit, raw sessionStorage value:", raw?.slice(0, 100));
+                if (raw === null || raw === undefined) {
+                    cookies.set(syncKey, "0", { path: "/" });
+                    sessionStorage.removeItem(cacheKey);
+                    await fetchSubjects();
+                    return;
+                }
                 const cached = JSON.parse(raw ?? "null");
-                console.log("[useSubjects] parsed cache:", Array.isArray(cached) ? `array(${cached.length})` : cached);
                 setSubjects((prev) => {
                     if (JSON.stringify(prev) === JSON.stringify(cached)) return prev;
                     return cached;
@@ -65,10 +68,8 @@ export function useSubjects(role: UserRole["role"]): {
                 return;
             }
 
-            console.log("[useSubjects] cache miss, fetching from server...");
             const res = await fetchSubjectsForRoleClient({ role });
             const data = await res?.json();
-            console.log("[useSubjects] server response:", Array.isArray(data) ? `array(${data.length})` : data);
 
             if (data?.toast) {
                 showToastRef.current({

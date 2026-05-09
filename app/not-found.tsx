@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { ReactElement } from "react";
+import { Metadata } from "next";
 
-export const metadata: { title: string } = {
+export const metadata: Metadata = {
     title: "Goralys | Erreur",
 };
 export default function NotFound(): ReactElement {

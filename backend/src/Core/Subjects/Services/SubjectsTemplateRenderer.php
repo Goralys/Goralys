@@ -118,7 +118,7 @@ final class SubjectsTemplateRenderer
 
         $vars = [
             'nom'    => $lastname,
-            'prenom' => $firstname,
+            'prénom' => $firstname,
             'série'  => $pathway,
             'year'   => date("Y"),
         ];

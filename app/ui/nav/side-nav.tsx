@@ -32,12 +32,12 @@ export function SideNav(): ReactElement {
         switch (role) {
             case "student":
                 return "Mes Questions";
-            case "none":
-                return "Mon Espace";
             case "teacher":
                 return "Mes Élèves";
             case "admin":
                 return "Questions";
+            case "none":
+                return "Mon Espace";
         }
     }
 
@@ -65,6 +65,7 @@ export function SideNav(): ReactElement {
                 ))}
             </div>
             <div className="grow bg-gray-100 rounded-xl my-3"></div>
+            <NavLink key="/help" name="Centre d'Aide" url="/help" />
             <UserNav />
         </div>
     );
