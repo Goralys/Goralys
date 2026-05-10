@@ -1,23 +1,21 @@
-import {RefObject, useEffect} from "react";
+/*
+ * Copyright (C) 2026 Sami Saubion
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
 
-export function useModalClose(
-    modalRef: RefObject<HTMLDivElement | null>,
-    visible: boolean,
-    onClose: () => void
-) {
+import { RefObject, useEffect } from "react";
+
+export function useModalClose(modalRef: RefObject<HTMLDivElement | null>, visible: boolean, onClose: () => void): void {
     useEffect(() => {
         if (!visible) return;
 
-        const handleClickOutside = (e: MouseEvent) => {
-            if (
-                modalRef.current &&
-                !modalRef.current.contains(e.target as Node)
-            ) {
+        const handleClickOutside = (e: MouseEvent): void => {
+            if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
                 onClose();
             }
         };
 
-        const handleKeyDown = (e: KeyboardEvent) => {
+        const handleKeyDown = (e: KeyboardEvent): void => {
             if (e.key === "Escape") {
                 onClose();
             }
@@ -26,7 +24,7 @@ export function useModalClose(
         document.addEventListener("mousedown", handleClickOutside);
         document.addEventListener("keydown", handleKeyDown);
 
-        return () => {
+        return (): void => {
             document.removeEventListener("mousedown", handleClickOutside);
             document.removeEventListener("keydown", handleKeyDown);
         };

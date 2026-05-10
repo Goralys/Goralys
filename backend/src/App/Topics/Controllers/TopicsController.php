@@ -18,6 +18,7 @@ use Goralys\Core\Topics\Repository\TopicsRepository;
 use Goralys\Core\Topics\Services\BuildFromCSVService;
 use Goralys\Platform\DB\Interfaces\DbContainerInterface;
 use Goralys\Shared\Exception\GoralysRuntimeException;
+use Goralys\Shared\Exception\User\GoralysUserException;
 use Goralys\Shared\Utils\UtilitiesManager;
 
 /**
@@ -79,7 +80,8 @@ final class TopicsController
     /**
      * Inserts a TopicDTO into the database, including its students and teachers.
      * @param TopicDTO $topic The topic data transfer object to insert.
-     * @return bool If the insertion succeded.
+     * @return bool If the insertion succeeded.
+     * @throws GoralysUserException
      */
     public function insert(TopicDTO $topic): bool
     {
@@ -218,6 +220,7 @@ final class TopicsController
      * Writes all usernames associated with the full name of the user into a file.
      * @param TopicDTO[] $topics The topics to export the usernames for.
      * @return string The path to the file where the topics where exported.
+     * @throws GoralysUserException
      */
     public function exportUsernames(array $topics): string
     {

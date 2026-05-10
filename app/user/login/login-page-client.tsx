@@ -1,48 +1,48 @@
-'use client';
+"use client";
 
 import Link from "next/link";
 import Image from "next/image";
-import {Card} from "@/app/ui/card";
+import { Card } from "@/app/ui/card";
 import LoginForm from "@/app/ui/user/forms/login-form";
-import {useEffect} from "react";
-import {useRouter, useSearchParams} from "next/navigation";
-import {useToast} from "@/app/ui/toast/toast-provider";
-import {emitUserEvent} from "@/app/lib/auth/user-event";
+import { ReactElement, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useToast } from "@/app/ui/toast/toast-provider";
+import { emitUserEvent } from "@/app/lib/auth/user-event";
 
-export default function LoginPageClient() {
+export default function LoginPageClient(): ReactElement {
     const searchParams = useSearchParams();
     const { showToast } = useToast();
     const router = useRouter();
 
     useEffect(() => {
-        const reason = searchParams.get('reason');
+        const reason = searchParams.get("reason");
         console.log(reason);
         if (!reason) return;
 
-        if (reason === 'expired') {
+        if (reason === "expired") {
             showToast({
                 type: "warning",
                 title: "Session",
-                message: "Votre session a expirée, vous avez été déconnecté."
+                message: "Votre session a expirée, vous avez été déconnecté.",
             });
-        } else if (reason === 'unauthenticated') {
+        } else if (reason === "unauthenticated") {
             showToast({
                 type: "info",
                 title: "Connexion",
-                message: "Veuillez vous connecter pour accéder à votre espace"
+                message: "Veuillez vous connecter pour accéder à votre espace",
             });
-        } else if (reason === 'unauthorized') {
+        } else if (reason === "unauthorized") {
             showToast({
                 type: "warning",
                 title: "Permission",
-                message: "Vous n'avez pas les permissions nécessaires sur ce compte"
+                message: "Vous n'avez pas les permissions nécessaires sur ce compte",
             });
             return;
         }
 
         emitUserEvent("logout");
 
-        router.replace('/user/login');
+        router.replace("/user/login");
     }, [searchParams, router, showToast]); // The toast dependency is ignored to avoid render loop.
 
     return (
@@ -52,9 +52,14 @@ export default function LoginPageClient() {
                     <Image src="/user/login.svg" alt="Login illustration." width={200} height={150} />
 
                     <h1 className="text-xl">Bon retour chez Goralys !</h1>
-                    <p className="text-2xs">Reprenez vos questions là vous les avez laissées.
-                        Vous n&apos;avez pas encore de compte ? Pas de panique, créez-en un sur la
-                        <Link className="text-sky-600 underline" href="/user/register"> page d&apos;enregistrement</Link></p>
+                    <p className="text-2xs">
+                        Reprenez vos questions là vous les avez laissées. Vous n&apos;avez pas encore de compte ? Pas de panique, créez-en
+                        un sur la
+                        <Link className="text-sky-600 underline" href="/user/register">
+                            {" "}
+                            page d&apos;enregistrement
+                        </Link>
+                    </p>
                 </Card>
                 <LoginForm />
             </div>

@@ -1,9 +1,9 @@
-'use client';
-'use no memo';
+"use client";
+"use no memo";
 
-import {createContext, useContext, useState, ReactNode, useCallback, useMemo} from "react";
-import ImportTopicsModalElement  from "@/app/ui/modals/import-topics/import-topics-modal-element";
-import {createPortal} from "react-dom";
+import { createContext, useContext, useState, ReactNode, useCallback, useMemo, ReactElement } from "react";
+import ImportTopicsModalElement from "@/app/ui/modals/import-topics/import-topics-modal-element";
+import { createPortal } from "react-dom";
 
 export type ImportTopicsModalContext = {
     showImportTopicsModal: () => Promise<File | string | null>;
@@ -11,7 +11,7 @@ export type ImportTopicsModalContext = {
 
 const ImportTopicsModalContext = createContext<ImportTopicsModalContext | null>(null);
 
-export function ImportTopicsModalProvider({ children }: { children: ReactNode }) {
+export function ImportTopicsModalProvider({ children }: { children: ReactNode }): ReactElement {
     const [fileChosen, setChosenFile] = useState<{
         resolve: (value: File | string | null) => void;
     } | null>(null);
@@ -19,13 +19,13 @@ export function ImportTopicsModalProvider({ children }: { children: ReactNode })
 
     const showImportTopicsModal = useCallback((): Promise<File | string | null> => {
         return new Promise((resolve: (value: File | string | null) => void) => {
-            setChosenFile({resolve});
+            setChosenFile({ resolve });
             setVisible(false);
             requestAnimationFrame(() => setVisible(true));
         });
     }, []);
 
-    function handleImportTopics(file: File | null) {
+    function handleImportTopics(file: File | null): void {
         setVisible(false);
         setTimeout(() => {
             fileChosen?.resolve(file);
@@ -33,7 +33,7 @@ export function ImportTopicsModalProvider({ children }: { children: ReactNode })
         }, 500);
     }
 
-    function handleCancel() {
+    function handleCancel(): void {
         setVisible(false);
         setTimeout(() => {
             fileChosen?.resolve(null);
@@ -41,7 +41,7 @@ export function ImportTopicsModalProvider({ children }: { children: ReactNode })
         }, 500);
     }
 
-    function handleClose() {
+    function handleClose(): void {
         setVisible(false);
         setTimeout(() => {
             fileChosen?.resolve("modalClosed");
@@ -56,7 +56,8 @@ export function ImportTopicsModalProvider({ children }: { children: ReactNode })
         <ImportTopicsModalContext.Provider value={value}>
             {children}
 
-            {fileChosen && typeof document !== "undefined" &&
+            {fileChosen &&
+                typeof document !== "undefined" &&
                 createPortal(
                     <div className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm">
                         <ImportTopicsModalElement
@@ -66,14 +67,13 @@ export function ImportTopicsModalProvider({ children }: { children: ReactNode })
                             onCloseModalAction={handleClose}
                         />
                     </div>,
-                    document.getElementById("import-topics-modal-root")!
-                )
-            }
+                    document.getElementById("import-topics-modal-root")!,
+                )}
         </ImportTopicsModalContext.Provider>
     );
 }
 
-export function useImportTopicsModal() {
+export function useImportTopicsModal(): ImportTopicsModalContext {
     const context = useContext(ImportTopicsModalContext);
     if (!context) {
         throw new Error("useImportTopicsModal must be used within a ConfirmProvider");

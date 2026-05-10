@@ -3,19 +3,19 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-'use client';
+"use client";
 
-import {useEffect} from "react";
-import {onUserEvent} from "@/app/lib/auth/user-event";
-import {emptyUserCacheClient} from "@/app/lib/user/user.client";
+import { useEffect } from "react";
+import { onUserEvent } from "@/app/lib/auth/user-event";
+import { emptyUserCacheClient } from "@/app/lib/user/user.client";
 
-export function UserListener() {
+export function UserListener(): null {
     useEffect(() => {
-        return onUserEvent(event => {
+        return onUserEvent((event) => {
             if (event === "logout") {
                 emptyUserCacheClient();
                 setTimeout(() => {
-                    window.location.href = '/user/login';
+                    window.location.href = "/user/login";
                 }, 0);
             }
         });

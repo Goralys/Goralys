@@ -13,7 +13,7 @@ Thank you for your interest in contributing to Goralys! This document provides g
 5. Update documentation as needed
 6. Submit a pull request to the `develop` branch
 
-*Note: Never create a pull request to the `main` branch, all pull requests to `main` will be closed.*
+_Note: Never create a pull request to the `main` branch, all pull requests to `main` will be closed._
 
 #### Coding Conventions
 
@@ -79,7 +79,7 @@ Recommended setup:
 - pnpm
 - IDE with PHP and Next.js support (VS Code, PhpStorm, etc.)
 
-*Note: I personally recommend PhpStorm for IDE if you can afford it as it integrates seamlessly with a local server and database.*
+_Note: I personally recommend PhpStorm for IDE if you can afford it as it integrates seamlessly with a local server and database._
 
 ### Getting Help
 

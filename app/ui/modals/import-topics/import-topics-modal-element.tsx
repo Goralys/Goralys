@@ -1,20 +1,31 @@
-'use client';
+"use client";
 
-import {clsx} from "clsx";
-import {ImportTopicsModalProps} from "@/app/lib/types";
-import {Button} from "@/app/ui/button";
-import {useRef, useState} from "react";
+import { clsx } from "clsx";
+import { Button } from "@/app/ui/button";
+import { ReactElement, useRef, useState } from "react";
 import InputZipFile from "@/app/ui/inputs/input-zip-file";
-import {QuestionMarkCircleIcon} from "@heroicons/react/24/outline";
-import {useModalClose} from "@/app/lib/modals";
+import { QuestionMarkCircleIcon } from "@heroicons/react/24/outline";
+import { useModalClose } from "@/app/lib/modals";
 
-export default function ImportTopicsModalElement({ visible, onImportTopicsAction, onCancelAction, onCloseModalAction }: ImportTopicsModalProps) {
+interface ImportTopicsModalProps {
+    visible: boolean;
+    onCancelAction: () => void;
+    onImportTopicsAction: (file: File | null) => void;
+    onCloseModalAction: () => void;
+}
+
+export default function ImportTopicsModalElement({
+    visible,
+    onImportTopicsAction,
+    onCancelAction,
+    onCloseModalAction,
+}: ImportTopicsModalProps): ReactElement {
     const [topicsFile, setTopicsFile] = useState<File | null>(null);
     const modalRef = useRef<HTMLDivElement>(null);
 
     useModalClose(modalRef, visible, onCloseModalAction);
 
-    const onConfirm = () => {
+    const onConfirm = (): void => {
         onImportTopicsAction(topicsFile);
     };
 
@@ -28,7 +39,7 @@ export default function ImportTopicsModalElement({ visible, onImportTopicsAction
                 {
                     "translate-y-0 opacity-100": visible,
                     "-translate-y-5 opacity-0": !visible,
-                }
+                },
             )}
             role="dialog"
             aria-modal="true"

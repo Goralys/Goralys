@@ -92,6 +92,7 @@ final class BuildFromCSVService
             [$groupId, $teachersRaw] = $row;
 
             $groupId = trim($groupId);
+            $groupId = ltrim($groupId, "\xEF\xBB\xBF"); // Remove UTF-8 BOM
             $teachersRaw = trim($teachersRaw);
 
             $teachers = array_map('trim', explode($this->config::TEACHERS_SEPARATOR, $teachersRaw));

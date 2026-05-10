@@ -1,31 +1,30 @@
-'use client';
+"use client";
 
 import { clsx } from "clsx";
-import React from "react";
-import { TextAreaProps } from "@/app/lib/types";
-import {useAutoResize} from "@/app/lib/inputs";
+import React, { ChangeEventHandler, ReactElement, RefObject } from "react";
+import { useAutoResize } from "@/app/lib/inputs";
 
-export function TextArea({
-                             id,
-                             label,
-                             helper,
-                             disabled = false,
-                             ref,
-                             defaultValue,
-                             onChangeAction,
-                         }: TextAreaProps) {
+interface TextAreaProps {
+    defaultValue?: string;
+    disabled?: boolean;
+    ref?: RefObject<HTMLTextAreaElement | null>;
+    helper?: string;
+    id: string;
+    label: string;
+    onChangeAction?: ChangeEventHandler<HTMLTextAreaElement>;
+}
 
+export function TextArea({ id, label, helper, disabled = false, ref, defaultValue, onChangeAction }: TextAreaProps): ReactElement {
     const setRef = useAutoResize(ref);
 
     return (
         <div
-            className={clsx(
-                "relative mt-3 mb-1 group min-w-50",
-                { "mb-5!": !!helper }
-            )}
+            className={clsx("relative mt-3 mb-1 group min-w-50", {
+                "mb-5!": !!helper,
+            })}
         >
             <textarea
-                ref={setRef}          // ← merged ref: forwards + sets up resize
+                ref={setRef} // ← merged ref: forwards + sets up resize
                 id={id}
                 name={id}
                 rows={1}
@@ -42,7 +41,8 @@ export function TextArea({
                 "
             />
 
-            <span className="pointer-events-none
+            <span
+                className="pointer-events-none
                absolute bg-sky-500 left-0 bottom-0 h-0.5 w-full
                origin-left scale-x-0
                transition-transform duration-250
@@ -53,22 +53,21 @@ export function TextArea({
                 htmlFor={id}
                 className={clsx(
                     "absolute text-base text-body cursor-text duration-300 transform " +
-                    "-translate-y-4.5 scale-75 top-0 origin-left " +
-                    "peer-placeholder-shown:scale-100 " +
-                    "peer-placeholder-shown:translate-y-0 " +
-                    "peer-focus:scale-75 " +
-                    "peer-focus:-translate-y-4.5",
-                    { "cursor-not-allowed": disabled }
+                        "-translate-y-4.5 scale-75 top-0 origin-left " +
+                        "peer-placeholder-shown:scale-100 " +
+                        "peer-placeholder-shown:translate-y-0 " +
+                        "peer-focus:scale-75 " +
+                        "peer-focus:-translate-y-4.5",
+                    { "cursor-not-allowed": disabled },
                 )}
             >
                 {label}
             </label>
 
             <p
-                className={clsx(
-                    "mt-0 absolute text-[13px] italic text-gray-600",
-                    { "hidden": helper === undefined }
-                )}
+                className={clsx("mt-0 absolute text-[13px] italic text-gray-600", {
+                    hidden: helper === undefined,
+                })}
             >
                 *{helper}
             </p>
