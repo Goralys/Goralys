@@ -1,15 +1,25 @@
-import {ButtonProps} from "@/app/lib/types";
+import React, { ReactElement } from "react";
 
-const colors: Record<NonNullable<ButtonProps['color']>, string> = {
-    "sky": "bg-sky-100 border-sky-300 before:bg-sky-300",
-    "red": "bg-red-100 border-red-300 before:bg-red-300",
-    "green": "bg-green-100 border-green-300 before:bg-green-300",
-    "amber": "bg-amber-100 border-amber-300 before:bg-amber-300",
+interface ButtonProps {
+    className?: string;
+    text: string;
+    type: "submit" | "button" | "reset";
+    onClick?: React.MouseEventHandler<HTMLButtonElement>;
+    color?: "sky" | "red" | "green" | "amber";
 }
 
-export function Button({ text, type, className, onClick, color = "sky"}: ButtonProps) {
+const colors: Record<NonNullable<ButtonProps["color"]>, string> = {
+    sky: "bg-sky-100 border-sky-300 before:bg-sky-300",
+    red: "bg-red-50 border-red-300 before:bg-red-300",
+    green: "bg-green-50 border-green-300 before:bg-green-300",
+    amber: "bg-amber-50 border-amber-300 before:bg-amber-300",
+};
+
+export function Button({ text, type, className, onClick, color = "sky" }: ButtonProps): ReactElement {
     return (
-        <button type={type} className={`
+        <button
+            type={type}
+            className={`
             relative block w-full h-10 ${colors[color]} border mt-2 mb-2 rounded-xs shadow-lg z-0
             transition-colors duration-500 overflow-hidden
 
@@ -18,7 +28,8 @@ export function Button({ text, type, className, onClick, color = "sky"}: ButtonP
             hover:text-gray-900 hover:before:w-full
             ${className}
         `}
-        onClick={onClick}>
+            onClick={onClick}
+        >
             <p className="relative text-[17px] z-10">{text}</p>
         </button>
     );

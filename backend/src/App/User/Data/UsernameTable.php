@@ -7,6 +7,7 @@
 
 namespace Goralys\App\User\Data;
 
+use Goralys\App\Config\AppConfig;
 use Goralys\Shared\Exception\User\GoralysUserException;
 use Goralys\Shared\Utils\String\Data\StringCase;
 use Goralys\Shared\Utils\UtilitiesManager;
@@ -20,7 +21,7 @@ final class UsernameTable
 
     /**
      * Returns the username for a full name, generating and caching it if needed.
-     * @throws GoralysUserException If the generattion fails.
+     * @throws GoralysUserException If the generation fails.
      */
     public function resolve(string $fullName): string
     {
@@ -34,12 +35,10 @@ final class UsernameTable
         $firstNameParts = array_values(array_filter($names, fn($n) => strtoupper($n) !== $n));
 
         $firstName = implode("", $firstNameParts);
-        // french "particules" edge case (e.g., DU PONT Jean -> j.dupont1
-        $particles = ['LE', 'LA', 'LES', 'DE', 'DU', 'DES', 'L'];
         $lastName = "";
         for ($i = 0; $i < count($lastNameParts); $i++) {
             $lastName .= $lastNameParts[$i];
-            if (!in_array($lastNameParts[$i], $particles)) {
+            if (!in_array($lastNameParts[$i], AppConfig::NAME_PARTICULES)) {
                 break;
             }
         }

@@ -1,32 +1,39 @@
-'use client';
+"use client";
 
-import {Subject} from "@/app/lib/types";
-import {SubjectInputStudent} from "@/app/ui/inputs/subject-input-student";
-import {Button} from "@/app/ui/button";
-import {useState} from "react";
+import { Subject } from "@/app/lib/types";
+import { SubjectInputStudent } from "@/app/ui/inputs/subject-input-student";
+import { Button } from "@/app/ui/button";
+import { ReactElement, useState } from "react";
 import CommentStudent from "@/app/ui/subjects/comment-student";
-import {fetchCsrfClient, goralysFetchClient} from "@/app/lib/fetch/fetch.client";
-import {useToast} from "@/app/ui/toast/toast-provider";
+import { fetchCsrfClient, goralysFetchClient } from "@/app/lib/fetch/fetch.client";
+import { useToast } from "@/app/ui/toast/toast-provider";
 import Cookies from "universal-cookie";
-import {useDraftModal} from "@/app/ui/modals/drafts/draft-modal-provider";
+import { useDraftModal } from "@/app/ui/modals/drafts/draft-modal-provider";
+import { useConfirm } from "@/app/ui/modals/confirm/confirm-provider";
 
-export default function StudentCard({subjectData, onUpdateAction}: {subjectData: Subject, onUpdateAction: () => void}) {
+interface StudentCardProps {
+    subjectData: Subject;
+    onUpdateAction: () => void;
+}
+
+export default function StudentCard({ subjectData, onUpdateAction }: StudentCardProps): ReactElement {
     const toast = useToast();
+    const confirm = useConfirm();
     const [subject, setSubject] = useState<string | null>(subjectData.subject);
     const [isInterdisciplinary, setIsInterdisciplinary] = useState<boolean>(subjectData.interdisciplinary);
     const modal = useDraftModal();
     const cookies = new Cookies();
 
-    async function saveDraft() {
+    async function saveDraft(): Promise<void> {
         const csrfToken = await fetchCsrfClient("save-draft");
 
         const payload = {
-            'teacher-token': subjectData.teacherToken,
-            'student-token': subjectData.studentToken,
-            'topic': subjectData.topic,
-            'draft': subject,
-            'interdisciplinary': isInterdisciplinary,
-            'csrf-token': csrfToken,
+            "teacher-token": subjectData.teacherToken,
+            "student-token": subjectData.studentToken,
+            topic: subjectData.topic,
+            draft: subject,
+            interdisciplinary: isInterdisciplinary,
+            "csrf-token": csrfToken,
         };
 
         const res = await goralysFetchClient("subjects/save-draft", {
@@ -45,18 +52,35 @@ export default function StudentCard({subjectData, onUpdateAction}: {subjectData:
             });
         }
 
-        if (data.toastType === 'info' && res.ok) {
-            cookies.set('subjects-synced-student', "0", { path: '/' });
+        if (data.toastType === "info" && res.ok) {
+            cookies.set("subjects-synced-student", "0", { path: "/" });
             onUpdateAction();
         }
     }
 
-    async function sendSubject() {
+    async function sendSubject(): Promise<void> {
+        if (!subject || subject.trim() == "") {
+            toast.showToast({
+                type: "warning",
+                title: "Envoi",
+                message: "Veuillez saisir une question.",
+            });
+            return;
+        }
+
+        if (
+            !(await confirm.showConfirm({
+                title: "Envoi",
+                message: "Êtes-vous sûr de vouloir envoyer cette question au professeur ?",
+            }))
+        )
+            return;
+
         if (subject?.trim() === subjectData.lastRejected?.trim()) {
             toast.showToast({
                 type: "warning",
                 title: "Envoi",
-                message: "Cette question n’a pas été modifiée depuis son invalidation. Merci de la corriger avant de la renvoyer."
+                message: "Cette question n’a pas été modifiée depuis son invalidation. Merci de la corriger avant de la renvoyer.",
             });
             return;
         }
@@ -70,31 +94,28 @@ export default function StudentCard({subjectData, onUpdateAction}: {subjectData:
             toast.showToast({
                 type: "warning",
                 title: "Envoi",
-                message: "Veuillez choisir un brouillon ou envoyer la question seule."
+                message: "Veuillez choisir un brouillon ou envoyer la question seule.",
             });
             return;
         }
 
         const formData = new FormData();
-        formData.append('teacher-token', subjectData.teacherToken);
-        formData.append('student-token', subjectData.studentToken);
-        formData.append('topic', subjectData.topic);
-        formData.append('subject', subject ?? '');
-        formData.append('csrf-token', csrfToken ?? '');
-        formData.append('interdisciplinary', isInterdisciplinary ? '1' : '0')
+        formData.append("teacher-token", subjectData.teacherToken);
+        formData.append("student-token", subjectData.studentToken);
+        formData.append("topic", subjectData.topic);
+        formData.append("subject", subject ?? "");
+        formData.append("csrf-token", csrfToken ?? "");
+        formData.append("interdisciplinary", isInterdisciplinary ? "1" : "0");
 
         if (result.type == "withDraft") {
-            formData.append('draft-file', result.file ?? "");
+            formData.append("draft-file", result.file ?? "");
         }
 
-        const res = await goralysFetchClient(
-            "subjects/submit",
-            {
-                method: "POST",
-                credentials: "include",
-                body: formData,
-            }
-        );
+        const res = await goralysFetchClient("subjects/submit", {
+            method: "POST",
+            credentials: "include",
+            body: formData,
+        });
 
         const data = await res.json();
 
@@ -105,38 +126,37 @@ export default function StudentCard({subjectData, onUpdateAction}: {subjectData:
                 message: data.toastMessage,
             });
 
-            if (data.toastType === 'info' && res.ok) {
-                cookies.set('subjects-synced-student', "0", { path: '/' });
+            if (data.toastType === "info" && res.ok) {
+                cookies.set("subjects-synced-student", "0", { path: "/" });
                 onUpdateAction();
             }
         }
     }
 
-    const key = subjectData.teacher + subjectData.topic
+    const key = subjectData.teacher + subjectData.topic;
     return (
-        <div className="h-fit w-200 flex flex-col bg-sky-200 gap-1 p-1 mb-1 mt-1" >
+        <div className="h-fit w-200 flex flex-col bg-sky-200 gap-1 p-1 mb-1 mt-1">
             <div className="flex flex-row w-full justify-between">
                 <strong>{subjectData.topic}</strong>
                 <strong>{subjectData.teacher}</strong>
             </div>
 
-            <SubjectInputStudent id={`subject-input-student-for-${key}`}
-                                 label="Votre Question"
-                                 subjectData={subjectData}
-                                 onChangeAction={(e) => {
-                                     setSubject(e.target.value)
-                                 }}
-                                 setIsInterdisciplinaryAction={setIsInterdisciplinary}
+            <SubjectInputStudent
+                id={`subject-input-student-for-${key}`}
+                label="Votre Question"
+                subjectData={subjectData}
+                onChangeAction={(e) => {
+                    setSubject(e.target.value);
+                }}
+                setIsInterdisciplinaryAction={setIsInterdisciplinary}
             />
-            <CommentStudent key={`comment-student-for-${key}`}
-                            subjectData={subjectData}
-                            disabled={true}
-            />
-            {!(subjectData.status === "submitted" || subjectData.status === "approved")
-            && <>
-                <Button className="mb-1! mt-1!" text="Envoyer la question" type="button" onClick={sendSubject} />
-                <Button className="mb-1! mt-1!" text="Enregistrer comme brouillon" type="button" onClick={saveDraft} />
-            </>}
+            <CommentStudent key={`comment-student-for-${key}`} subjectData={subjectData} disabled={true} />
+            {!(subjectData.status === "submitted" || subjectData.status === "approved") && (
+                <>
+                    <Button className="mb-1! mt-1!" text="Enregistrer comme brouillon" type="button" onClick={saveDraft} />
+                    <Button className="mb-1! mt-1!" text="Envoyer la question" type="button" onClick={sendSubject} />
+                </>
+            )}
         </div>
     );
 }

@@ -1,23 +1,34 @@
-import {Button} from "@/app/ui/button";
-import {FloatingInput} from "@/app/ui/inputs/floating-input";
-import {LockClosedIcon} from "@heroicons/react/16/solid";
-import {clsx} from "clsx";
-import {useModalClose} from "@/app/lib/modals";
-import {useRef, useState} from "react";
-import {PasswordModalProps} from "@/app/lib/types";
+import { Button } from "@/app/ui/button";
+import { FloatingInput } from "@/app/ui/inputs/floating-input";
+import { LockClosedIcon } from "@heroicons/react/16/solid";
+import { clsx } from "clsx";
+import { useModalClose } from "@/app/lib/modals";
+import { ReactElement, useRef, useState } from "react";
 
-export default function PasswordModalElement({ visible, onConfirmAction, onCancelAction, onCloseModalAction }: PasswordModalProps) {
+interface PasswordModalProps {
+    visible: boolean;
+    onConfirmAction: (password: string) => void;
+    onCancelAction: () => void;
+    onCloseModalAction: () => void;
+}
+
+export default function PasswordModalElement({
+    visible,
+    onConfirmAction,
+    onCancelAction,
+    onCloseModalAction,
+}: PasswordModalProps): ReactElement {
     const [password, setPassword] = useState("");
     const modalRef = useRef<HTMLDivElement>(null);
 
     useModalClose(modalRef, visible, onCloseModalAction);
 
-    const onConfirm = () => {
+    const onConfirm = (): void => {
         onConfirmAction(password);
         setPassword("");
     };
 
-    const onCancel = () => {
+    const onCancel = (): void => {
         setPassword("");
         onCancelAction();
     };
@@ -32,7 +43,7 @@ export default function PasswordModalElement({ visible, onConfirmAction, onCance
                 {
                     "translate-y-0 opacity-100": visible,
                     "-translate-y-5 opacity-0": !visible,
-                }
+                },
             )}
             role="dialog"
             aria-modal="true"

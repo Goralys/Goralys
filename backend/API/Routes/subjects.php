@@ -153,10 +153,9 @@ function createSubjectsRoutes(GoralysRouter $router): void
 
             if (!$subjectResult) {
                 $kernel->db->rollback();
-                $kernel->toast->fatalError(
-                    500,
+                $kernel->deferredResponse(500)->error( // Internal server error
                     "Une erreur interne est survenue lors de l'enregistrement de votre question, 
-            veuillez réessayer ultérieurement.",
+                    veuillez réessayer ultérieurement.",
                 );
             }
 
@@ -170,10 +169,10 @@ function createSubjectsRoutes(GoralysRouter $router): void
 
             if (!$statusResult) {
                 $kernel->db->rollback();
-                $kernel->toast->fatalError(
-                    409,
+                $kernel->deferredResponse(409)->error( // Conflict
                     "Votre question n'a pas pu être envoyée. Veuillez réessayer ultérieurement.",
-                );
+                )
+                    ->send();
             }
 
             if ($draftFile) {
@@ -181,17 +180,21 @@ function createSubjectsRoutes(GoralysRouter $router): void
 
                 if (!$updateResult) {
                     $kernel->db->rollback();
-                    $kernel->toast->fatalError(
-                        500,
+                    $kernel->deferredResponse(500)->error( // Internal server error
                         "Votre question n'a pas pu être envoyée, car votre brouillon n'a pas pu être enregistré. 
-                Veuillez réessayer ultérieurement.",
-                    );
+                        Veuillez réessayer ultérieurement.",
+                    )
+                        ->send();
                 }
             }
 
             $kernel->db->commit();
-            $kernel->toast->showToast(ToastType::INFO, "Question", "Votre question a bien été envoyée.", "");
-            $kernel->response()->http();
+            $kernel->deferredResponse()->toast(
+                ToastType::INFO,
+                "Question",
+                "Votre question a bien été envoyée.",
+            )
+                ->send();
         },
         ...RouterOptions::$INPUT::require("subject", "topic", "teacher-token", "student-token"),
         ...RouterOptions::$INPUT::onFailure(

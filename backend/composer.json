@@ -1,36 +1,36 @@
 {
-  "name": "goralys/goralys",
-  "description": "A simple web app to help french high-schools to manage subjects for the 'Grand Oral'",
-  "license": ["AGPL-3.0-or-later"],
-
+    "name": "goralys/goralys",
+    "description": "A simple web app to help french high-schools to manage subjects for the 'Grand Oral'",
+    "license": [
+        "AGPL-3.0-or-later"
+    ],
     "require": {
-      "php": ">=8.5.0",
-      "ext-json": "*",
-      "ext-mysqli": "*",
+        "php": ">=8.5.0",
+        "ext-json": "*",
+        "ext-mysqli": "*",
         "vlucas/phpdotenv": "^5.6",
-      "ext-zip": "*",
+        "ext-zip": "*",
         "dompdf/dompdf": "^3.1",
-      "ext-fileinfo": "*"
+        "ext-fileinfo": "*"
     },
-
-  "autoload": {
-    "psr-4": {
-      "Goralys\\": "./src"
-    }
-  },
-  "autoload-dev": {
-    "psr-4": {
-      "Goralys\\Tests\\": "./tests"
-    }
-  },
+    "autoload": {
+        "psr-4": {
+            "Goralys\\": "./src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Goralys\\Tests\\": "./tests"
+        }
+    },
     "require-dev": {
         "phpunit/phpunit": "^12.5",
-    "friendsofphp/php-cs-fixer": "^3.95"
+        "friendsofphp/php-cs-fixer": "^3.95"
     },
-  "scripts": {
-    "phpunit": "vendor/bin/phpunit",
-    "phpcs": [
-      "php-cs-fixer fix --config=.php-cs-fixer.php"
-    ]
-  }
+    "scripts": {
+        "phpunit": "vendor/bin/phpunit",
+        "phpcs": [
+            "php-cs-fixer fix --config=.php-cs-fixer.php"
+        ]
+    }
 }

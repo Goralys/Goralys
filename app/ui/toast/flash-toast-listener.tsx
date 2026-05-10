@@ -1,25 +1,27 @@
-'use client';
+"use client";
 
-import {useEffect, useRef} from "react";
+import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { useToast } from "@/app/ui/toast/toast-provider";
 import { goralysFetchClient } from "@/app/lib/fetch/fetch.client";
-import {Toast} from "@/app/lib/types";
+import { Toast } from "@/app/lib/types";
 
-export default function FlashToastListener() {
-    const { showToast} = useToast();
+export default function FlashToastListener(): null {
+    const { showToast } = useToast();
     const showToastRef = useRef(showToast);
-    useEffect(() => { showToastRef.current = showToast; }, [showToast]);
+    useEffect(() => {
+        showToastRef.current = showToast;
+    }, [showToast]);
     const pathname = usePathname();
 
     useEffect(() => {
         let cancelled = false;
 
-        const showCachedToast = () => {
-            const raw = sessionStorage.getItem('flash_toast');
+        const showCachedToast = (): void => {
+            const raw = sessionStorage.getItem("flash_toast");
             if (!raw) return;
 
-            sessionStorage.removeItem('flash_toast');
+            sessionStorage.removeItem("flash_toast");
 
             try {
                 const parsed: Toast = JSON.parse(raw);
@@ -32,22 +34,21 @@ export default function FlashToastListener() {
             } catch {}
         };
 
-        const run = async () => {
+        const run = async (): Promise<void> => {
             try {
-                const res = await goralysFetchClient('toast/flash', {
-                    method: 'GET',
-                    credentials: 'include',
-                    cache: 'no-store',
+                const res = await goralysFetchClient("toast/flash", {
+                    method: "GET",
+                    credentials: "include",
+                    cache: "no-store",
                 });
 
                 const data = await res.json();
 
-
                 if (cancelled) return;
 
                 if (data?.toast) {
-                     // Server returned a toast — clear cache to avoid double-showing
-                    sessionStorage.removeItem('flash_toast');
+                    // Server returned a toast — clear cache to avoid double-showing
+                    sessionStorage.removeItem("flash_toast");
                     showToastRef.current({
                         type: data.toast.toastType,
                         title: data.toast.toastTitle,
@@ -63,8 +64,9 @@ export default function FlashToastListener() {
 
         void run();
 
-        return () => { cancelled = true; };
-
+        return (): void => {
+            cancelled = true;
+        };
     }, [pathname]);
 
     return null;
