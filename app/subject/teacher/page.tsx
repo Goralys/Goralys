@@ -1,4 +1,3 @@
-import TeapotPageClient from "@/app/errors/teapot/teapot-page-client";
 import { ReactElement } from "react";
 import { Metadata } from "next";
 import SubjectTeacherPageClient from "@/app/subject/teacher/subject-teacher-page-client";
