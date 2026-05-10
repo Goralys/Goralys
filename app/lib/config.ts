@@ -168,6 +168,49 @@ export const helpContent: Section[] = [
                     },
                 ],
             },
+            {
+                id: "ad-users",
+                title: "Gestion des utilisateurs",
+                items: [
+                    {
+                        q: "Comment réinitialiser le mot de passe d'un utilisateur ?",
+                        a:
+                            'Allez dans "Utilisateurs" et trouvez l\'utilisateur concerné. Cliquez sur "Réinitialiser le mot de passe". ' +
+                            "Son identifiant de connexion reste le même.",
+                    },
+                    {
+                        q: "Comment supprimer un utilisateur ?",
+                        a:
+                            'Allez dans "Utilisateurs", trouvez l\'utilisateur et cliquez sur "Supprimer".\nAttention : si c\'est un élève,' +
+                            " ses questions seront également supprimées. Si c'est un professeur alors toutes les matières qui lui sont" +
+                            " associées seront également supprimées.",
+                    },
+                    {
+                        q: "Comment remplacer un professeur ?",
+                        a:
+                            'Allez dans "Utilisateurs", trouvez le professeur à remplacer et cliquez sur "Remplacer le professeur". Entrez' +
+                            " le nom et prénom du nouveau professeur. Une notification avec son identifiant apparaîtra et les questions des" +
+                            " élèves du (des) groupes seront automatiquement transférées.",
+                    },
+                    {
+                        q: "Comment consulter l'identifiant d'un utilisateur ?",
+                        a:
+                            'Dans "Utilisateurs", cliquez sur le nom de l\'utilisateur, une boîte de saisie de mot de passe apparaîtra,' +
+                            " entrez-y votre mot de passe puis confirmez. Vous devriez voir une notification avec l'identifiant",
+                    },
+                    {
+                        q: "Comment créer un nouvel administrateur ?",
+                        a:
+                            'Allez dans "Accès" pour créer un compte administrateur. Renseignez son nom et prénom. Une notification avec son' +
+                            " identifiant de connexion apparaîtra, il pourra ensuite créer son compte.\nAttention : les administrateurs ont" +
+                            " accès à toutes les fonctionnalités de gestion de l'établissement.",
+                    },
+                    {
+                        q: "Comment supprimer un administrateur ?",
+                        a: 'Dans "Accès", trouver l\'administrateur et cliquez sur "Révoquer l\'accès".',
+                    },
+                ],
+            },
         ],
     },
     {
@@ -188,7 +231,7 @@ export const helpContent: Section[] = [
                         q: "L'import de questions échoue",
                         a:
                             'Vérifiez que vos fichiers CSV respectent bien le format décrit dans la section "Format d\'import". Si vous avez' +
-                            "accès au serveur, veuillez consulter les logs (public_html/backend/Logs) pour plus d'informations.",
+                            " accès au serveur, veuillez consulter les logs (public_html/backend/Logs) pour plus d'informations.",
                     },
                     {
                         q: "Je ne vois pas les questions après l'import",
