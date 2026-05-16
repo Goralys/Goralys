@@ -19,7 +19,7 @@ export default function AdminCard({ subjectData, onUpdateAction, syncKey }: Subj
     const toast = useToast();
     const cookies = new Cookies();
 
-    async function updateStatus(status: SubjectStatus): Promise<void> {
+    const updateStatus = async (status: SubjectStatus): Promise<void> => {
         if (status === subjectData.status) return;
 
         const pwd = await password.showPasswordModal("le changement de statut");
@@ -64,7 +64,7 @@ export default function AdminCard({ subjectData, onUpdateAction, syncKey }: Subj
             cookies.set(syncKey, "0", { path: "/" });
             onUpdateAction();
         }
-    }
+    };
 
     return (
         <div className="h-fit w-200 flex flex-col bg-sky-200 gap-1 p-1 mb-1 mt-1">

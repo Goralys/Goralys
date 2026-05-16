@@ -11,7 +11,7 @@ import { ReactElement } from "react";
 
 export default function MePageClient(): ReactElement {
     const { showToast } = useToast();
-    async function logout(): Promise<void> {
+    const logout = async (): Promise<void> => {
         const payload = { "csrf-token": await fetchCsrfClient("logout") };
 
         await goralysFetchClient("user/logout", {
@@ -25,7 +25,7 @@ export default function MePageClient(): ReactElement {
             title: "Déconnexion",
             message: "Vous avez bien été déconnecté",
         });
-    }
+    };
 
     const cookies = new Cookies();
     const username: string = cookies.get("username") ?? "";

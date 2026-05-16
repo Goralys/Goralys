@@ -17,7 +17,7 @@ export default function CookiesPageClient(): ReactElement {
     const { showToast } = useToast();
     const [flavour, setFlavour] = useState("chocolate");
 
-    async function orderCookie(): Promise<void> {
+    const orderCookie = async (): Promise<void> => {
         const payload = { flavour: flavour };
 
         const res = await goralysFetchClient(`cookies`, {
@@ -37,7 +37,7 @@ export default function CookiesPageClient(): ReactElement {
 
             window.location.href = data?.redirect ?? "/";
         }
-    }
+    };
 
     return (
         <div className="relative flex flex-col grow h-fit items-center top-10">
