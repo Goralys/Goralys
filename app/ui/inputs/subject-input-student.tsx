@@ -2,7 +2,7 @@
 
 import React, { useState, ChangeEventHandler, ReactElement } from "react";
 import { clsx } from "clsx";
-import { Subject } from "@/app/lib/types";
+import { getStatusHelper, Subject } from "@/app/lib/types";
 import { SubjectTextArea } from "@/app/ui/inputs/subject-text-area";
 import Checkbox from "@/app/ui/inputs/checkbox";
 
@@ -27,16 +27,7 @@ export function SubjectInputStudent({
     const [currentValue, setCurrentValue] = useState(initialValue);
     const MAX_CHARS = 250;
 
-    helper =
-        subjectData.status === "submitted"
-            ? "Cette question est en attente de validation, vous ne pouvez plus la modifier."
-            : subjectData.status === "not_submitted"
-              ? "Cette question n'a pas encore été envoyée."
-              : subjectData.status === "rejected"
-                ? "Cette question n'a pas été validée par le professeur, vous devez en envoyer une nouvelle."
-                : subjectData.status === "approved"
-                  ? "Cette question a été validée, vous ne pouvez plus la modifier."
-                  : "";
+    helper = getStatusHelper(subjectData.status, "student");
 
     const editable = subjectData.status != "approved" && subjectData.status != "submitted";
 

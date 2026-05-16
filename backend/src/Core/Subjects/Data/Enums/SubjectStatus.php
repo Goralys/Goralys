@@ -25,4 +25,15 @@ enum SubjectStatus: int
     {
         return strtolower($this->name);
     }
+
+    public static function fromString(string $status): self
+    {
+        return match ($status) {
+            "not_submitted" => self::NOT_SUBMITTED,
+            "submitted" => self::SUBMITTED,
+            "rejected" => self::REJECTED,
+            "approved" => self::APPROVED,
+            default => self::UNKNOWN
+        };
+    }
 }

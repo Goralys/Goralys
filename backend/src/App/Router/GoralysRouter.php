@@ -34,7 +34,7 @@ final class GoralysRouter
     private array $routes = [
         'POST' => [],
         'GET' => [],
-        'UPDATE' => [],
+        'PATCH' => [],
         'DELETE' => [],
         'BREW' => [],
         'WHEN' => [],
@@ -108,7 +108,7 @@ final class GoralysRouter
      */
     public function update(string $route, Closure $handler, array ...$options): Route
     {
-        return $this->add('UPDATE', $route, $handler, ...$options);
+        return $this->add('PATCH', $route, $handler, ...$options);
     }
 
     /**

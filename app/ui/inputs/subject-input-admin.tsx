@@ -1,5 +1,5 @@
 import { clsx } from "clsx";
-import { Subject } from "@/app/lib/types";
+import { getStatusHelper, Subject } from "@/app/lib/types";
 import { SubjectTextArea } from "@/app/ui/inputs/subject-text-area";
 import { ChangeEventHandler, ReactElement } from "react";
 
@@ -13,16 +13,7 @@ interface SubjectInputMultilineProps {
 }
 
 export function SubjectInputAdmin({ id, label, helper, subjectData, onChangeAction }: SubjectInputMultilineProps): ReactElement {
-    helper =
-        subjectData.status === "submitted"
-            ? "Cette question est en attente de validation."
-            : subjectData.status === "not_submitted"
-              ? "Cette question n'a pas encore été envoyée."
-              : subjectData.status === "rejected"
-                ? "Cette question n'a pas été validée par le professeur."
-                : subjectData.status === "approved"
-                  ? "Cette question a été validée."
-                  : "";
+    helper = getStatusHelper(subjectData.status, "admin");
 
     return (
         <div

@@ -165,7 +165,12 @@ export default function SubjectAdminPageClient(): ReactElement {
                             <SubjectsSearchBar subjects={subjects} setCurrentSubjects={setCurrentSubjects} />
                             <div className="flex flex-col gap-2 items-center w-full">
                                 {currentSubjects?.map((s) => (
-                                    <AdminCard key={s.studentToken + s.teacherToken} subjectData={s} />
+                                    <AdminCard
+                                        key={s.studentToken + s.teacherToken}
+                                        subjectData={s}
+                                        syncKey="subjects-synced-admin"
+                                        onUpdateAction={refetch}
+                                    />
                                 ))}
                             </div>
                         </>
