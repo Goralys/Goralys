@@ -6,31 +6,31 @@ This document describes the layered architecture of the Goralys backend, how the
 
 The backend is organized into distinct layers to separate responsibilities and improve maintainability:
 
-- Platform (infrastructure): `PHP/Platform`
-- Core (domain): `PHP/Core`
-- App (application controllers and HTTP concerns): `PHP/App`
-- Shared (cross-cutting types and exceptions): `PHP/Shared`
-- Kernel (bootstrapping and runtime wiring): `PHP/Kernel`
+- Platform (infrastructure): `backend/src/Platform`
+- Core (domain): `backend/src/Core`
+- App (application controllers and HTTP concerns): `backend/src/App`
+- Shared (cross-cutting types and exceptions): `backend/src/Shared`
+- Kernel (bootstrapping and runtime wiring): `backend/src/Kernel`
 
 Layers are designed to keep dependencies directional — higher layers may depend on lower ones, and Shared contains common types used across layers.
 
 ## Layer descriptions
 
-1. Platform — Infrastructure (`PHP/Platform`)
+1. Platform — Infrastructure (`backend/src/Platform`)
 
     Provides low-level, environment and specific services used by the rest of the system.
 
     Platform content:
-    - DB (`PHP/Platform/DB`): connection handling and query helpers.
-    - Loader (`PHP/Platform/Loader`): environment and configuration loading (wrapper around `DotEnv` by vlucas).
-    - Logger (`PHP/Platform/Logger`): centralized logging APIs and configuration.
+    - DB (`backend/src/Platform/DB`): connection handling and query helpers.
+    - Loader (`backend/src/Platform/Loader`): environment and configuration loading (wrapper around `DotEnv` by vlucas).
+    - Logger (`backend/src/Platform/Logger`): centralized logging APIs and configuration.
 
     Platform responsibilities:
     - Provide database connectivity and execution helpers.
     - Load and validate environment/configuration values.
     - Expose logging and other infrastructure services to upper layers.
 
-2. Core — Domain (`PHP/Core`)
+2. Core — Domain (`backend/src/Core`)
 
     Encapsulates domain entities, business rules, and use-cases. Organize code by domain (for example `User`, `Subject`).
 
@@ -43,7 +43,7 @@ Layers are designed to keep dependencies directional — higher layers may depen
     - Implement business rules and orchestrate domain workflows.
     - Depend on repository abstractions to persist/retrieve data; repository implementations delegate to Platform.
 
-3. App — Application (`PHP/App`)
+3. App — Application (`backend/src/App`)
 
     Hosts HTTP/web concerns, controllers, request/response mapping, session handling, and presentation helpers.
 
@@ -57,14 +57,14 @@ Layers are designed to keep dependencies directional — higher layers may depen
     - Manage session state and user-facing utilities (toasts, messages).
     - Return HTTP responses and handle input validation.
 
-4. Shared — Cross-cutting (`PHP/Shared`)
+4. Shared — Cross-cutting (`backend/src/Shared`)
 
     Contains reusable, domain-agnostic components used by multiple layers.
 
     Shared content:
-    - Exceptions: `PHP/Shared/Exception` (typed exceptions for DB, User, etc.)
+    - Exceptions: `backend/src/Shared/Exception` (typed exceptions for DB, User, etc.)
 
-5. Kernel — Bootstrapping and runtime (`PHP/Kernel`)
+5. Kernel — Bootstrapping and runtime (`backend/src/Kernel`)
 
     Initializes and wires runtime services and global application policies (error handling, logging).
 
@@ -112,11 +112,12 @@ Maintaining these boundaries keeps the system modular and easier to test.
 
 ## File layout (snapshot)
 
-- `PHP/Platform/DB` — DB facade, interfaces, and services
-- `PHP/Platform/Loader` — environment loader
-- `PHP/Platform/Logger` — logger API and enums
-- `PHP/Core/User` — user domain (data, repos, services)
-- `PHP/Core/Subject` — subject domain (data, repos, services)
-- `PHP/App/*` — controllers, security, utilities (e.g., Toast)
-- `PHP/Shared/*` — shared exceptions and utilities
-- `PHP/Kernel/*` — kernel and bootstrap utilities
+- `backend/src/Platform/DB` — DB facade, interfaces, and services
+- `backend/src/Platform/Loader` — environment loader
+- `backend/src/Platform/Logger` — logger API and enums
+- `backend/src/Core/User` — user domain (data, repos, services)
+- `backend/src/Core/Subject` — subject domain (data, repos, services)
+- `backend/src/App/*` — controllers, security, utilities (e.g., Toast)
+- `backend/src/Shared/*` — shared exceptions and utilities
+- `backend/src/Kernel/*` — kernel and bootstrap utilities
+- `backend/src/App/Router` - router for the API and the middlwares (`backend/src/App/HTTP/Middleware`)
