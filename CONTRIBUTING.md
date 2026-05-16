@@ -26,6 +26,23 @@ _Note: Never create a pull request to the `main` branch, all pull requests to `m
 - Write descriptive variable/function names
 - Write code in English
 
+##### Function Declaration Style
+
+- **Inside React components:** Use arrow function syntax
+```tsx
+  const MyComponent = () => {
+    const handleClick = () => { /* ... */ };
+    return <button onClick={handleClick}>Click</button>;
+  };
+```
+
+- **Outside components (utils, services, etc.):** Use function declaration
+```tsx
+  function calculateTotal(items) {
+    return items.reduce((sum, item) => sum + item.price, 0);
+  }
+```
+
 #### Security Guidelines
 
 - Never commit sensitive credentials (use `.env` for local testing)
