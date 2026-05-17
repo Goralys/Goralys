@@ -36,7 +36,7 @@ export default function TeacherCard({ subjectData, onUpdateAction }: TeacherCard
             !(await confirm.showConfirm({
                 title: "Confirmer le rejet",
                 message:
-                    "Une fois la question rejetée l'élève devra en soumettre une nouvelle." +
+                    "Une fois la question rejetée, l'élève devra en soumettre une nouvelle." +
                     " Voulez-vous quand même rejeter cette question ?",
             }))
         )
