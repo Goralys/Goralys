@@ -46,7 +46,7 @@ export async function goralysFetchClient(input: string | URL | Request, requestO
 
     // Tea pot
     if (res.status === 418) {
-        const data = await res.json();
+        const data = await res.clone().json();
         const params = encodeURIComponent(
             JSON.stringify({
                 toastType: data.toastType,

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { SubjectsProxy } from "./app/lib/proxies/subjects-proxy";
 import { AdminsProxy } from "./app/lib/proxies/admins-proxy";
+import { FoolsProxy } from "@/app/lib/proxies/fools-proxy";
 
 const routes: Array<{
     matcher: RegExp;
@@ -9,6 +10,8 @@ const routes: Array<{
 }> = [
     { matcher: /^\/subject/, handler: SubjectsProxy },
     { matcher: /^\/admin/, handler: AdminsProxy },
+    { matcher: /^\/coffee/, handler: FoolsProxy },
+    { matcher: /^\/tea/, handler: FoolsProxy },
 ];
 
 export async function proxy(request: NextRequest): Promise<NextResponse | NextResponse<unknown>> {
@@ -24,5 +27,5 @@ export async function proxy(request: NextRequest): Promise<NextResponse | NextRe
 }
 
 export const config = {
-    matcher: ["/subject/:path*", "/admin/:path*"],
+    matcher: ["/subject/:path*", "/admin/:path*", "/coffee/:path*", "/tea/:path*"],
 };
