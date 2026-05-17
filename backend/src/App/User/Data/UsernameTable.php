@@ -8,6 +8,7 @@
 namespace Goralys\App\User\Data;
 
 use Goralys\App\Config\AppConfig;
+use Goralys\Core\User\Data\Enums\UserRole;
 use Goralys\Shared\Exception\User\GoralysUserException;
 use Goralys\Shared\Utils\String\Data\StringCase;
 use Goralys\Shared\Utils\UtilitiesManager;
@@ -21,9 +22,12 @@ final class UsernameTable
 
     /**
      * Returns the username for a full name, generating and caching it if needed.
+     * @param string $fullName The fullname of the user
+     * @param UserRole $role The user's role. This is only specified when creating admin to add a special suffix.
+     * @return string The username
      * @throws GoralysUserException If the generation fails.
      */
-    public function resolve(string $fullName): string
+    public function resolve(string $fullName, UserRole $role = UserRole::UNKNOWN): string
     {
         if (isset($this->table[$fullName])) {
             return $this->table[$fullName];
@@ -49,7 +53,7 @@ final class UsernameTable
             StringCase::LOWER,
         ));
         $base = $this->utils->string->sanitize(
-            substr($firstName, 0, 1) . "." . $lastName,
+            substr($firstName, 0, 1) . "." . $lastName . ($role == UserRole::ADMIN ? ".admin" : ""),
             StringCase::LOWER,
         );
         $number = rand(0, 9);

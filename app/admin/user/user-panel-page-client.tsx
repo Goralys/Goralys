@@ -1,11 +1,11 @@
 "use client";
 
 import { useUsers, useVirtualUsers } from "@/app/hooks/useUsers";
-import UserCard from "@/app/ui/admin-pannel/user-card";
+import UserCard from "../../ui/admin-panel/user-card";
 import { useState, Suspense, ReactElement } from "react";
 import { User } from "@/app/lib/types";
-import { UsersSearchBar } from "@/app/ui/admin-pannel/users-search-bar";
-import UserCardSkeleton from "@/app/ui/skeletons/admin-pannel/user-card";
+import { UsersSearchBar } from "../../ui/admin-panel/users-search-bar";
+import UserCardSkeleton from "../../ui/skeletons/admin-panel/user-card";
 
 export default function UserPanelPageClient(): ReactElement {
     const { users, refetch, syncKey } = useUsers();

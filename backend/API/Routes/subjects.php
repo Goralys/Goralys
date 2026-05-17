@@ -81,6 +81,39 @@ function createSubjectsRoutes(GoralysRouter $router): void
     })
             ->middlewares(...MiddlewareSets::subjectsRoute('export-subjects', UserRole::ADMIN));
 
+    $router->update(
+        'subjects/status',
+        function (GoralysKernel $kernel, RequestInterface $request) {
+            if (!$kernel->users->validatePassword($request->get("admin-password"))) {
+                $kernel->deferredResponse(501)->toast( // Unauthorized
+                    ToastType::WARNING,
+                    "Mot de passe",
+                    "Veuillez saisir le bon mot de passe",
+                )
+                        ->redirect("/subject")
+                        ->send();
+            }
+
+            $kernel->subjects->updateField(
+                $kernel->usernameManager->get($request->get('teacher-token')),
+                $kernel->usernameManager->get($request->get('student-token')),
+                $request->get("topic"),
+                SubjectFields::STATUS,
+                SubjectStatus::fromString($request->get("status"))
+            );
+
+            $kernel->deferredResponse()->toast(
+                ToastType::INFO,
+                "Statut",
+                "Le statut de la question a bien été mis à jour."
+            )
+                    ->redirect("/subject")
+                    ->send();
+        },
+        ...RouterOptions::$INPUT::require("status", "topic", "teacher-token", "student-token", "admin-password")
+    )
+        ->middlewares(...MiddlewareSets::subjectsRoute('update-subject-status', UserRole::ADMIN));
+
     // -------------------------
     // [SUB SECTION] Student
     // -------------------------
@@ -156,7 +189,8 @@ function createSubjectsRoutes(GoralysRouter $router): void
                 $kernel->deferredResponse(500)->error( // Internal server error
                     "Une erreur interne est survenue lors de l'enregistrement de votre question, 
                     veuillez réessayer ultérieurement.",
-                );
+                )
+                    ->send();
             }
 
             $statusResult = $kernel->subjects->updateField(

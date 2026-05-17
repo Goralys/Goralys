@@ -21,7 +21,7 @@ export default function SubjectAdminPageClient(): ReactElement {
     const [currentSubjects, setCurrentSubjects] = useState<Subject[] | null>(subjects);
     const cookies = new Cookies();
 
-    async function sendTopics(): Promise<void> {
+    const sendTopics = async (): Promise<void> => {
         const csrfToken = await fetchCsrfClient("import-topics");
         const file = await modal.showImportTopicsModal();
 
@@ -71,9 +71,9 @@ export default function SubjectAdminPageClient(): ReactElement {
                 message: data.toastMessage,
             });
         }
-    }
+    };
 
-    async function deleteTopics(): Promise<void> {
+    const deleteTopics = async (): Promise<void> => {
         const confirmResult = await confirm.showConfirm({
             title: "Suppression des sujets",
             message: "Ête-vous sûr de vouloir supprimer les sujets et les utilisateurs (sauf administrateurs) ?",
@@ -106,9 +106,9 @@ export default function SubjectAdminPageClient(): ReactElement {
             await refetch();
             setCurrentSubjects(subjects || []);
         }
-    }
+    };
 
-    async function exportSubjects(): Promise<void> {
+    const exportSubjects = async (): Promise<void> => {
         const csrfToken = await fetchCsrfClient("export-subjects");
         const payload = {
             "csrf-token": csrfToken,
@@ -141,7 +141,7 @@ export default function SubjectAdminPageClient(): ReactElement {
                 message: data.toastMessage,
             });
         }
-    }
+    };
 
     const skeletons = Array.from({ length: 3 }, (_, i) => <AdminSubjectCardSkeleton key={i} />);
 
@@ -165,7 +165,12 @@ export default function SubjectAdminPageClient(): ReactElement {
                             <SubjectsSearchBar subjects={subjects} setCurrentSubjects={setCurrentSubjects} />
                             <div className="flex flex-col gap-2 items-center w-full">
                                 {currentSubjects?.map((s) => (
-                                    <AdminCard key={s.studentToken + s.teacherToken} subjectData={s} />
+                                    <AdminCard
+                                        key={s.studentToken + s.teacherToken}
+                                        subjectData={s}
+                                        syncKey="subjects-synced-admin"
+                                        onUpdateAction={refetch}
+                                    />
                                 ))}
                             </div>
                         </>

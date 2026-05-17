@@ -24,7 +24,7 @@ export default function StudentCard({ subjectData, onUpdateAction }: StudentCard
     const modal = useDraftModal();
     const cookies = new Cookies();
 
-    async function saveDraft(): Promise<void> {
+    const saveDraft = async (): Promise<void> => {
         const csrfToken = await fetchCsrfClient("save-draft");
 
         const payload = {
@@ -56,9 +56,9 @@ export default function StudentCard({ subjectData, onUpdateAction }: StudentCard
             cookies.set("subjects-synced-student", "0", { path: "/" });
             onUpdateAction();
         }
-    }
+    };
 
-    async function sendSubject(): Promise<void> {
+    const sendSubject = async (): Promise<void> => {
         if (!subject || subject.trim() == "") {
             toast.showToast({
                 type: "warning",
@@ -131,7 +131,7 @@ export default function StudentCard({ subjectData, onUpdateAction }: StudentCard
                 onUpdateAction();
             }
         }
-    }
+    };
 
     const key = subjectData.teacher + subjectData.topic;
     return (

@@ -34,7 +34,7 @@ function bootstrapAPI(GoralysKernel $kernel): void
         header('Vary: Origin');
     }
 
-    header('Access-Control-Allow-Methods: GET, POST, OPTIONS, DELETE, UPDATE, BREW, WHEN');
+    header('Access-Control-Allow-Methods: GET, POST, OPTIONS, DELETE, PATCH, PUT, BREW, WHEN');
     header('Access-Control-Max-Age: 86400'); // 1 day
     header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, X-HTTP-Method-Override');
 

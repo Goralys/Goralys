@@ -1,5 +1,5 @@
 import { clsx } from "clsx";
-import { Subject } from "@/app/lib/types";
+import { getStatusHelper, Subject } from "@/app/lib/types";
 import { ArrowDownTrayIcon } from "@heroicons/react/24/outline";
 import { SubjectTextArea } from "@/app/ui/inputs/subject-text-area";
 import Checkbox from "@/app/ui/inputs/checkbox";
@@ -16,16 +16,7 @@ interface SubjectInputMultilineProps {
 
 export function SubjectInputTeacher({ id, label, helper, subjectData, onChangeAction }: SubjectInputMultilineProps): ReactElement {
     const requestUrl = `${process.env.NEXT_PUBLIC_API_DOMAIN}/subjects/draft`;
-    helper =
-        subjectData.status === "submitted"
-            ? "Cette question est en attente de validation."
-            : subjectData.status === "not_submitted"
-              ? "Cette question n'a pas encore été envoyée."
-              : subjectData.status === "rejected"
-                ? "Vous n'avez pas validé cette question, l'élève doit en envoyer une nouvelle."
-                : subjectData.status === "approved"
-                  ? "Vous avez validé cette question, elle ne peut plus être modifiée."
-                  : "";
+    helper = getStatusHelper(subjectData.status, "teacher");
 
     const initialValue = subjectData.status == "rejected" ? (subjectData.lastRejected ?? "") : (subjectData.subject ?? "");
     const [currentValue, setCurrentValue] = useState(initialValue);

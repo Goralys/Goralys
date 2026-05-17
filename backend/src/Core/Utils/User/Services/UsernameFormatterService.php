@@ -20,6 +20,7 @@ final class UsernameFormatterService
      */
     public static function formatUsername(string $username): string
     {
+        $username = str_replace(".admin", "", $username);
         // Expected format: first initial, dot, last name, optional digits.
         if (preg_match('/^([a-z])\.([a-z]+)\d*$/i', $username, $matches)) {
             $firstInitial = strtoupper($matches[1]);

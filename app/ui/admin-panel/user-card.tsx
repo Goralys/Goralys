@@ -8,7 +8,7 @@ import { usePasswordModal } from "@/app/ui/modals/password/password-modal-provid
 import { useToast } from "@/app/ui/toast/toast-provider";
 import { fetchCsrfClient, goralysFetchClient } from "@/app/lib/fetch/fetch.client";
 import Cookies from "universal-cookie";
-import ReplaceTeacherElement from "@/app/ui/admin-pannel/replace-teacher-element";
+import ReplaceTeacherElement from "./replace-teacher-element";
 import { ReactElement } from "react";
 
 interface UserCardProps {
@@ -25,10 +25,11 @@ export default function UserCard({ user, onUpdateAction, syncKey }: UserCardProp
     const fetchAdmin = async (
         route: string,
         action: string,
+        confirm?: string,
         extraPayload: Record<string, string> = {},
         toastDuration: number = 5000,
     ): Promise<void> => {
-        const pwd = await password.showPasswordModal();
+        const pwd = await password.showPasswordModal(confirm);
 
         if (!pwd) return;
 
@@ -72,17 +73,19 @@ export default function UserCard({ user, onUpdateAction, syncKey }: UserCardProp
         }
     };
 
-    const resetPassword = async (): Promise<void> => await fetchAdmin("users/reset-password", "reset-password");
+    const resetPassword = async (): Promise<void> =>
+        await fetchAdmin("users/reset-password", "reset-password", "la réinitialisation du mot de passe");
 
-    const deleteUser = async (): Promise<void> => await fetchAdmin("users/delete", "delete-user");
+    const deleteUser = async (): Promise<void> => await fetchAdmin("users/delete", "delete-user", "la suppression de l'utilisateur");
 
     const replaceTeacher = async (firstName: string, lastName: string): Promise<void> =>
-        await fetchAdmin("users/teacher/replace", "replace-teacher", {
+        await fetchAdmin("users/teacher/replace", "replace-teacher", "le remplacement du professeur", {
             "first-name": firstName,
             "last-name": lastName,
         });
 
-    const showUsername = async (): Promise<void> => await fetchAdmin("users/username", "get-username", {}, 10 * 1000);
+    const showUsername = async (): Promise<void> =>
+        await fetchAdmin("users/username", "get-username", "la révélation de l'identifiant", {}, 10 * 1000);
 
     return (
         <Card className="flex-col w-200! bg-sky-200 gap-1 p-1 mb-1 mt-1">

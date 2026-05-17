@@ -10,6 +10,7 @@ interface PasswordModalProps {
     onConfirmAction: (password: string) => void;
     onCancelAction: () => void;
     onCloseModalAction: () => void;
+    message: string;
 }
 
 export default function PasswordModalElement({
@@ -17,6 +18,7 @@ export default function PasswordModalElement({
     onConfirmAction,
     onCancelAction,
     onCloseModalAction,
+    message,
 }: PasswordModalProps): ReactElement {
     const [password, setPassword] = useState("");
     const modalRef = useRef<HTMLDivElement>(null);
@@ -55,7 +57,7 @@ export default function PasswordModalElement({
 
                 <div className="flex flex-col justify-center flex-1">
                     <strong className="text-md">Confirmation requise</strong>
-                    <span className="text-sm">Veuillez entrer votre mot de passe pour confirmer cette action</span>
+                    <span className="text-sm">{message}</span>
                 </div>
             </div>
 

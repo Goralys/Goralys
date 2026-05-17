@@ -22,7 +22,7 @@ export default function TeacherCard({ subjectData, onUpdateAction }: TeacherCard
     const cookies = new Cookies();
     const commentRef = useRef<HTMLTextAreaElement | null>(null);
 
-    async function rejectSubject(): Promise<void> {
+    const rejectSubject = async (): Promise<void> => {
         if (comment?.trim() === "" || !comment) {
             toast.showToast({
                 type: "warning",
@@ -36,7 +36,7 @@ export default function TeacherCard({ subjectData, onUpdateAction }: TeacherCard
             !(await confirm.showConfirm({
                 title: "Confirmer le rejet",
                 message:
-                    "Une fois la question rejetée l'élève devra en soumettre une nouvelle." +
+                    "Une fois la question rejetée, l'élève devra en soumettre une nouvelle." +
                     " Voulez-vous quand même rejeter cette question ?",
             }))
         )
@@ -87,9 +87,9 @@ export default function TeacherCard({ subjectData, onUpdateAction }: TeacherCard
             cookies.set("subjects-synced-teacher", false, { path: "/" });
             onUpdateAction();
         }
-    }
+    };
 
-    async function approveSubject(): Promise<void> {
+    const approveSubject = async (): Promise<void> => {
         if (
             !(await confirm.showConfirm({
                 title: "Validation de la question",
@@ -130,7 +130,7 @@ export default function TeacherCard({ subjectData, onUpdateAction }: TeacherCard
                 onUpdateAction();
             }
         }
-    }
+    };
 
     return (
         <div className="h-fit w-200 flex flex-col bg-sky-200 gap-1 p-1 mb-1 mt-1">

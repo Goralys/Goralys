@@ -6,7 +6,7 @@ import PasswordModalElement from "@/app/ui/modals/password/password-modal-elemen
 import { createPortal } from "react-dom";
 
 export type PasswordModalContext = {
-    showPasswordModal: () => Promise<string | null>;
+    showPasswordModal: (confirm?: string) => Promise<string | null>;
 };
 
 const PasswordModalContext = createContext<PasswordModalContext | null>(null);
@@ -16,8 +16,11 @@ export function PasswordModalProvider({ children }: { children: ReactNode }): Re
         resolve: (value: string | null) => void;
     } | null>(null);
     const [visible, setVisible] = useState(false);
+    const [message, setMessage] = useState<string>("");
+    const DEFAULT_PASSWORD_CONFIRM = "cette action";
 
-    const showPasswordModal = useCallback((): Promise<string | null> => {
+    const showPasswordModal = useCallback((confirm: string = DEFAULT_PASSWORD_CONFIRM): Promise<string | null> => {
+        setMessage("Veuillez entrer votre mot de passe pour confirmer " + confirm.replace(".", " ").trim() + ".");
         return new Promise((resolve) => {
             setState({ resolve });
             setVisible(false);
@@ -60,6 +63,7 @@ export function PasswordModalProvider({ children }: { children: ReactNode }): Re
                 createPortal(
                     <div className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm">
                         <PasswordModalElement
+                            message={message}
                             visible={visible}
                             onConfirmAction={handleConfirm}
                             onCancelAction={handleCancel}
