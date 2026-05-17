@@ -201,10 +201,20 @@ function createUserRoutes(GoralysRouter $router): void
 
     $router->post('admin/revoke', function (GoralysKernel $kernel, RequestInterface $request) {
         if (!$kernel->users->validatePassword($request->get("admin-password"))) {
-            $kernel->deferredResponse(501)->toast( // Unauthorized
+            $kernel->deferredResponse(401)->toast( // Unauthorized
                 ToastType::WARNING,
                 "Mot de passe",
                 "Veuillez saisir le bon mot de passe",
+            )
+                    ->redirect("/admin/admin")
+                    ->send();
+        }
+
+        if ($request->get("target") === $_SESSION['current_public_id']) {
+            $kernel->deferredResponse(400)->toast( // Bad Request
+                ToastType::WARNING,
+                "Suppression",
+                "Vous ne pouvez pas vous révoquez vous-même",
             )
                     ->redirect("/admin/admin")
                     ->send();
@@ -214,7 +224,7 @@ function createUserRoutes(GoralysRouter $router): void
 
         $kernel->deferredResponse()->toast(
             ToastType::INFO,
-            "Remplacement",
+            "Suppression",
             "L'administrateur a bien été révoqué.",
         )
                 ->redirect("/admin/user")

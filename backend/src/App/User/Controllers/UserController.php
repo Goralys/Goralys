@@ -11,16 +11,17 @@ use Goralys\App\User\Data\UserCollection;
 use Goralys\App\User\Data\UserGetDTO;
 use Goralys\App\User\Data\UsernameTable;
 use Goralys\App\User\Services\UsernameManager;
+use Goralys\Core\User\Data\Enums\UserRole;
 use Goralys\Core\User\Data\UserFullDTO;
 use Goralys\Core\User\Data\UserLoginDTO;
 use Goralys\Core\User\Data\VirtualUserDTO;
 use Goralys\Core\User\Repository\Interfaces\UserRepositoryInterface;
 use Goralys\Core\User\Repository\UserRepository;
 use Goralys\Core\User\Services\LoginService;
-use Goralys\Core\Utils\User\Services\UsernameFormatterService;
 use Goralys\Platform\DB\Interfaces\DbContainerInterface;
 use Goralys\Platform\Logger\Interfaces\LoggerInterface;
 use Goralys\Shared\Exception\GoralysRuntimeException;
+use Goralys\Shared\Exception\User\GoralysUserException;
 use Goralys\Shared\Exception\User\UserNotFoundException;
 use Goralys\Shared\Utils\String\Data\StringCase;
 use Goralys\Shared\Utils\UtilitiesManager;
@@ -122,12 +123,13 @@ final class UserController
      * Adds a new admin inside the database.
      * @param string $name The full name of the admin to add.
      * @return string|null The admin's username on success, null otherwise.
+     * @throws GoralysUserException
      */
     public function addAdmin(string $name): ?string
     {
         $utils = new UtilitiesManager();
         $table = new UsernameTable($utils);
-        $username = $table->resolve($name);
+        $username = $table->resolve($name, UserRole::ADMIN);
         return $this->repo->addAdmin($username) ? $username : null;
     }
 
@@ -171,7 +173,7 @@ final class UserController
      * @param string $publicId The current teacher's public id.
      * @param string $newName The full name of the new teacher.
      * @return string|null Wether the operation was successful.
-     * @throws GoralysRuntimeException If the username of the user could not be retrieved.
+     * @throws GoralysRuntimeException|GoralysUserException If the username of the user could not be retrieved.
      */
     public function replaceTeacher(string $publicId, string $newName): ?string
     {
