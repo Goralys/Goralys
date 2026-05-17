@@ -5,6 +5,7 @@ import { ReactElement, useState } from "react";
 import { goralysFetchClient } from "@/app/lib/fetch/fetch.client";
 import { Button } from "@/app/ui/button";
 import { useToast } from "@/app/ui/toast/toast-provider";
+import { isFoolsDay } from "@/app/lib/fools";
 
 const flavours = [
     { value: "chocolate", label: "Chocolat" },
@@ -222,30 +223,31 @@ export default function CookiesPageClient(): ReactElement {
                             </li>
                         </ul>
                     </section>
-
-                    <section className="flex flex-col gap-2">
-                        <p className="text-xl underline">7. Un cookie, justement ?</p>
-                        <p>
-                            Maintenant que vous savez tout sur nos cookies, on se dit qu&apos;on vous en doit bien un vrai. Quel goût vous
-                            ferait plaisir ?
-                        </p>
-                        <div className="flex flex-row gap-3 items-center mt-2">
-                            <select
-                                value={flavour}
-                                onChange={(e) => setFlavour(e.target.value)}
-                                className="border-0 border-b-2 border-sky-300 appearance-none
+                    {isFoolsDay() && (
+                        <section className="flex flex-col gap-2">
+                            <p className="text-xl underline">7. Un cookie, justement ?</p>
+                            <p>
+                                Maintenant que vous savez tout sur nos cookies, on se dit qu&apos;on vous en doit bien un vrai. Quel goût
+                                vous ferait plaisir ?
+                            </p>
+                            <div className="flex flex-row gap-3 items-center mt-2">
+                                <select
+                                    value={flavour}
+                                    onChange={(e) => setFlavour(e.target.value)}
+                                    className="border-0 border-b-2 border-sky-300 appearance-none
                                 cursor-pointer outline-none focus:ring-0 text-base leading-5
                                 text-heading pb-0 pr-5 subjects-search-select"
-                            >
-                                {flavours.map((f) => (
-                                    <option key={f.value} value={f.value}>
-                                        {f.label}
-                                    </option>
-                                ))}
-                            </select>
-                            <Button text="Commander" type="button" onClick={orderCookie} className="h-10! w-50! ml-5" />
-                        </div>
-                    </section>
+                                >
+                                    {flavours.map((f) => (
+                                        <option key={f.value} value={f.value}>
+                                            {f.label}
+                                        </option>
+                                    ))}
+                                </select>
+                                <Button text="Commander" type="button" onClick={orderCookie} className="h-10! w-50! ml-5" />
+                            </div>
+                        </section>
+                    )}
                 </div>
 
                 <Link href="/" className="mt-4 text-sky-500 underline hover:text-sky-700 transition-colors duration-200">

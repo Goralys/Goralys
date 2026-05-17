@@ -8,10 +8,14 @@
  * (at your option) any later version.
  */
 
-"use client";
-
 import Image from "next/image";
 import { ReactElement } from "react";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+    title: "Goralys | Accueil",
+};
+
 export default function HomePage(): ReactElement {
     return (
         <div className="flex flex-col min-h-screen w-full">

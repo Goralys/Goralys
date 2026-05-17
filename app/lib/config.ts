@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2026 Sami Saubion
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+/* Help Center config */
+
 type Item = { q: string; a: string };
 type Detail = { title: string; description: string; format: string };
 type Subsection = { id: string; title: string; items: Item[]; details?: Detail[] };

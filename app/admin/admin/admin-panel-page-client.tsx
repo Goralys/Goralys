@@ -3,10 +3,10 @@
 import { useAdmins, useVirtualAdmins } from "@/app/hooks/useUsers";
 import { useEffect, useState, Suspense, ReactElement } from "react";
 import { User } from "@/app/lib/types";
-import { AdminsSearchBar } from "@/app/ui/admin-pannel/admins-search-bar";
-import AdminCard from "@/app/ui/admin-pannel/admin-card";
-import CreateAdminElement from "@/app/ui/admin-pannel/create-admin-element";
-import AdminPanelCardSkeleton from "@/app/ui/skeletons/admin-pannel/admin-card";
+import { AdminsSearchBar } from "../../ui/admin-panel/admins-search-bar";
+import AdminCard from "../../ui/admin-panel/admin-card";
+import CreateAdminElement from "../../ui/admin-panel/create-admin-element";
+import AdminPanelCardSkeleton from "../../ui/skeletons/admin-panel/admin-card";
 
 export default function AdminPanelPageClient(): ReactElement {
     const { users: admins, refetch, syncKey } = useAdmins();

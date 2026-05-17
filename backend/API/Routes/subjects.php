@@ -189,7 +189,8 @@ function createSubjectsRoutes(GoralysRouter $router): void
                 $kernel->deferredResponse(500)->error( // Internal server error
                     "Une erreur interne est survenue lors de l'enregistrement de votre question, 
                     veuillez réessayer ultérieurement.",
-                );
+                )
+                    ->send();
             }
 
             $statusResult = $kernel->subjects->updateField(

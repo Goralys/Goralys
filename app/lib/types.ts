@@ -50,7 +50,7 @@ export const SubjectStatusConfig: Record<
         },
     },
     approved: {
-        label: "Approuvé",
+        label: "Approuvée",
         helper: {
             student: "Cette question a été validée par le professeur, vous ne pouvez plus la modifier.",
             teacher: "Vous avez validée cette question, elle ne peut plus être modifiée.",
