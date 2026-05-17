@@ -21,8 +21,8 @@ export default function AdminCard({ admin, onUpdateAction, syncKey }: AdminCardP
     const toast = useToast();
     const cookies = new Cookies();
 
-    const fetchAdmin = async (route: string, action: string): Promise<void> => {
-        const pwd = await password.showPasswordModal();
+    const fetchAdmin = async (route: string, action: string, confirm?: string): Promise<void> => {
+        const pwd = await password.showPasswordModal(confirm);
 
         if (!pwd) return;
 
@@ -63,7 +63,7 @@ export default function AdminCard({ admin, onUpdateAction, syncKey }: AdminCardP
         }
     };
 
-    const revokeAccess = async (): Promise<void> => await fetchAdmin("admin/revoke", "revoke-admin");
+    const revokeAccess = async (): Promise<void> => await fetchAdmin("admin/revoke", "revoke-admin", "la révocation de l'administrateur");
     return (
         <Card className="flex-col w-175! bg-sky-200 gap-1 p-1 mb-1 mt-1">
             <div className="flex flex-row justify-between items-center">
