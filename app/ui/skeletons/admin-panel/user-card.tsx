@@ -1,6 +1,6 @@
 import { Card } from "@/app/ui/card";
 import { ButtonSkeleton } from "@/app/ui/skeletons/button";
-import { ReplaceTeacherSkeleton } from "@/app/ui/skeletons/admin-pannel/replace-teacher";
+import { ReplaceTeacherSkeleton } from "./replace-teacher";
 import { ReactElement } from "react";
 
 interface UserCardSkeletonProps {

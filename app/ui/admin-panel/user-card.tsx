@@ -8,7 +8,7 @@ import { usePasswordModal } from "@/app/ui/modals/password/password-modal-provid
 import { useToast } from "@/app/ui/toast/toast-provider";
 import { fetchCsrfClient, goralysFetchClient } from "@/app/lib/fetch/fetch.client";
 import Cookies from "universal-cookie";
-import ReplaceTeacherElement from "@/app/ui/admin-pannel/replace-teacher-element";
+import ReplaceTeacherElement from "./replace-teacher-element";
 import { ReactElement } from "react";
 
 interface UserCardProps {
