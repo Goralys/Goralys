@@ -3,7 +3,8 @@ import { getStatusHelper, Subject } from "@/app/lib/types";
 import { ArrowDownTrayIcon } from "@heroicons/react/24/outline";
 import { SubjectTextArea } from "@/app/ui/inputs/subject-text-area";
 import Checkbox from "@/app/ui/inputs/checkbox";
-import React, { useState, ChangeEventHandler, ReactElement } from "react";
+import React, { ChangeEventHandler, ReactElement, useState } from "react";
+import { buildApiUrl } from "@/app/lib/fetch/fetch.client";
 
 interface SubjectInputMultilineProps {
     helper?: string;
@@ -15,7 +16,6 @@ interface SubjectInputMultilineProps {
 }
 
 export function SubjectInputTeacher({ id, label, helper, subjectData, onChangeAction }: SubjectInputMultilineProps): ReactElement {
-    const requestUrl = `${process.env.NEXT_PUBLIC_API_DOMAIN}/subjects/draft`;
     helper = getStatusHelper(subjectData.status, "teacher");
 
     const initialValue = subjectData.status == "rejected" ? (subjectData.lastRejected ?? "") : (subjectData.subject ?? "");
@@ -30,6 +30,15 @@ export function SubjectInputTeacher({ id, label, helper, subjectData, onChangeAc
         if (onChangeAction) {
             onChangeAction(e);
         }
+    };
+
+    const getDraft = (): void => {
+        window.location.href = buildApiUrl("subjects/draft", {
+            teacher: subjectData.teacherToken,
+            student: subjectData.studentToken,
+            topic: subjectData.topic,
+            "file-name": `Brouillon - ${subjectData.student} ${subjectData.topic}`,
+        });
     };
 
     return (
@@ -51,20 +60,15 @@ export function SubjectInputTeacher({ id, label, helper, subjectData, onChangeAc
                     animate={false}
                 />
                 {subjectData.hasDraft && (
-                    <form action={requestUrl} method="POST">
-                        <input type="hidden" name="teacher-token" value={subjectData.teacherToken} />
-                        <input type="hidden" name="student-token" value={subjectData.studentToken} />
-                        <input type="hidden" name="topic" value={subjectData.topic} />
-                        <input type="hidden" name="file-name" value={`Brouillon - ${subjectData.student} ${subjectData.topic}`} />
-                        <button
-                            className="h-6 w-6 cursor-pointer bg-sky-200 rounded-md items-center justify-center
+                    <button
+                        className="h-6 w-6 cursor-pointer bg-sky-200 rounded-md items-center justify-center
                         hover:bg-sky-300 hover:shadow-md hover:-translate-y-1 transition-all ease-out duration-500"
-                            type="submit"
-                            title="Télécharger le brouillon de l'élève"
-                        >
-                            <ArrowDownTrayIcon className="size-5 m-auto" />
-                        </button>
-                    </form>
+                        type="submit"
+                        title="Télécharger le brouillon de l'élève"
+                        onClick={getDraft}
+                    >
+                        <ArrowDownTrayIcon className="size-5 m-auto" />
+                    </button>
                 )}
             </div>
 

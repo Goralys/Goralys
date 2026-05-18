@@ -100,7 +100,7 @@ final class GoralysRouter
     }
 
     /**
-     * Registers an UPDATE route.
+     * Registers an update (PATCH) route.
      * @param string $route The route path.
      * @param Closure $handler The route handler.
      * @param array ...$options Optional middleware and input option arrays.
@@ -109,6 +109,18 @@ final class GoralysRouter
     public function update(string $route, Closure $handler, array ...$options): Route
     {
         return $this->add('PATCH', $route, $handler, ...$options);
+    }
+
+    /**
+     * Registers a PUT route.
+     * @param string $route The route path.
+     * @param Closure $handler The route handler.
+     * @param array ...$options Optional middleware and input option arrays.
+     * @return Route The registered route.
+     */
+    public function put(string $route, Closure $handler, array ...$options): Route
+    {
+        return $this->add('PUT', $route, $handler, ...$options);
     }
 
     /**

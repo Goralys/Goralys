@@ -28,16 +28,16 @@ export default function StudentCard({ subjectData, onUpdateAction }: StudentCard
         const csrfToken = await fetchCsrfClient("save-draft");
 
         const payload = {
-            "teacher-token": subjectData.teacherToken,
-            "student-token": subjectData.studentToken,
+            teacher: subjectData.teacherToken,
+            student: subjectData.studentToken,
             topic: subjectData.topic,
             draft: subject,
             interdisciplinary: isInterdisciplinary,
             "csrf-token": csrfToken,
         };
 
-        const res = await goralysFetchClient("subjects/save-draft", {
-            method: "POST",
+        const res = await goralysFetchClient("subjects/draft", {
+            method: "PUT",
             credentials: "include",
             body: JSON.stringify(payload),
         });
@@ -100,8 +100,8 @@ export default function StudentCard({ subjectData, onUpdateAction }: StudentCard
         }
 
         const formData = new FormData();
-        formData.append("teacher-token", subjectData.teacherToken);
-        formData.append("student-token", subjectData.studentToken);
+        formData.append("teacher", subjectData.teacherToken);
+        formData.append("student", subjectData.studentToken);
         formData.append("topic", subjectData.topic);
         formData.append("subject", subject ?? "");
         formData.append("csrf-token", csrfToken ?? "");

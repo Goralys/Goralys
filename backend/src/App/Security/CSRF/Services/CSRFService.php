@@ -75,7 +75,7 @@ final class CSRFService
      */
     public function validate(string $formId, RequestInterface $request): bool
     {
-        $token = $request->get('csrf-token');
+        $token = $request->param('csrf-token');
 
         if (!isset($_SESSION["csrf-tokens-table"][$formId])) {
             $this->logger->error(

@@ -45,7 +45,7 @@ final class HttpGuard implements GuardInterface
     public function matchCurrentUser(RequestInterface $request, string $field): ?DeferredResponseInterface
     {
         $actual = $_SESSION['current_username'] ?? null;
-        $given = $request->get($field);
+        $given = $request->param($field);
         if ($actual && ($given == $actual || $this->usernameManager->get($given) == $actual)) {
             return null;
         }

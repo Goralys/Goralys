@@ -291,4 +291,21 @@ final class SubjectsRepository implements SubjectsRepositoryInterface
             $topic,
         );
     }
+
+    public function flushDraftPath(string $teacherUsername, string $studentUsername, string $topic): bool
+    {
+        return $this->db->run(
+            "update student_topics st
+            join topics t on t.id = st.topic_id
+            join topic_teachers tt on t.id = tt.topic_id
+            set st.draft_path = null
+            where tt.teacher_id = ?
+            and st.student_id = ?
+            and t.name = ?",
+            "sss",
+            $teacherUsername,
+            $studentUsername,
+            $topic,
+        );
+    }
 }

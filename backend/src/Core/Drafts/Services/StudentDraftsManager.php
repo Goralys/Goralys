@@ -105,6 +105,33 @@ final class StudentDraftsManager
     }
 
     /**
+     * Deletes a student's draft in the database.
+     * @param string $studentUsername The student's username.
+     * @param string $teacherUsername The teachers's username.
+     * @param string $topicName The topic name.
+     * @return bool If the draft was correctly deleted or not.
+     */
+    public function flush(string $studentUsername, string $teacherUsername, string $topicName): bool
+    {
+        $this->emptyDir($studentUsername, $teacherUsername);
+
+        if (!$this->repo->flushDraftPath($teacherUsername, $studentUsername, $topicName)) {
+            $this->logger->debug(
+                LoggerInitiator::CORE,
+                "Failed to flush draft path (DB) for student: " . $studentUsername . ", with topic: " . $topicName
+            );
+            return false;
+        }
+
+        $this->logger->debug(
+            LoggerInitiator::CORE,
+            "Successfully deleted draft for student: " . $studentUsername . ", with topic: " . $topicName
+        );
+
+        return true;
+    }
+
+    /**
      * Retrieves the path to a student's draft
      * @param string $studentUsername The student's username.
      * @param string $teacherUsername The teachers's username.

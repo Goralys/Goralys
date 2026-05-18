@@ -66,9 +66,9 @@ function createUserRoutes(GoralysRouter $router): void
     // ================================================
     $router->post('user/register', function (GoralysKernel $kernel, RequestInterface $request) {
         $registerData = new UserRegisterDTO(
-            $request->get("user-name"),
-            $request->get("first-name") . " " . $request->get("last-name"),
-            $request->get("password"),
+            $request->param("user-name"),
+            $request->param("first-name") . " " . $request->param("last-name"),
+            $request->param("password"),
         );
 
         if (!$kernel->auth->register($registerData)) {
@@ -93,8 +93,8 @@ function createUserRoutes(GoralysRouter $router): void
 
     $router->post('user/login', function (GoralysKernel $kernel, RequestInterface $request) {
         $userData = new UserLoginDTO(
-            $request->get("username"),
-            $request->get("password"),
+            $request->param("username"),
+            $request->param("password"),
         );
 
         if (!$kernel->auth->login($userData)) {
@@ -165,7 +165,7 @@ function createUserRoutes(GoralysRouter $router): void
     // -------------------------
 
     $router->post('admin/create', function (GoralysKernel $kernel, RequestInterface $request) {
-        if (!$kernel->users->validatePassword($request->get("admin-password"))) {
+        if (!$kernel->users->validatePassword($request->param("admin-password"))) {
             $kernel->deferredResponse(501)->toast( // Unauthorized
                 ToastType::WARNING,
                 "Mot de passe",
@@ -176,8 +176,8 @@ function createUserRoutes(GoralysRouter $router): void
         }
 
         $result = $kernel->users->addAdmin(
-            trim($kernel->utils->string->sanitize($request->get("last-name"), StringCase::UPPER))
-            . " " . trim($request->get("first-name")),
+            trim($kernel->utils->string->sanitize($request->param("last-name"), StringCase::UPPER))
+            . " " . trim($request->param("first-name")),
         );
 
         if (!$result) {
@@ -200,7 +200,7 @@ function createUserRoutes(GoralysRouter $router): void
             ->middleware(...DbMiddleware::transaction());
 
     $router->post('admin/revoke', function (GoralysKernel $kernel, RequestInterface $request) {
-        if (!$kernel->users->validatePassword($request->get("admin-password"))) {
+        if (!$kernel->users->validatePassword($request->param("admin-password"))) {
             $kernel->deferredResponse(401)->toast( // Unauthorized
                 ToastType::WARNING,
                 "Mot de passe",
@@ -210,7 +210,7 @@ function createUserRoutes(GoralysRouter $router): void
                     ->send();
         }
 
-        if ($request->get("target") === $_SESSION['current_public_id']) {
+        if ($request->param("target") === $_SESSION['current_public_id']) {
             $kernel->deferredResponse(400)->toast( // Bad Request
                 ToastType::WARNING,
                 "Suppression",
@@ -220,7 +220,7 @@ function createUserRoutes(GoralysRouter $router): void
                     ->send();
         }
 
-        $kernel->users->revokeAdmin($request->get("target"));
+        $kernel->users->revokeAdmin($request->param("target"));
 
         $kernel->deferredResponse()->toast(
             ToastType::INFO,
@@ -234,7 +234,7 @@ function createUserRoutes(GoralysRouter $router): void
             ->middleware(...DbMiddleware::transaction());
 
     $router->post('users/reset-password', function (GoralysKernel $kernel, RequestInterface $request) {
-        if (!$kernel->users->validatePassword($request->get("admin-password"))) {
+        if (!$kernel->users->validatePassword($request->param("admin-password"))) {
             $kernel->deferredResponse(501)->toast( // Unauthorized
                 ToastType::WARNING,
                 "Mot de passe",
@@ -244,7 +244,7 @@ function createUserRoutes(GoralysRouter $router): void
                     ->send();
         }
 
-        if (!$kernel->users->resetPassword($request->get("target"))) {
+        if (!$kernel->users->resetPassword($request->param("target"))) {
             $kernel->deferredResponse(500)->error(
                 "Le mot de passe n'a pas pu être réinitialisé.",
             )
@@ -264,7 +264,7 @@ function createUserRoutes(GoralysRouter $router): void
             ->middleware(...DbMiddleware::require());
 
     $router->post('users/delete', function (GoralysKernel $kernel, RequestInterface $request) {
-        if (!$kernel->users->validatePassword($request->get("admin-password"))) {
+        if (!$kernel->users->validatePassword($request->param("admin-password"))) {
             $kernel->deferredResponse(501)->toast( // Unauthorized
                 ToastType::WARNING,
                 "Mot de passe",
@@ -274,7 +274,7 @@ function createUserRoutes(GoralysRouter $router): void
                     ->send();
         }
 
-        if (!$kernel->users->delete($request->get("target"))) {
+        if (!$kernel->users->delete($request->param("target"))) {
             $kernel->deferredResponse(500)->error(
                 "L'utilisateur n'a pas pu être supprimé.",
             )
@@ -298,7 +298,7 @@ function createUserRoutes(GoralysRouter $router): void
     // -------------------------
 
     $router->post('users/teacher/replace', function (GoralysKernel $kernel, RequestInterface $request) {
-        if (!$kernel->users->validatePassword($request->get("admin-password"))) {
+        if (!$kernel->users->validatePassword($request->param("admin-password"))) {
             $kernel->deferredResponse(501)->toast( // Unauthorized
                 ToastType::WARNING,
                 "Mot de passe",
@@ -309,9 +309,9 @@ function createUserRoutes(GoralysRouter $router): void
         }
 
         $result = $kernel->users->replaceTeacher(
-            $request->get("target"),
-            trim($kernel->utils->string->sanitize($request->get("last-name"), StringCase::UPPER))
-            . " " . trim($request->get("first-name")),
+            $request->param("target"),
+            trim($kernel->utils->string->sanitize($request->param("last-name"), StringCase::UPPER))
+            . " " . trim($request->param("first-name")),
         );
 
         if (!$result) {
@@ -334,7 +334,7 @@ function createUserRoutes(GoralysRouter $router): void
             ->middleware(...DbMiddleware::transaction());
 
     $router->post('users/username', function (GoralysKernel $kernel, RequestInterface $request) {
-        if (!$kernel->users->validatePassword($request->get("admin-password"))) {
+        if (!$kernel->users->validatePassword($request->param("admin-password"))) {
             $kernel->deferredResponse(501)->toast( // Unauthorized
                 ToastType::WARNING,
                 "Mot de passe",
@@ -347,7 +347,7 @@ function createUserRoutes(GoralysRouter $router): void
         $kernel->deferredResponse()->toast(
             ToastType::INFO,
             "Identifiant",
-            "Identifiant pour ce compte: " . $kernel->usernameManager->get($request->get("target")),
+            "Identifiant pour ce compte: " . $kernel->usernameManager->get($request->param("target")),
         )
                 ->redirect("/admin/user")
                 ->send();

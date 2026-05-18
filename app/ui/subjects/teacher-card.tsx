@@ -60,8 +60,8 @@ export default function TeacherCard({ subjectData, onUpdateAction }: TeacherCard
         const csrfToken = await fetchCsrfClient("reject-subject");
 
         const payload = {
-            "teacher-token": subjectData.teacherToken,
-            "student-token": subjectData.studentToken,
+            teacher: subjectData.teacherToken,
+            student: subjectData.studentToken,
             topic: subjectData.topic,
             comment: comment,
             "csrf-token": csrfToken,
@@ -103,8 +103,8 @@ export default function TeacherCard({ subjectData, onUpdateAction }: TeacherCard
         const csrfToken = await fetchCsrfClient("approve-subject");
 
         const payload = {
-            "teacher-token": subjectData.teacherToken,
-            "student-token": subjectData.studentToken,
+            teacher: subjectData.teacherToken,
+            student: subjectData.studentToken,
             topic: subjectData.topic,
             "new-status": "approved",
             "csrf-token": csrfToken,

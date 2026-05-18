@@ -28,7 +28,7 @@ function createCoffeeTeaRoutes(GoralysRouter $router): void
     });
 
     $router->brew('cookies', function (GoralysKernel $kernel, RequestInterface $request) {
-        match ($request->get('flavour')) {
+        match ($request->param('flavour')) {
             'chocolate' => $kernel->deferredResponse()->toast(
                 ToastType::SUCCESS,
                 "Cookies",

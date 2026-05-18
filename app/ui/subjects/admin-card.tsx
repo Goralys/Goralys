@@ -37,8 +37,8 @@ export default function AdminCard({ subjectData, onUpdateAction, syncKey }: Subj
 
         const csrfToken = await fetchCsrfClient("update-subject-status");
         const payload = {
-            "student-token": subjectData.studentToken,
-            "teacher-token": subjectData.teacherToken,
+            student: subjectData.studentToken,
+            teacher: subjectData.teacherToken,
             status: status,
             topic: subjectData.topic,
             "admin-password": pwd,

@@ -80,3 +80,30 @@ export async function fetchCsrfClient(formId: string): Promise<string | null> {
     const json = await res.json();
     return json["csrf-token"];
 }
+
+/**
+ * Helper function to build query strings from parameters.
+ * @param params Query parameters as key-value pairs.
+ * @return string The encoded query string (without leading ?).
+ */
+function buildQueryString(params: Record<string, string>): string {
+    return (
+        Object.entries(params)
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            .filter(([_, value]) => value !== null && value !== undefined)
+            .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+            .join("&")
+    );
+}
+
+/**
+ * Helper function to build api request url from endpoint and parameters.
+ * @param endpoint The endpoint to fetch
+ * @param params Query parameters as key-value pairs.
+ * @param domain Wether to append the domain at the start of the url.
+ * @return string The encoded query string (without leading ?).
+ */
+export function buildApiUrl(endpoint: string, params: Record<string, string>, domain: boolean = true): string {
+    const queryString = buildQueryString(params);
+    return `${domain ? process.env.NEXT_PUBLIC_API_DOMAIN + "/" : ""}${endpoint}${queryString ? `?${queryString}` : ""}`;
+}
