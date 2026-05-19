@@ -1,6 +1,16 @@
 <?php
 
 /*
+ *  ______   ______   ______   ______   __       __  __   ______
+ * /\  ___\ /\  __ \ /\  == \ /\  __ \ /\ \     /\ \_\ \ /\  ___\
+ * \ \ \__ \\ \ \/\ \\ \  __< \ \  __ \\ \ \____\ \____ \\ \___  \
+ *  \ \_____\\ \_____\\ \_\ \_\\ \_\ \_\\ \_____\\/\_____\\/\_____\
+ *   \/_____/ \/_____/ \/_/ /_/ \/_/\/_/ \/_____/ \/_____/ \/_____/
+
+ *                         Goralys 2.2.3
+ */
+
+/*
  * Goralys — application de gestion des sujets du Grand oral
     Copyright (C) 2025-2026 Sami Saubion
 
@@ -592,11 +602,11 @@ class GoralysKernel
 
         switch ($this->auth->getAuthStatus($this->sinceLastActivity)) {
             case UserAuthStatus::SESSION_EXPIRED:
+                $this->destroySession();
                 $this->logger->warning(
                     LoggerInitiator::CORE,
                     "Tried to perform action: $endpoint without authentification",
                 );
-                $this->destroySession();
 
                 $this->response(401)->json(["authEvent" => "expired"]); // Unauthorized
                 // no break
@@ -633,7 +643,7 @@ class GoralysKernel
     public function requireCSRF(string $formId, ?string $redirect = null): void
     {
 
-        if (!$this->csrf->validate($formId, $this->request)) {
+        if (!$this->csrf->validate($formId, $this->request())) {
             $this->deferredResponse(403)->toast( // Forbidden
                 ToastType::WARNING,
                 "Lien externe",
