@@ -63,10 +63,10 @@ export async function goralysFetchClient(input: string | URL | Request, requestO
 
 export async function fetchCsrfClient(formId: string): Promise<string | null> {
     const data = {
-        "form-id": formId,
+        form: formId,
     };
 
-    const res = await fetch(`${apiUrl}/csrf/create`, {
+    const res = await fetch(`${apiUrl}/csrf`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",

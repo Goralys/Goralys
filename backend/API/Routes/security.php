@@ -11,8 +11,8 @@ function createSecurityRoutes(GoralysRouter $router): void
     // ================================================
     // [SECTION] CSRF
     // ================================================
-    $router->post('csrf/create', function (GoralysKernel $kernel, RequestInterface $request) {
-        $formId = $request->param("form-id");
+    $router->post('csrf', function (GoralysKernel $kernel, RequestInterface $request) {
+        $formId = $request->param("form");
 
         if (!$kernel->csrf->create($formId)) {
             $kernel->response(500)->http(); // Internal Server Error
@@ -22,6 +22,6 @@ function createSecurityRoutes(GoralysRouter $router): void
         $kernel->response()->json([
             "csrf-token" => $kernel->csrf->getForForm($formId),
         ]);
-    }, ...RouterOptions::$INPUT::require('form-id'))
+    }, ...RouterOptions::$INPUT::require('form'))
             ->middleware(...RateLimitMiddleware::for('csrf-create'));
 }
