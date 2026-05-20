@@ -2,19 +2,26 @@
 
 set -euo pipefail
 
-# Custom script to delete anything non-essential to the backend and set it up
-# This script is used when deploying the backend and the frontend on different servers
-
-find . -maxdepth 1 ! -name '.' ! -name 'LICENSE' ! -name 'README.md' ! -name 'CONTRIBUTING.md' ! -name 'backend' ! -name '.git' ! -name 'on-deploy-backend.sh' ! -name 'banner.txt' -exec rm -rf {} +
-
-# Setup the backend
-
 show_banner() {
     cat "scripts/banner.txt"
     echo
 }
 
 show_banner
+
+# Custom script to delete anything non-essential to the backend and set it up
+# This script is used when deploying the backend and the frontend on different servers
+
+find . -maxdepth 1 \
+    ! -name '.' \
+    ! -name 'LICENSE' \
+    ! -name 'README.md' \
+    ! -name 'CONTRIBUTING.md' \
+    ! -name 'backend' \
+    ! -name '.git' \
+    ! -name 'scripts' \
+    -exec rm -rf {} +
+# Setup the backend
 
 echo "=================================================="
 echo "=====         Goralys backend setup          ====="
