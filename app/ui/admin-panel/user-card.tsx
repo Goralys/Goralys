@@ -1,12 +1,12 @@
 "use client";
 
-import { User } from "@/app/lib/types";
+import { HttpMethod, User } from "@/app/lib/types";
 import { Card } from "@/app/ui/card";
 import { Button } from "@/app/ui/button";
 import { AcademicCapIcon, BookOpenIcon } from "@heroicons/react/24/outline";
 import { usePasswordModal } from "@/app/ui/modals/password/password-modal-provider";
 import { useToast } from "@/app/ui/toast/toast-provider";
-import { fetchCsrfClient, goralysFetchClient } from "@/app/lib/fetch/fetch.client";
+import { buildApiUrl, fetchCsrfClient, goralysFetchClient } from "@/app/lib/fetch/fetch.client";
 import Cookies from "universal-cookie";
 import ReplaceTeacherElement from "./replace-teacher-element";
 import { ReactElement } from "react";
@@ -15,15 +15,17 @@ interface UserCardProps {
     user: User;
     onUpdateAction: () => void;
     syncKey: string;
+    virtualSyncKey: string;
 }
 
-export default function UserCard({ user, onUpdateAction, syncKey }: UserCardProps): ReactElement {
+export default function UserCard({ user, onUpdateAction, syncKey, virtualSyncKey }: UserCardProps): ReactElement {
     const password = usePasswordModal();
     const toast = useToast();
     const cookies = new Cookies();
 
     const fetchAdmin = async (
         route: string,
+        method: HttpMethod,
         action: string,
         confirm?: string,
         extraPayload: Record<string, string> = {},
@@ -42,17 +44,22 @@ export default function UserCard({ user, onUpdateAction, syncKey }: UserCardProp
             return;
         }
         const csrfToken = await fetchCsrfClient(action);
-        const payload = {
-            target: user.publicId,
-            "admin-password": pwd,
-            "csrf-token": csrfToken,
-            ...extraPayload,
-        };
 
-        const res = await goralysFetchClient(route, {
-            method: "POST",
-            body: JSON.stringify(payload),
-        });
+        const res = await goralysFetchClient(
+            buildApiUrl(
+                route,
+                {
+                    target: user.publicId,
+                    "admin-password": pwd,
+                    "csrf-token": csrfToken,
+                    ...extraPayload,
+                },
+                false,
+            ),
+            {
+                method: method,
+            },
+        );
 
         const data = await res?.json();
 
@@ -69,23 +76,24 @@ export default function UserCard({ user, onUpdateAction, syncKey }: UserCardProp
 
         if (data.toastType === "info" && res.ok) {
             cookies.set(syncKey, "0", { path: "/" });
+            cookies.set(virtualSyncKey, "0", { path: "/" });
             onUpdateAction();
         }
     };
 
     const resetPassword = async (): Promise<void> =>
-        await fetchAdmin("users/reset-password", "reset-password", "la réinitialisation du mot de passe");
+        await fetchAdmin("users/reset-password", "PATCH", "reset-password", "la réinitialisation du mot de passe");
 
-    const deleteUser = async (): Promise<void> => await fetchAdmin("users/delete", "delete-user", "la suppression de l'utilisateur");
+    const deleteUser = async (): Promise<void> => await fetchAdmin("users", "DELETE", "delete-user", "la suppression de l'utilisateur");
 
     const replaceTeacher = async (firstName: string, lastName: string): Promise<void> =>
-        await fetchAdmin("users/teacher/replace", "replace-teacher", "le remplacement du professeur", {
+        await fetchAdmin("users/teacher/replace", "PUT", "replace-teacher", "le remplacement du professeur", {
             "first-name": firstName,
             "last-name": lastName,
         });
 
     const showUsername = async (): Promise<void> =>
-        await fetchAdmin("users/username", "get-username", "la révélation de l'identifiant", {}, 10 * 1000);
+        await fetchAdmin("users/username", "GET", "get-username", "la révélation de l'identifiant", {}, 10 * 1000);
 
     return (
         <Card className="flex-col w-200! bg-sky-200 gap-1 p-1 mb-1 mt-1">

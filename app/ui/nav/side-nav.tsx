@@ -56,6 +56,8 @@ export function SideNav(): ReactElement {
                     width={125}
                     height={10}
                     alt="Goralys logo"
+                    loading="eager"
+                    priority
                     className="-ml-3 self-center w-auto h-auto"
                 />
             </div>

@@ -81,7 +81,7 @@ function createSubjectsRoutes(GoralysRouter $router): void
     })
             ->middlewares(...MiddlewareSets::subjectsRoute('export-subjects', UserRole::ADMIN));
 
-    $router->update(
+    $router->patch(
         'subjects/status',
         function (GoralysKernel $kernel, RequestInterface $request) {
             if (!$kernel->users->validatePassword($request->param("admin-password"))) {

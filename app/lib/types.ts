@@ -7,6 +7,8 @@ export function buildArray<T>(...items: (T | false | null | undefined)[]): T[] {
     return items.filter((item): item is T => Boolean(item));
 }
 
+export type HttpMethod = "POST" | "PATCH" | "PUT" | "DELETE" | "GET" | "BREW";
+
 export type UserRole = {
     role: "admin" | "teacher" | "student" | "none";
 };

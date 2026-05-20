@@ -100,13 +100,13 @@ final class GoralysRouter
     }
 
     /**
-     * Registers an update (PATCH) route.
+     * Registers an PATCH route.
      * @param string $route The route path.
      * @param Closure $handler The route handler.
      * @param array ...$options Optional middleware and input option arrays.
      * @return Route The registered route.
      */
-    public function update(string $route, Closure $handler, array ...$options): Route
+    public function patch(string $route, Closure $handler, array ...$options): Route
     {
         return $this->add('PATCH', $route, $handler, ...$options);
     }

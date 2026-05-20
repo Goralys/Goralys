@@ -7,8 +7,9 @@
 
 import { setCookie } from "@/app/lib/cookies";
 import Cookies from "universal-cookie";
-import { fetchCsrfClient, goralysFetchClient } from "@/app/lib/fetch/fetch.client";
+import { buildApiUrl, fetchCsrfClient, goralysFetchClient } from "@/app/lib/fetch/fetch.client";
 import { UserData } from "@/app/lib/types";
+import { PERSISTANT_COOKIES } from "@/app/lib/config";
 
 export async function cacheUserDataClient(): Promise<void> {
     const res = await goralysFetchClient("user/profile", { method: "GET" });
@@ -31,7 +32,7 @@ export function emptyUserCacheClient(): void {
     const cookies = new Cookies();
 
     Object.keys(cookies.getAll()).forEach((name) => {
-        if (name == "cookie-banner-dismissed") return;
+        if (name in PERSISTANT_COOKIES) return; // do not delete persistant cookies
         cookies.remove(name, { path: "/" });
     });
 
@@ -40,48 +41,32 @@ export function emptyUserCacheClient(): void {
 
 export async function fetchUsersClient(): Promise<Response> {
     const csrfToken = await fetchCsrfClient("get-all-users");
-    const payload = {
-        "csrf-token": csrfToken,
-    };
 
-    return await goralysFetchClient("users/all", {
-        method: "POST",
-        body: JSON.stringify(payload),
+    return await goralysFetchClient(buildApiUrl("users/all", { "csrf-token": csrfToken }, false), {
+        method: "GET",
     });
 }
 
 export async function fetchVirtualUsersClient(): Promise<Response> {
     const csrfToken = await fetchCsrfClient("get-virtual-users");
-    const payload = {
-        "csrf-token": csrfToken,
-    };
 
-    return await goralysFetchClient("users/virtual", {
-        method: "POST",
-        body: JSON.stringify(payload),
+    return await goralysFetchClient(buildApiUrl("users/virtual", { "csrf-token": csrfToken }, false), {
+        method: "GET",
     });
 }
 
 export async function fetchAdminsClient(): Promise<Response> {
     const csrfToken = await fetchCsrfClient("get-all-admins");
-    const payload = {
-        "csrf-token": csrfToken,
-    };
 
-    return await goralysFetchClient("admins/all", {
-        method: "POST",
-        body: JSON.stringify(payload),
+    return await goralysFetchClient(buildApiUrl("admins/all", { "csrf-token": csrfToken }, false), {
+        method: "GET",
     });
 }
 
 export async function fetchVirtualAdminsClient(): Promise<Response> {
     const csrfToken = await fetchCsrfClient("get-virtual-admins");
-    const payload = {
-        "csrf-token": csrfToken,
-    };
 
-    return await goralysFetchClient("admins/virtual", {
-        method: "POST",
-        body: JSON.stringify(payload),
+    return await goralysFetchClient(buildApiUrl("admins/virtual", { "csrf-token": csrfToken }, false), {
+        method: "GET",
     });
 }

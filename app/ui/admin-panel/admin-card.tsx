@@ -1,12 +1,12 @@
 "use client";
 
-import { User } from "@/app/lib/types";
+import { HttpMethod, User } from "@/app/lib/types";
 import { Card } from "@/app/ui/card";
 import { Button } from "@/app/ui/button";
 import { ShieldExclamationIcon } from "@heroicons/react/24/outline";
 import { usePasswordModal } from "@/app/ui/modals/password/password-modal-provider";
 import { useToast } from "@/app/ui/toast/toast-provider";
-import { fetchCsrfClient, goralysFetchClient } from "@/app/lib/fetch/fetch.client";
+import { buildApiUrl, fetchCsrfClient, goralysFetchClient } from "@/app/lib/fetch/fetch.client";
 import Cookies from "universal-cookie";
 import { ReactElement } from "react";
 
@@ -21,7 +21,7 @@ export default function AdminCard({ admin, onUpdateAction, syncKey }: AdminCardP
     const toast = useToast();
     const cookies = new Cookies();
 
-    const fetchAdmin = async (route: string, action: string, confirm?: string): Promise<void> => {
+    const fetchAdmin = async (route: string, method: HttpMethod, action: string, confirm?: string): Promise<void> => {
         const pwd = await password.showPasswordModal(confirm);
 
         if (!pwd) return;
@@ -36,16 +36,21 @@ export default function AdminCard({ admin, onUpdateAction, syncKey }: AdminCardP
         }
 
         const csrfToken = await fetchCsrfClient(action);
-        const payload = {
-            target: admin.publicId,
-            "admin-password": pwd,
-            "csrf-token": csrfToken,
-        };
 
-        const res = await goralysFetchClient(route, {
-            method: "POST",
-            body: JSON.stringify(payload),
-        });
+        const res = await goralysFetchClient(
+            buildApiUrl(
+                route,
+                {
+                    target: admin.publicId,
+                    "admin-password": pwd,
+                    "csrf-token": csrfToken,
+                },
+                false,
+            ),
+            {
+                method: method,
+            },
+        );
 
         const data = await res?.json();
 
@@ -63,7 +68,8 @@ export default function AdminCard({ admin, onUpdateAction, syncKey }: AdminCardP
         }
     };
 
-    const revokeAccess = async (): Promise<void> => await fetchAdmin("admin/revoke", "revoke-admin", "la révocation de l'administrateur");
+    const revokeAccess = async (): Promise<void> =>
+        await fetchAdmin("admin/revoke", "DELETE", "revoke-admin", "la révocation de l'administrateur");
     return (
         <Card className="flex-col w-175! bg-sky-200 gap-1 p-1 mb-1 mt-1">
             <div className="flex flex-row justify-between items-center">

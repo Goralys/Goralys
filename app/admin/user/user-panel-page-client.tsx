@@ -32,7 +32,13 @@ export default function UserPanelPageClient(): ReactElement {
                                 <UsersSearchBar type="real" users={users} setCurrentUsers={setCurrentUsers} />
                                 <div className="flex flex-col gap-2">
                                     {currentUsers?.map((u) => (
-                                        <UserCard key={u.role + u.publicId} user={u} onUpdateAction={refetch} syncKey={syncKey} />
+                                        <UserCard
+                                            key={u.role + u.publicId}
+                                            user={u}
+                                            onUpdateAction={refetch}
+                                            syncKey={syncKey}
+                                            virtualSyncKey={virtualSyncKey}
+                                        />
                                     ))}
                                 </div>
                             </>
@@ -53,7 +59,8 @@ export default function UserPanelPageClient(): ReactElement {
                                             key={u.role + u.publicId + "-virtual"}
                                             user={u}
                                             onUpdateAction={virtualRefetch}
-                                            syncKey={virtualSyncKey}
+                                            syncKey={syncKey}
+                                            virtualSyncKey={virtualSyncKey}
                                         />
                                     ))}
                                 </div>

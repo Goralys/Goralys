@@ -86,12 +86,12 @@ export async function fetchCsrfClient(formId: string): Promise<string | null> {
  * @param params Query parameters as key-value pairs.
  * @return string The encoded query string (without leading ?).
  */
-function buildQueryString(params: Record<string, string>): string {
+function buildQueryString(params: Record<string, string | null>): string {
     return (
         Object.entries(params)
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             .filter(([_, value]) => value !== null && value !== undefined)
-            .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+            .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value!)}`)
             .join("&")
     );
 }
@@ -103,7 +103,7 @@ function buildQueryString(params: Record<string, string>): string {
  * @param domain Wether to append the domain at the start of the url.
  * @return string The encoded query string (without leading ?).
  */
-export function buildApiUrl(endpoint: string, params: Record<string, string>, domain: boolean = true): string {
+export function buildApiUrl(endpoint: string, params: Record<string, string | null>, domain: boolean = true): string {
     const queryString = buildQueryString(params);
     return `${domain ? process.env.NEXT_PUBLIC_API_DOMAIN + "/" : ""}${endpoint}${queryString ? `?${queryString}` : ""}`;
 }

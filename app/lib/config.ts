@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+export const PERSISTANT_COOKIES: string[] = ["cookie-banner-dismissed"];
+
 /* Help Center config */
 
 type Item = { q: string; a: string };

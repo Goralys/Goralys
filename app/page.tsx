@@ -26,7 +26,7 @@ export default function HomePage(): ReactElement {
                         alt="Affiche du Grand Oral"
                         width={600}
                         height={800}
-                        className="rounded-md shadow-md h-auto w-auto max-h-screen mt-5 landing-page:mt-0"
+                        className="rounded-md shadow-md h-auto max-h-screen mt-5 landing-page:mt-0"
                     />
                 </div>
 
