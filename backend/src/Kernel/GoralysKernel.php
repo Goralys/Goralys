@@ -70,6 +70,8 @@ use Goralys\Platform\Loader\Services\EnvService;
 use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
 use Goralys\Platform\Logger\GoralysLogger;
 use Goralys\Platform\Logger\Interfaces\LoggerInterface;
+use Goralys\Platform\Mail\Facade\MailContainer;
+use Goralys\Platform\Mail\Interfaces\MailContainerInterface;
 use Goralys\Shared\Exception\DB\GoralysConnectException;
 use Goralys\Shared\Exception\GoralysException;
 use Goralys\Shared\Exception\GoralysRuntimeException;
@@ -86,6 +88,7 @@ class GoralysKernel
     public EnvService $env;
     public UtilitiesManager $utils;
     public DbContainerInterface $db;
+    public MailContainerInterface $mailer;
     public LoggerInterface $logger;
     public AuthController $auth;
     public UserController $users;
@@ -155,6 +158,7 @@ class GoralysKernel
         $this->context = new AppContext(ToastMode::DEFAULT, trim($this->env->getByKey("ORIGIN_DOMAIN")));
 
         $this->initDb();
+        $this->initMailer();
         $this->initAuth();
         $this->initUser();
         $this->bootFileSubsystem($mover);
@@ -256,6 +260,15 @@ class GoralysKernel
     private function initDb(): void
     {
         $this->db = new DbContainer($this->logger);
+    }
+
+    /**
+     * Initializes the mail container of the kernel.
+     * @return void
+     */
+    private function initMailer(): void
+    {
+        $this->mailer = new MailContainer($this->env, $this->logger);
     }
 
     /**
@@ -572,10 +585,10 @@ class GoralysKernel
 
     /**
      * Helper to require a rate limit for a given endpoint/action.
-     * @param string $endpoint The endpoint to require rate limiting on (refer to {@see RateLimiterConfig} for endpoint
-     * specific rates).
+     * @param string $endpoint The endpoint to require rate limiting on
+     * (refer to {@see RateLimiterConfig} for endpoint-specific rates).
      * @param string $redirect The url to redirect the user to on failure.
-     * @param string $message The message to display on failure (vie toast notificaation).
+     * @param string $message The message to display on failure (vie toast notification).
      * @return void
      */
     public function requireRateLimit(
