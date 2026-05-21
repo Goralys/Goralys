@@ -143,8 +143,6 @@ final class SubjectsController
     {
         $username = $_SESSION['current_username'];
 
-        unset($_SESSION['username-table']);
-
         return match ($role) {
             UserRole::STUDENT => $this->getService->getStudentSubjects($username),
             UserRole::TEACHER => $this->getService->getTeacherSubjects($username),
@@ -187,16 +185,21 @@ final class SubjectsController
                     |> array_keys(...)
                     |> (fn($x) => array_map(
                         /**
-                         * @param SubjectDTO[] $subjects * @return StudentSubjectsDTO
+                         * @param SubjectDTO[] $subjects
+                         * @return StudentSubjectsDTO
                          * @throws GoralysRuntimeException
                          */
                         function (string $username, array $subjects) {
+
                             $specialities = [];
                             foreach ($subjects as $subject) {
+                                $teacherUsername =  $this->usernameManager->get($subject->teacherUsernameToken);
+                                // Use reversed formatted name (J. DOE instead of DOE J.) for consistency
+                                // between 'virtual' users (DB names) and 'real' users (formatted names)
                                 $specialities[] = new SpecialityDTO(
                                     $this->userRepo->getFullNameForUsername(
-                                        $this->usernameManager->get($subject->teacherUsernameToken),
-                                    ),
+                                        $teacherUsername,
+                                    ) ?? $this->formatter->formatUsername($teacherUsername, true),
                                     $subject->topic,
                                     $subject->topicCode,
                                     $subject->subject,
@@ -205,7 +208,7 @@ final class SubjectsController
                                 );
                             }
                             return new StudentSubjectsDTO(
-                                $this->userRepo->getFullNameForUsername($username),
+                                $this->userRepo->getFullNameForUsername($username) ?? $this->formatter->formatUsername($username, true),
                                 $specialities,
                             );
                         },
