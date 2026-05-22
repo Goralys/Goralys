@@ -12,6 +12,7 @@ use Goralys\App\Config\Data\RateLimitTimeMethod;
 use Goralys\App\Config\RateLimiterConfig;
 use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
 use Goralys\Platform\Logger\Interfaces\LoggerInterface;
+use Random\RandomException;
 
 /**
  * File-based rate limiter that tracks request counts per IP address.
@@ -46,6 +47,38 @@ final class RateLimiter
     }
 
     /**
+     * Resolves a unique token for rate limiting. This includes the generation of a unique rate limiting token,
+     * if the random generation fails, the system falls back to ip only.
+     * @return ?string The token that identifies the current client.
+     */
+    private function resolveToken(): ?string
+    {
+        try {
+            $ip = $_SERVER['REMOTE_ADDR'];
+            if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_IPV6)) {
+                $this->logger->warning(LoggerInitiator::APP, "Invalid IP address encountered: $ip");
+                return null;
+            }
+
+            $token = $_COOKIE['rate_limit_token'] ?? null;
+
+            if (!$token) {
+                $token = bin2hex(random_bytes(16));
+                setcookie('rate_limit_token', $token, [
+                    'expires' => time() + 86400 * 30,
+                    'httponly' => true,
+                    'secure' => true,
+                    'samesite' => 'Strict',
+                ]);
+            }
+
+            return "$ip:$token";
+        } catch (RandomException) {
+            return $_SERVER['REMOTE_ADDR'] ?? null;
+        }
+    }
+
+    /**
      * Checks whether the current request from the client's IP is within the rate limit for the given endpoint.
      * Increments the counter and updates the penalty window on each call.
      * Falls back to the general limit defined in {@see RateLimiterConfig::GENERAL} if no per-endpoint rule exists.
@@ -66,10 +99,7 @@ final class RateLimiter
             mkdir(dirname($filename), 0o777, true);
         }
 
-        $ip = $_SERVER['REMOTE_ADDR'];
-
-        if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_IPV6)) {
-            $this->logger->warning(LoggerInitiator::APP, "Invalid IP address encountered: $ip");
+        if (!$token = $this->resolveToken()) {
             return false;
         }
 
@@ -89,8 +119,8 @@ final class RateLimiter
         }
 
         // init
-        if (!isset($data[$ip])) {
-            $data[$ip] = [
+        if (!isset($data[$token])) {
+            $data[$token] = [
                 'count' => 0,
                 'reset_time' => 0,
                 'failures' => 0,
@@ -103,7 +133,7 @@ final class RateLimiter
 
         $n = min(
             $rate?->maxLevels ?? 1,
-            $data[$ip]['failures'] ?? 0,
+            $data[$token]['failures'] ?? 0,
         );
 
         $timeMethod = $rate?->timeMethod ?? RateLimitTimeMethod::CONSTANT;
@@ -116,27 +146,27 @@ final class RateLimiter
 
         $this->logger->debug(LoggerInitiator::APP, "Penalty for $endpoint(max: $rate?->maxLevels): $penalty");
 
-        if ($data[$ip]['reset_time'] <= $now) {
-            $data[$ip]['count'] = 0;
-            $data[$ip]['reset_time'] = 0;
+        if ($data[$token]['reset_time'] <= $now) {
+            $data[$token]['count'] = 0;
+            $data[$token]['reset_time'] = 0;
         }
 
         // limit check
-        if ($data[$ip]['count'] >= $limit) {
-            $data[$ip]['failures'] = min(
-                $data[$ip]['failures'] + 1,
+        if ($data[$token]['count'] >= $limit) {
+            $data[$token]['failures'] = min(
+                $data[$token]['failures'] + 1,
                 $rate?->maxLevels ?? 1,
             );
             $this->finalWrite($fp, json_encode($data));
             return false;
         }
 
-        $data[$ip]['count']++;
-        $data[$ip]['reset_time'] = $now + $penalty;
+        $data[$token]['count']++;
+        $data[$token]['reset_time'] = $now + $penalty;
         // clean up old entries
-        foreach ($data as $ipKey => $entry) {
+        foreach ($data as $tokenKey => $entry) {
             if (($entry['reset_time'] ?? 0) < $now) {
-                unset($data[$ipKey]);
+                unset($data[$tokenKey]);
             }
         }
 

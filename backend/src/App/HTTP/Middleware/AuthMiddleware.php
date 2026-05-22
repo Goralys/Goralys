@@ -8,12 +8,14 @@
 namespace Goralys\App\HTTP\Middleware;
 
 use Goralys\App\HTTP\Middleware\Interface\MiddlewareInterface;
+use Goralys\App\Utils\Toast\Data\Enums\ToastType;
 use Goralys\Kernel\GoralysKernel;
 use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
 
 /**
  * Middleware that enforces authentication before a route handler is executed.
- * Supports a "weak" mode that only clears the session (user-related fields) on failure instead of destroying it.
+ * Supports a "weak" mode that only clears the user-related fields inside the session on failure
+ * instead of destroying it completely.
  */
 final class AuthMiddleware implements MiddlewareInterface
 {
@@ -43,7 +45,13 @@ final class AuthMiddleware implements MiddlewareInterface
                 unset($_SESSION["current_role"]);
                 unset($_SESSION["current_id"]);
                 unset($_SESSION["current_full_name"]);
-                $kernel->response(401)->http(); // Unauthorized
+                $kernel->deferredResponse(401)->toast( // Unauthorized
+                    ToastType::WARNING,
+                    "Authentification",
+                    "Vous devez vous connecter pour effectuer cette action",
+                )
+                    ->redirect("/user/login")
+                    ->send();
             }
 
             return $next($kernel);
@@ -62,7 +70,8 @@ final class AuthMiddleware implements MiddlewareInterface
     }
 
     /**
-     * Returns the middleware binding for weak authentication (clears session on failure, no redirect).
+     * Returns the middleware binding for weak authentication (clears session on failure).
+     * If the auth check fails, it triggers a client redirect to the login page as a side effect.
      * @return array The middleware descriptor array.
      */
     public static function weak(): array

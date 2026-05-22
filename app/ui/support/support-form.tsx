@@ -38,14 +38,14 @@ export default function SupportForm(): ReactElement {
                 />
                 <div className="relative pb-0 mb-3">
                     <select
-                        className="border-0 border-b-2 border-sky-300 appearance-none
+                        className="w-full border-0 border-b-2 border-sky-300 appearance-none
                     cursor-pointer outline-none focus:ring-0 text-base leading-5
                     text-heading pb-0 pr-5 subjects-search-select"
                         value={reason}
                         onChange={(e) => setReason(e.target.value as SupportReasons)}
                     >
                         {Object.entries(reasonsConfig).map(([key, { label }]) => (
-                            <option value={label} key={key}>
+                            <option value={key} key={key}>
                                 {label}
                             </option>
                         ))}

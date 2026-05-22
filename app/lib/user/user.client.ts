@@ -32,7 +32,8 @@ export function emptyUserCacheClient(): void {
     const cookies = new Cookies();
 
     Object.keys(cookies.getAll()).forEach((name) => {
-        if (name in PERSISTANT_COOKIES) return; // do not delete persistant cookies
+        if (PERSISTANT_COOKIES.includes(name.trim())) return; // do not delete persistant cookies
+        if (name.startsWith("__next")) return; // do not delete Next.js cookies
         cookies.remove(name, { path: "/" });
     });
 

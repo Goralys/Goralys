@@ -9,7 +9,6 @@ use Goralys\Platform\Mail\Data\MailConfigDTO;
 use Goralys\Platform\Mail\Data\MailDTO;
 use Goralys\Platform\Mail\Interfaces\MailContainerInterface;
 use Goralys\Platform\Mail\Services\MailSendService;
-use http\Env;
 use PHPMailer\PHPMailer\Exception;
 
 class MailContainer implements MailContainerInterface
@@ -39,10 +38,11 @@ class MailContainer implements MailContainerInterface
      */
     public function sendMail(string $subject, string $content, string $to): void
     {
+        $recipients = [$to];
         if (trim($to) === "@admin") {
-            $to = $this->adminMail;
+            $recipients = explode(",", $this->adminMail);
         }
-        $this->sender->send($this->config, new MailDTO($subject, $content), $to);
+        $this->sender->send($this->config, new MailDTO($subject, $content), ...$recipients);
         $this->logger->debug(LoggerInitiator::PLATFORM, "Sent email (" . $subject . ") to: " . $to);
     }
 }

@@ -37,6 +37,6 @@ function createSupportRoutes(GoralysRouter $router): void
     }, RouterOptions::$INPUT::require("reason", "message", "user-email"))
         ->middleware(...RateLimitMiddleware::for("support-ticker", "/"))
         ->middleware(...CSRFMiddleware::form("support-ticket", "/"))
-        ->middleware(...AuthMiddleware::require())
+        ->middleware(...AuthMiddleware::weak())
         ->middleware(...ToastMiddleware::flash());
 }
