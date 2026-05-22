@@ -31,6 +31,8 @@ final class RateLimiterConfig
 
             'admin-panel' => new RateLimit(3, 90, RateLimitTimeMethod::CONSTANT),
             'admin-fetch' => new RateLimit(15, 90, RateLimitTimeMethod::CONSTANT),
+
+            'support-ticker' => new RateLimit(1, 60 * 10, RateLimitTimeMethod::CONSTANT),
         ];
     }
 }

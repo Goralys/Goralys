@@ -9,6 +9,7 @@ use Goralys\Platform\Mail\Data\MailConfigDTO;
 use Goralys\Platform\Mail\Data\MailDTO;
 use Goralys\Platform\Mail\Interfaces\MailContainerInterface;
 use Goralys\Platform\Mail\Services\MailSendService;
+use http\Env;
 use PHPMailer\PHPMailer\Exception;
 
 class MailContainer implements MailContainerInterface
@@ -16,6 +17,7 @@ class MailContainer implements MailContainerInterface
     private LoggerInterface $logger;
     private MailSendService $sender;
     private MailConfigDTO $config;
+    private string $adminMail;
 
     public function __construct(EnvService $env, LoggerInterface $logger)
     {
@@ -29,6 +31,7 @@ class MailContainer implements MailContainerInterface
         );
 
         $this->sender = new MailSendService();
+        $this->adminMail = $env->getByKey("MAIL_ADMIN_ADDRESS");
     }
 
     /**
@@ -36,6 +39,9 @@ class MailContainer implements MailContainerInterface
      */
     public function sendMail(string $subject, string $content, string $to): void
     {
+        if (trim($to) === "@admin") {
+            $to = $this->adminMail;
+        }
         $this->sender->send($this->config, new MailDTO($subject, $content), $to);
         $this->logger->debug(LoggerInitiator::PLATFORM, "Sent email (" . $subject . ") to: " . $to);
     }

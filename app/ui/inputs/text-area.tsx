@@ -12,9 +12,19 @@ interface TextAreaProps {
     id: string;
     label: string;
     onChangeAction?: ChangeEventHandler<HTMLTextAreaElement>;
+    required?: boolean;
 }
 
-export function TextArea({ id, label, helper, disabled = false, ref, defaultValue, onChangeAction }: TextAreaProps): ReactElement {
+export function TextArea({
+    id,
+    label,
+    helper,
+    required = false,
+    disabled = false,
+    ref,
+    defaultValue,
+    onChangeAction,
+}: TextAreaProps): ReactElement {
     const setRef = useAutoResize(ref);
 
     return (
@@ -33,6 +43,7 @@ export function TextArea({ id, label, helper, disabled = false, ref, defaultValu
                 defaultValue={defaultValue}
                 readOnly={disabled}
                 onChange={onChangeAction}
+                required={required}
                 className="
                     peer block w-full py-0 px-0 text-base text-heading
                     resize-none overflow-hidden bg-transparent

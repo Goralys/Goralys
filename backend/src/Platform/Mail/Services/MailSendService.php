@@ -35,7 +35,7 @@ class MailSendService
         $mailer->CharSet = 'UTF-8';
         $mailer->Subject = $mail->subject;
         $signature = file_get_contents(__DIR__ . "/Assets/signature.html") ?? "";
-        $mailer->Body = "<p>" . htmlspecialchars($mail->body, ENT_QUOTES, 'UTF-8') . "</p>" . $signature;
+        $mailer->Body = "<p>" . $mail->body . "</p>" . $signature;
         $mailer->isHTML();
 
         $mailer->send();

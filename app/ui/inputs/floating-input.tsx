@@ -10,6 +10,7 @@ interface InputProps {
     id: string;
     label: string;
     password?: boolean;
+    email?: boolean;
     required?: boolean;
     defaultValue?: string;
     onInput?: FormEventHandler<HTMLInputElement>;
@@ -21,6 +22,7 @@ export function FloatingInput({
     helper,
     autocomplete,
     password = false,
+    email = false,
     disabled = false,
     required = false,
     defaultValue,
@@ -46,7 +48,7 @@ export function FloatingInput({
             })}
         >
             <input
-                type={show ? "text" : "password"}
+                type={email ? "email" : show ? "text" : "password"}
                 id={id}
                 name={id}
                 placeholder=" "
