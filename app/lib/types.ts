@@ -104,6 +104,7 @@ export type UserData = {
     full_name: string;
     role: UserRole["role"];
     public_id: string;
+    email: string | null | undefined;
 };
 
 export type User = {

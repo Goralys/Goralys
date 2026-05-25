@@ -5,6 +5,8 @@ namespace Goralys\Platform\Mail\Facade;
 use Goralys\Platform\Loader\Services\EnvService;
 use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
 use Goralys\Platform\Logger\Interfaces\LoggerInterface;
+use Goralys\Platform\Mail\Config\MailerConfig;
+use Goralys\Platform\Mail\Data\MailAccountDTO;
 use Goralys\Platform\Mail\Data\MailConfigDTO;
 use Goralys\Platform\Mail\Data\MailDTO;
 use Goralys\Platform\Mail\Interfaces\MailContainerInterface;
@@ -18,6 +20,10 @@ class MailContainer implements MailContainerInterface
     private MailConfigDTO $config;
     private string $adminMail;
 
+    /**
+     * @param EnvService $env The injected environnement.
+     * @param LoggerInterface $logger The injected logger.
+     */
     public function __construct(EnvService $env, LoggerInterface $logger)
     {
         $this->logger = $logger;
@@ -26,7 +32,6 @@ class MailContainer implements MailContainerInterface
             $env->getByKey("MAIL_PORT"),
             $env->getByKey("MAIL_USERNAME"),
             $env->getByKey("MAIL_PASSWORD"),
-            $env->getByKey("MAIL_FROM"),
         );
 
         $this->sender = new MailSendService();
@@ -34,15 +39,22 @@ class MailContainer implements MailContainerInterface
     }
 
     /**
-     * @throws Exception
+     * Sends an email using a dedicated service.
+     * @param string $alias The alias used to send the email. Refer to {@see MailerConfig} for supported aliases.
+     * @param string $subject The subject of the email.
+     * @param string $content The content of the email.
+     * @param string $to The recipient of the email. If set to `"@admin"`, the email will be sent to all admins
+     * configured inside the environment file.
+     * @throws Exception If the email cannot be sent correctly.
      */
-    public function sendMail(string $subject, string $content, string $to): void
+    public function sendMail(string $alias, string $subject, string $content, string $to): void
     {
+        $account = new MailAccountDTO($alias . MailerConfig::MAIL_DOMAIN, MailerConfig::ALIASES_DISPLAY_NAME[$alias]);
         $recipients = [$to];
         if (trim($to) === "@admin") {
             $recipients = explode(",", $this->adminMail);
         }
-        $this->sender->send($this->config, new MailDTO($subject, $content), ...$recipients);
+        $this->sender->send($this->config, new MailDTO($account, $subject, $content, $recipients));
         $this->logger->debug(LoggerInitiator::PLATFORM, "Sent email (" . $subject . ") to: " . $to);
     }
 }

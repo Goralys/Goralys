@@ -49,7 +49,7 @@ final readonly class SubjectDTO implements JsonSerializable
     ) {}
 
     /**
-     * Transforms the subject's data into a JSON array that is then sent to the frontend
+     * Transforms the subject's data into a JSON array that is then sent to the frontend.
      * @return array
      */
     public function jsonSerialize(): array

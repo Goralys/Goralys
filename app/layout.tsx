@@ -28,11 +28,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
                     </h1>
                 </div>
 
-                <div id="toast-root"></div>
-                <div id="confirm-root"></div>
-                <div id="draft-modal-root"></div>
-                <div id="import-topics-modal-root"></div>
-                <div id="password-modal-root"></div>
                 <Providers>
                     <AuthListener />
                     <UserListener />

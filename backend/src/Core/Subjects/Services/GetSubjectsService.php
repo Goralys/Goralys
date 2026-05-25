@@ -17,6 +17,7 @@ use Goralys\Core\Subjects\Repository\Interfaces\SubjectsRepositoryInterface;
 use Goralys\Core\Utils\User\Services\UsernameFormatterService;
 use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
 use Goralys\Platform\Logger\Interfaces\LoggerInterface;
+use Goralys\Shared\Config\GoralysConfig;
 use Goralys\Shared\Exception\GoralysRuntimeException;
 use mysqli_result;
 
@@ -243,7 +244,7 @@ final class GetSubjectsService
 
         $this->logger->info(
             LoggerInitiator::CORE,
-            "Granted access to all subjects for user : " . ($_SESSION['current_username'] ?? ""),
+            "Granted access to all subjects for user : " . ($_SESSION[GoralysConfig::SESSION::USERNAME] ?? ""),
         );
 
         return $this->formatAllSubjects($result);

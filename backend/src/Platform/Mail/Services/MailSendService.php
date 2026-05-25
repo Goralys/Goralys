@@ -13,12 +13,10 @@ class MailSendService
      * Sends an email using PHPMailer.
      * @param MailConfigDTO $config The config of the mail connection (host, port, username, etc.).
      * @param MailDTO $mail The mail content and subject.
-     * @param string $first The recipient of the email.
-     * @param string ...$_to The other optional recipients.
      * @return void
      * @throws Exception If the mail cannot be sent.
      */
-    public function send(MailConfigDTO $config, MailDTO $mail, string $first, string ...$_to): void
+    public function send(MailConfigDTO $config, MailDTO $mail): void
     {
         $mailer = new PHPMailer(true);
         $mailer->isSMTP();
@@ -30,9 +28,9 @@ class MailSendService
         $mailer->Port = $config->port;
         $mailer->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
 
-        $mailer->setFrom($config->username, $config->from);
+        $mailer->setFrom($mail->from->address, $mail->from->displayName);
 
-        foreach ([$first, ...$_to] as $recipient) {
+        foreach ($mail->to as $recipient) {
             $mailer->addAddress(trim($recipient));
         }
         $mailer->CharSet = 'UTF-8';

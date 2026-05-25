@@ -5,7 +5,7 @@
 
 "use client";
 
-import { setCookie } from "@/app/lib/cookies";
+import { removeCookie, setCookie } from "@/app/lib/cookies";
 import Cookies from "universal-cookie";
 import { buildApiUrl, fetchCsrfClient, goralysFetchClient } from "@/app/lib/fetch/fetch.client";
 import { UserData } from "@/app/lib/types";
@@ -26,6 +26,10 @@ export async function cacheUserDataClient(): Promise<void> {
     setCookie(cookie, "full-name", data.full_name, 1.5 * 60 * 60);
     setCookie(cookie, "user-role", data.role, 1.5 * 60 * 60);
     setCookie(cookie, "public-id", data.public_id, 1.5 * 60 * 60);
+    if (data?.email) setCookie(cookie, "email", data.email, 1.5 * 60 * 60);
+    else removeCookie(cookie, "email", 1.5 * 60 * 60);
+
+    cookie.update();
 }
 
 export function emptyUserCacheClient(): void {

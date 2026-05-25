@@ -7,9 +7,9 @@
 
 namespace Goralys\Platform\Logger\Services;
 
-use Goralys\Platform\Logger\LoggerConfigLoader;
 use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
 use Goralys\Platform\Logger\Data\Enums\LoggerType;
+use Goralys\Platform\Logger\LoggerConfigLoader;
 
 /**
  * Main logging service.
@@ -18,6 +18,24 @@ use Goralys\Platform\Logger\Data\Enums\LoggerType;
 final class LoggerService
 {
     private static string $logDirectory;
+
+    /**
+     * Gets the class name that called the logger.
+     * @return string The calling class name, or 'Unknown' if unable to determine.
+     */
+    private static function getCallingClass(): string
+    {
+        $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 5);
+        // Trace[0] = getCallingClass()
+        // Trace[1] = write_log()
+        // Trace[2] = log() [from the logger]
+        // Trace[3] = info/debug/warning/error/fatal()
+        // Trace[4] = actual caller
+        if (!$class = $trace[4]['class']) {
+            return 'Unknown';
+        }
+        return array_last(explode("\\", $class));
+    }
 
     /**
      * Initializes the log path for all instances of the service.
@@ -33,7 +51,7 @@ final class LoggerService
     /**
      * Writes a log entry to the specified file.
      * @param mixed $file The file to write the log into.
-     * @param LoggerInitiator $initiator The inititor of the log.
+     * @param LoggerInitiator $initiator The initiator of the log.
      * @param LoggerType $type The log type.
      * @param string $time The time of the log.
      * @param string $message The log's message.
@@ -50,7 +68,8 @@ final class LoggerService
 
         fwrite(
             $file,
-            "($initiator->value)[$type->name]{session:" . session_id() . "} at $time : $message" . PHP_EOL,
+            "($initiator->value)[$type->name:" . self::getCallingClass() . "]{session:" . session_id() . "} at $time : "
+            . "$message" . PHP_EOL,
         );
 
         fflush($file);

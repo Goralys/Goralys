@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { SubjectsProxy } from "./app/lib/proxies/subjects-proxy";
 import { AdminsProxy } from "./app/lib/proxies/admins-proxy";
 import { FoolsProxy } from "@/app/lib/proxies/fools-proxy";
@@ -14,7 +14,7 @@ const routes: Array<{
     { matcher: /^\/tea/, handler: FoolsProxy },
 ];
 
-export async function proxy(request: NextRequest): Promise<NextResponse | NextResponse<unknown>> {
+export async function proxy(request: NextRequest): Promise<NextResponse> {
     const { pathname } = request.nextUrl;
 
     for (const route of routes) {

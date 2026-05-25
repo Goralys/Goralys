@@ -4,10 +4,12 @@ import React, { ReactElement, useEffect, useState } from "react";
 import { fetchCsrfClient } from "@/app/lib/fetch/fetch.client";
 import { TextArea } from "@/app/ui/inputs/text-area";
 import { FloatingInput } from "@/app/ui/inputs/floating-input";
+import Cookies from "universal-cookie";
 
 export default function SupportForm(): ReactElement {
     const [csrfToken, setCsrfToken] = useState<string | null>(null);
     const requestUrl = `${process.env.NEXT_PUBLIC_API_DOMAIN}/support`;
+    const cookie = new Cookies();
 
     const reasonsConfig = {
         "password-forgot": { label: "Mot de passe oublié" },
@@ -33,6 +35,7 @@ export default function SupportForm(): ReactElement {
                     id="user-email"
                     label="Votre email"
                     helper="Votre email sera simplement utilisé pour vous répondre."
+                    defaultValue={cookie.get("email") ?? ""}
                     required
                     email
                 />

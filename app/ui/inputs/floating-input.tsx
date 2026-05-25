@@ -13,6 +13,7 @@ interface InputProps {
     email?: boolean;
     required?: boolean;
     defaultValue?: string;
+    value?: string;
     onInput?: FormEventHandler<HTMLInputElement>;
 }
 
@@ -26,6 +27,7 @@ export function FloatingInput({
     disabled = false,
     required = false,
     defaultValue,
+    value,
     onInput,
 }: InputProps): ReactElement {
     const [show, setShow] = useState<boolean>(!password);
@@ -56,6 +58,7 @@ export function FloatingInput({
                 disabled={disabled}
                 required={required}
                 defaultValue={defaultValue}
+                value={value}
                 onInput={onInput}
                 onAnimationStart={handleAnimationStart}
                 className={clsx(

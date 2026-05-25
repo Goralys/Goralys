@@ -20,6 +20,7 @@ use Goralys\Core\User\Services\RegisterValidatorService;
 use Goralys\Platform\DB\Interfaces\DbContainerInterface;
 use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
 use Goralys\Platform\Logger\Interfaces\LoggerInterface;
+use Goralys\Shared\Config\GoralysConfig;
 use Goralys\Shared\Exception\User\UserNotFoundException;
 use Goralys\Shared\Utils\String\Data\StringCase;
 use Goralys\Shared\Utils\UtilitiesManager;
@@ -79,7 +80,7 @@ final class AuthController
         $roleGetter = new GetUserRoleService($this->repo);
         $userCreator = new CreateUserService($this->repo);
 
-        $service  = new RegisterService(
+        $service = new RegisterService(
             $this->logger,
             $validator,
             $roleGetter,
@@ -105,11 +106,12 @@ final class AuthController
             session_regenerate_id(true);
             $sessionData = $this->repo->getByUsername($userData->username);
 
-            $_SESSION['current_id'] = $sessionData->id;
-            $_SESSION['current_full_name'] = $sessionData->fullName;
-            $_SESSION['current_username'] = $sessionData->username;
-            $_SESSION['current_public_id'] = $this->repo->getPublicIdForUsername($sessionData->username);
-            $_SESSION['current_role'] = $sessionData->role->toString();
+            $_SESSION[GoralysConfig::SESSION::ID] = $sessionData->id;
+            $_SESSION[GoralysConfig::SESSION::FULL_NAME] = $sessionData->fullName;
+            $_SESSION[GoralysConfig::SESSION::USERNAME] = $sessionData->username;
+            $_SESSION[GoralysConfig::SESSION::PUBLIC_ID] = $this->repo->getPublicIdForUsername($sessionData->username);
+            $_SESSION[GoralysConfig::SESSION::ROLE] = $sessionData->role->toString();
+            $_SESSION[GoralysConfig::SESSION::EMAIL] = $sessionData->email;
 
             $_SESSION['ua'] = hash("sha256", $_SERVER['HTTP_USER_AGENT']);
             $_SESSION['regen_time'] = time();
@@ -134,7 +136,7 @@ final class AuthController
         session_destroy();
 
         if (isset($_COOKIE[session_name()])) {
-            setcookie(session_name(), '', time() - 3600, '/');
+            setcookie(session_name(), '', time() - 3600, ' / ');
         }
 
         return true;
@@ -148,7 +150,7 @@ final class AuthController
      */
     public function getAuthStatus(int $sinceLastConnection): UserAuthStatus
     {
-        if (!isset($_SESSION) || !isset($_SESSION['current_id'])) {
+        if (!isset($_SESSION) || !isset($_SESSION[GoralysConfig::SESSION::ID])) {
             return UserAuthStatus::NOT_AUTHENTICATED;
         } elseif (
             $sinceLastConnection > $this->sessionMultiplier * $this->sessionLifetime

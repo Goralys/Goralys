@@ -72,6 +72,7 @@ use Goralys\Platform\Logger\GoralysLogger;
 use Goralys\Platform\Logger\Interfaces\LoggerInterface;
 use Goralys\Platform\Mail\Facade\MailContainer;
 use Goralys\Platform\Mail\Interfaces\MailContainerInterface;
+use Goralys\Shared\Config\GoralysConfig;
 use Goralys\Shared\Exception\DB\GoralysConnectException;
 use Goralys\Shared\Exception\GoralysException;
 use Goralys\Shared\Exception\GoralysRuntimeException;
@@ -206,8 +207,8 @@ class GoralysKernel
             session_start();
 
             $this->sinceLastActivity = isset($_SESSION['LAST_ACTIVITY'])
-                    ? time() - $_SESSION['LAST_ACTIVITY']
-                    : -1;
+                ? time() - $_SESSION['LAST_ACTIVITY']
+                : -1;
 
             $_SESSION['LAST_ACTIVITY'] = time();
         }
@@ -675,17 +676,17 @@ class GoralysKernel
      */
     public function requireRole(UserRole $role, bool $strict = false): void
     {
-        if (!isset($_SESSION['current_role'])) {
+        if (!isset($_SESSION[GoralysConfig::SESSION::ROLE])) {
             $this->destroySession();
 
             $this->response(401)->json(["authEvent" => "expired"]); // Unauthorized
         }
 
-        $currentRole = UserRole::fromString($_SESSION['current_role']);
+        $currentRole = UserRole::fromString($_SESSION[GoralysConfig::SESSION::ROLE]);
 
         if ($strict && $currentRole !== $role) {
             $this->deferredResponse(403)->error( // Forbidden
-                "Il semblerait que vous n'ayez pas les permissions nécéssaires.",
+                "Il semblerait que vous n'ayez pas les permissions nécéssaires . ",
             )
                 ->send();
         }

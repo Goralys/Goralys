@@ -14,6 +14,7 @@ use Goralys\App\HTTP\Response\DeferredResponse;
 use Goralys\App\HTTP\Response\Interfaces\DeferredResponseInterface;
 use Goralys\App\User\Services\UsernameManager;
 use Goralys\App\Utils\Toast\Data\Enums\ToastType;
+use Goralys\Shared\Config\GoralysConfig;
 use Goralys\Shared\Exception\GoralysRuntimeException;
 
 /**
@@ -44,7 +45,7 @@ final class HttpGuard implements GuardInterface
      */
     public function matchCurrentUser(RequestInterface $request, string $field): ?DeferredResponseInterface
     {
-        $actual = $_SESSION['current_username'] ?? null;
+        $actual = $_SESSION[GoralysConfig::SESSION::USERNAME] ?? null;
         $given = $request->param($field);
         if ($actual && ($given == $actual || $this->usernameManager->get($given) == $actual)) {
             return null;

@@ -1,4 +1,5 @@
 import React, { ReactElement } from "react";
+import clsx from "clsx";
 
 interface ButtonProps {
     className?: string;
@@ -6,6 +7,7 @@ interface ButtonProps {
     type: "submit" | "button" | "reset";
     onClick?: React.MouseEventHandler<HTMLButtonElement>;
     color?: "sky" | "red" | "green" | "amber";
+    disabled?: boolean;
 }
 
 const colors: Record<NonNullable<ButtonProps["color"]>, string> = {
@@ -15,11 +17,12 @@ const colors: Record<NonNullable<ButtonProps["color"]>, string> = {
     amber: "bg-amber-50 border-amber-300 before:bg-amber-300",
 };
 
-export function Button({ text, type, className, onClick, color = "sky" }: ButtonProps): ReactElement {
+export function Button({ text, type, className, onClick, color = "sky", disabled = false }: ButtonProps): ReactElement {
     return (
         <button
             type={type}
-            className={`
+            className={clsx(
+                `
             relative block w-full h-10 ${colors[color]} border mt-2 mb-2 rounded-xs shadow-lg z-0
             transition-colors duration-500 overflow-hidden
 
@@ -27,8 +30,13 @@ export function Button({ text, type, className, onClick, color = "sky" }: Button
             before:transition-all before:duration-500
             hover:text-gray-900 hover:before:w-full
             ${className}
-        `}
+        `,
+                {
+                    "bg-gray-200! border-gray-500! before:bg-transparent cursor-not-allowed": disabled,
+                },
+            )}
             onClick={onClick}
+            disabled={disabled}
         >
             <p className="relative text-[17px] z-10">{text}</p>
         </button>

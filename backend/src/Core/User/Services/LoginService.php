@@ -37,7 +37,7 @@ final class LoginService
     /**
      * Checks if a given password is correct for a specific user.
      * @param UserLoginDTO $userData The necessary credentials to log the user in.
-     * @return bool Wether the password is correct.
+     * @return bool Whether the password is correct.
      * @throws UserNotFoundException If the user is invalid (does not exist).
      */
     public function checkPassword(UserLoginDTO $userData): bool

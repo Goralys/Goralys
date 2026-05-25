@@ -6,6 +6,7 @@
  */
 
 use Goralys\Kernel\GoralysKernel;
+use Goralys\Shared\Config\GoralysConfig;
 
 // ----------- API bootstrap method ---------- //
 /**
@@ -46,9 +47,9 @@ function bootstrapAPI(GoralysKernel $kernel): void
     }
 
     // Check if the user agent from the client is valid
-    error_log("BOOTSTRAP - 3: UA check, current_id=" . ($_SESSION['current_id'] ?? 'none')
+    error_log("BOOTSTRAP - 3: UA check, current_id=" . ($_SESSION[GoralysConfig::SESSION::ID] ?? 'none')
             . ", UA=" . ($_SERVER['HTTP_USER_AGENT'] ?? 'none'));
-    if (isset($_SESSION['current_id'])) {
+    if (isset($_SESSION[GoralysConfig::SESSION::ID])) {
         $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? null;
 
         if ($userAgent !== null) {

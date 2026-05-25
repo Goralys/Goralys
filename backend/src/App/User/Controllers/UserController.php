@@ -20,6 +20,7 @@ use Goralys\Core\User\Repository\UserRepository;
 use Goralys\Core\User\Services\LoginService;
 use Goralys\Platform\DB\Interfaces\DbContainerInterface;
 use Goralys\Platform\Logger\Interfaces\LoggerInterface;
+use Goralys\Shared\Config\GoralysConfig;
 use Goralys\Shared\Exception\GoralysRuntimeException;
 use Goralys\Shared\Exception\User\GoralysUserException;
 use Goralys\Shared\Exception\User\UserNotFoundException;
@@ -136,7 +137,7 @@ final class UserController
     /**
      * Revokes a new admin inside the database.
      * @param string $publicId The public id of the admin to revoke.
-     * @return bool Wether the creation was successful.
+     * @return bool Whether the creation was successful.
      * @throws GoralysRuntimeException If the admin's username could not be retrieved.
      */
     public function revokeAdmin(string $publicId): bool
@@ -147,20 +148,20 @@ final class UserController
     /**
      * Checks if a password is correct for the current user.
      * @param string $password The password to check.
-     * @return bool Wether the password is correct.
-     * @throws UserNotFoundException If the user does not exists.
+     * @return bool Whether the password is correct.
+     * @throws UserNotFoundException If the user does not exist.
      */
     public function validatePassword(string $password): bool
     {
         $service = new LoginService($this->logger, $this->repo);
-        return $service->checkPassword(new UserLoginDTO($_SESSION['current_username'], $password));
+        return $service->checkPassword(new UserLoginDTO($_SESSION[GoralysConfig::SESSION::USERNAME], $password));
     }
 
     /**
      * Deletes a user partially (consult {@see UserRepositoryInterface::softDelete()} for more information) to allow it
      * to recreate his account and thus choose a new password.
      * @param string $publicId The user's public id.
-     * @return bool Wether the operation was successful.
+     * @return bool Whether the operation was successful.
      * @throws GoralysRuntimeException If the username of the user could not be retrieved.
      */
     public function resetPassword(string $publicId): bool
@@ -172,7 +173,7 @@ final class UserController
      * Replaces a teacher inside the database.
      * @param string $publicId The current teacher's public id.
      * @param string $newName The full name of the new teacher.
-     * @return string|null Wether the operation was successful.
+     * @return string|null Whether the operation was successful.
      * @throws GoralysRuntimeException|GoralysUserException If the username of the user could not be retrieved.
      */
     public function replaceTeacher(string $publicId, string $newName): ?string
@@ -187,11 +188,38 @@ final class UserController
     /**
      * Deletes a user completely (consult {@see UserRepositoryInterface::hardDelete()} for more information).
      * @param string $publicId The user's public id.
-     * @return bool Wether the operation was successful.
+     * @return bool Whether the operation was successful.
      * @throws GoralysRuntimeException If the username of the user could not be retrieved.
      */
     public function delete(string $publicId): bool
     {
         return $this->repo->hardDelete($this->usernames->get($publicId));
+    }
+
+    /**
+     * Sets the email for the current user.
+     * @param string $email The new email.
+     * @return bool Whether the update was successful.
+     */
+    public function setEmail(string $email): bool
+    {
+        if (!$this->repo->setEmail($_SESSION[GoralysConfig::SESSION::USERNAME], $email)) {
+            return false;
+        }
+        $_SESSION[GoralysConfig::SESSION::EMAIL] = $email;
+        return true;
+    }
+
+    /**
+     * Deletes the email for the current user.
+     * @return bool Whether the deletion was successful.
+     */
+    public function removeEmail(): bool
+    {
+        if (!$this->repo->removeEmail($_SESSION[GoralysConfig::SESSION::USERNAME])) {
+            return false;
+        }
+        unset($_SESSION[GoralysConfig::SESSION::EMAIL]);
+        return true;
     }
 }

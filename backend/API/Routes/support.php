@@ -9,11 +9,13 @@ use Goralys\App\Router\GoralysRouter;
 use Goralys\App\Router\Options\RouterOptions;
 use Goralys\App\Utils\Toast\Data\Enums\ToastType;
 use Goralys\Kernel\GoralysKernel;
+use Goralys\Platform\Mail\Config\MailerConfig;
+use Goralys\Shared\Config\GoralysConfig;
 
 function createSupportRoutes(GoralysRouter $router): void
 {
     $router->post("support", function (GoralysKernel $kernel, RequestInterface $request) {
-        $fullName = $_SESSION['current_full_name'] ?? "Anonyme";
+        $fullName = $_SESSION[GoralysConfig::SESSION::FULL_NAME] ?? "Anonyme";
         $reason = $request->param("reason");
         $message = "Il semblerait que l'utilisateur <b>" . $fullName . "</b> ait rencontré un problème :<br><br>"
             . "<strong>Mail de l'utilisateur:</strong> " . $request->param("user-email") . "<br><br>"
@@ -22,9 +24,10 @@ function createSupportRoutes(GoralysRouter $router): void
             . nl2br($request->param("message"));
 
         $kernel->mailer->sendMail(
+            MailerConfig::SUPPORT_ALIAS,
             "Problème - " . $fullName . "[" . $reason . "]",
             $message,
-            "@admin",
+            "@admin", // broadcast to all admins
         );
 
         $kernel->deferredResponse()->toast(

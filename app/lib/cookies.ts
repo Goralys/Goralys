@@ -18,3 +18,12 @@ export function setCookie(cookie: Cookies, key: string, value: CookieValue, maxA
     });
     setCookiesExpire(maxAge);
 }
+
+export function removeCookie(cookie: Cookies, key: string, maxAge: number): void {
+    cookie.remove(key, {
+        path: "/",
+        maxAge: maxAge, // Expires in 1.5 hours
+        httpOnly: false,
+    });
+    setCookiesExpire(maxAge);
+}

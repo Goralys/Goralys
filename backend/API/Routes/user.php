@@ -14,6 +14,7 @@ use Goralys\Core\User\Data\UserLoginDTO;
 use Goralys\Core\User\Data\UserRegisterDTO;
 use Goralys\Kernel\GoralysKernel;
 use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
+use Goralys\Shared\Config\GoralysConfig;
 use Goralys\Shared\Utils\String\Data\StringCase;
 
 function createUserRoutes(GoralysRouter $router): void
@@ -23,10 +24,11 @@ function createUserRoutes(GoralysRouter $router): void
     // ================================================
     $router->get('user/profile', function (GoralysKernel $kernel) {
         $data = [
-            "username"   => trim($_SESSION["current_username"]),
-            "full_name"  => trim($_SESSION["current_full_name"]),
-            "role"       => trim($_SESSION["current_role"]),
-            "public_id"  => trim($_SESSION["current_public_id"]),
+            "username"   => trim($_SESSION[GoralysConfig::SESSION::USERNAME]),
+            "full_name"  => trim($_SESSION[GoralysConfig::SESSION::FULL_NAME]),
+            "role"       => trim($_SESSION[GoralysConfig::SESSION::ROLE]),
+            "public_id"  => trim($_SESSION[GoralysConfig::SESSION::PUBLIC_ID]),
+            ...(isset($_SESSION[GoralysConfig::SESSION::EMAIL]) ? ["email" => trim($_SESSION[GoralysConfig::SESSION::EMAIL])] : []),
         ];
 
         $kernel->logger->info(
@@ -47,19 +49,67 @@ function createUserRoutes(GoralysRouter $router): void
     $router->get('user/role', function (GoralysKernel $kernel) {
         $kernel->logger->info(
             LoggerInitiator::APP,
-            "Accessed data of user: " . $_SESSION["current_username"],
+            "Accessed data of user: " . $_SESSION[GoralysConfig::SESSION::USERNAME],
         );
 
 
         $kernel->response()->json(
             [
                 "success" => true,
-                "role" => trim($_SESSION["current_role"]),
+                "role" => trim($_SESSION[GoralysConfig::SESSION::ROLE]),
             ],
         );
     })
         ->middleware(...RateLimitMiddleware::for("get-role"))
         ->middleware(...AuthMiddleware::weak());
+
+    $router->put("user/email", function (GoralysKernel $kernel, RequestInterface $request) {
+        if (!$kernel->users->setEmail($request->param("email"))) {
+            $kernel->deferredResponse(500)->toast( // Bad Request
+                ToastType::ERROR,
+                "Adresse mail",
+                "Nous n'avons pas pu mettre à jour votre adresse mail, veuillez réessayer ultérieurement.",
+            )
+                ->redirect("/user/profile")
+                ->send();
+        }
+
+        $kernel->deferredResponse()->toast( // OK
+            ToastType::SUCCESS,
+            "Adresse mail",
+            "Votre adresse mail a bien été mise à jour.",
+        )
+            ->redirect("/user/profile")
+            ->send();
+    }, ...RouterOptions::$INPUT::require("email"))
+        ->middleware(...RateLimitMiddleware::for("email-update"))
+        ->middleware(...CSRFMiddleware::form("update-email"))
+        ->middleware(...AuthMiddleware::weak())
+        ->middleware(...DbMiddleware::require());
+
+    $router->delete("user/email", function (GoralysKernel $kernel) {
+        if (!$kernel->users->removeEmail()) {
+            $kernel->deferredResponse(500)->toast( // Bad Request
+                ToastType::ERROR,
+                "Adresse mail",
+                "Nous n'avons pas pu supprimer votre adresse mail, veuillez réessayer ultérieurement.",
+            )
+                ->redirect("/user/profile")
+                ->send();
+        }
+
+        $kernel->deferredResponse()->toast( // OK
+            ToastType::SUCCESS,
+            "Adresse mail",
+            "Votre adresse mail a bien été supprimée.",
+        )
+            ->redirect("/user/profile")
+            ->send();
+    })
+        ->middleware(...RateLimitMiddleware::for("email-update"))
+        ->middleware(...CSRFMiddleware::form("delete-email"))
+        ->middleware(...AuthMiddleware::weak())
+        ->middleware(...DbMiddleware::require());
 
     // ================================================
     // [SECTION] Auth
@@ -210,7 +260,7 @@ function createUserRoutes(GoralysRouter $router): void
                     ->send();
         }
 
-        if ($request->param("target") === $_SESSION['current_public_id']) {
+        if ($request->param("target") === $_SESSION[GoralysConfig::SESSION::PUBLIC_ID]) {
             $kernel->deferredResponse(400)->toast( // Bad Request
                 ToastType::WARNING,
                 "Suppression",

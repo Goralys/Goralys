@@ -10,7 +10,7 @@ namespace Goralys\App\HTTP\Middleware;
 use Goralys\App\HTTP\Middleware\Interface\MiddlewareInterface;
 use Goralys\App\Utils\Toast\Data\Enums\ToastType;
 use Goralys\Kernel\GoralysKernel;
-use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
+use Goralys\Shared\Config\GoralysConfig;
 
 /**
  * Middleware that enforces authentication before a route handler is executed.
@@ -41,10 +41,11 @@ final class AuthMiddleware implements MiddlewareInterface
     {
         if (in_array('weak', $this->options)) {
             if (!$kernel->checkAuth()) {
-                unset($_SESSION["current_username"]);
-                unset($_SESSION["current_role"]);
-                unset($_SESSION["current_id"]);
-                unset($_SESSION["current_full_name"]);
+                unset($_SESSION[GoralysConfig::SESSION::USERNAME]);
+                unset($_SESSION[GoralysConfig::SESSION::PUBLIC_ID]);
+                unset($_SESSION[GoralysConfig::SESSION::ROLE]);
+                unset($_SESSION[GoralysConfig::SESSION::FULL_NAME]);
+                unset($_SESSION[GoralysConfig::SESSION::EMAIL]);
                 $kernel->deferredResponse(401)->toast( // Unauthorized
                     ToastType::WARNING,
                     "Authentification",
