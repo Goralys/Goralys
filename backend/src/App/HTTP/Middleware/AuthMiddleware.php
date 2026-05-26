@@ -41,11 +41,9 @@ final class AuthMiddleware implements MiddlewareInterface
     {
         if (in_array('weak', $this->options)) {
             if (!$kernel->checkAuth()) {
-                unset($_SESSION[GoralysConfig::SESSION::USERNAME]);
-                unset($_SESSION[GoralysConfig::SESSION::PUBLIC_ID]);
-                unset($_SESSION[GoralysConfig::SESSION::ROLE]);
-                unset($_SESSION[GoralysConfig::SESSION::FULL_NAME]);
-                unset($_SESSION[GoralysConfig::SESSION::EMAIL]);
+                foreach (GoralysConfig::SESSION::USER_CACHE as $key) {
+                    unset($_SESSION[$key]);
+                }
                 $kernel->deferredResponse(401)->toast( // Unauthorized
                     ToastType::WARNING,
                     "Authentification",

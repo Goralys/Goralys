@@ -196,7 +196,7 @@ final class SubjectsController
                             foreach ($subjects as $subject) {
                                 $teacherUsername =  $this->usernameManager->get($subject->teacherUsernameToken);
                                 // Use reversed formatted name (J. DOE instead of DOE J.) for consistency
-                                // between 'virtual' users (DB names) and 'real' users (formatted names)
+                                // between 'real' users (DB names) and 'virtual' users (formatted names)
                                 $specialities[] = new SpecialityDTO(
                                     $this->userRepo->getFullNameForUsername(
                                         $teacherUsername,
