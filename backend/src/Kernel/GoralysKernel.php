@@ -52,6 +52,7 @@ use Goralys\App\HTTP\Response\Interfaces\ImmediateResponseInterface;
 use Goralys\App\RateLimiter\RateLimiter;
 use Goralys\App\Security\CSRF\Services\CSRFService;
 use Goralys\App\Subjects\Controllers\SubjectsController;
+use Goralys\App\Support\Controllers\SupportController;
 use Goralys\App\Topics\Controllers\TopicsController;
 use Goralys\App\User\Controllers\AuthController;
 use Goralys\App\User\Controllers\UserController;
@@ -97,6 +98,7 @@ class GoralysKernel
     public SubjectsController $subjects;
     public TopicsController $topics;
     public ToastController $toast;
+    public SupportController $support;
     public GuardInterface $guard;
     public CSRFService $csrf;
     private RateLimiter $rateLimiter;
@@ -162,6 +164,7 @@ class GoralysKernel
         $this->initMailer();
         $this->initAuth();
         $this->initUser();
+        $this->initSupport();
         $this->bootFileSubsystem($mover);
         $this->initExporter();
         $this->initSubjects();
@@ -293,6 +296,18 @@ class GoralysKernel
     private function initUser(): void
     {
         $this->users = new UserController(
+            $this->logger,
+            $this->db,
+        );
+    }
+
+    /**
+     * Initializes the support controller of the kernel.
+     * @return void
+     */
+    private function initSupport(): void
+    {
+        $this->support = new SupportController(
             $this->logger,
             $this->db,
         );

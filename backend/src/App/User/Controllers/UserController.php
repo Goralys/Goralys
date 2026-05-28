@@ -19,6 +19,7 @@ use Goralys\Core\User\Repository\Interfaces\UserRepositoryInterface;
 use Goralys\Core\User\Repository\UserRepository;
 use Goralys\Core\User\Services\LoginService;
 use Goralys\Platform\DB\Interfaces\DbContainerInterface;
+use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
 use Goralys\Platform\Logger\Interfaces\LoggerInterface;
 use Goralys\Shared\Config\GoralysConfig;
 use Goralys\Shared\Exception\GoralysRuntimeException;
@@ -193,7 +194,12 @@ final class UserController
      */
     public function delete(string $publicId): bool
     {
-        return $this->repo->hardDelete($this->usernames->get($publicId));
+        $target = $this->usernames->get($publicId);
+        $this->logger->info(
+            LoggerInitiator::CORE,
+            "Attempting to delete user " . $target . " (initiator: " . $_SESSION[GoralysConfig::SESSION::USERNAME]
+        );
+        return $this->repo->hardDelete($target);
     }
 
     /**

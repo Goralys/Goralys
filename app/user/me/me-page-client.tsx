@@ -9,7 +9,7 @@ import { FloatingInput } from "@/app/ui/inputs/floating-input";
 import Cookies from "universal-cookie";
 import { ReactElement, useState } from "react";
 import { cacheUserDataClient } from "@/app/lib/user/user.client";
-import { useEmailModal } from "@/app/ui/modals/email/password-modal-provider";
+import { useEmailModal } from "../../ui/modals/email/email-modal-provider";
 
 export default function MePageClient(): ReactElement {
     const { showToast } = useToast();

@@ -10,6 +10,8 @@ const routes: Array<{
 }> = [
     { matcher: /^\/subject/, handler: SubjectsProxy },
     { matcher: /^\/admin/, handler: AdminsProxy },
+    { matcher: /^\/support\/ticket/, handler: AdminsProxy },
+    { matcher: /^\/support\/?$/, handler: AdminsProxy },
     { matcher: /^\/coffee/, handler: FoolsProxy },
     { matcher: /^\/tea/, handler: FoolsProxy },
 ];
@@ -27,5 +29,5 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 }
 
 export const config = {
-    matcher: ["/subject/:path*", "/admin/:path*", "/coffee/:path*", "/tea/:path*"],
+    matcher: ["/subject/:path*", "/admin/:path*", "/coffee/:path*", "/tea/:path*", "/support/:path*"],
 };

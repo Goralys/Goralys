@@ -2,7 +2,7 @@
 -- version 2.3
 
 -- makes sure all previous tables are deleted
-drop table if exists student_topics, topic_teachers, topics, admins_list, users, public_ids;
+drop table if exists student_topics, topic_teachers, topics, admins_list, users, public_ids, emails;
 
 -- -----------------------------------------------------
 -- public ids table

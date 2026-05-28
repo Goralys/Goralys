@@ -24,7 +24,7 @@ export const helpContent: Section[] = [
                     {
                         q: "Comment créer mon compte Goralys ?",
                         a:
-                            'Allez sur la page d\'accueil et cliquez sur "Se connecter". Cliquez ensuite sur le lien "page de connexion"' +
+                            'Allez sur la page d\'accueil et cliquez sur "Se connecter". Cliquez ensuite sur le lien "page d\'enregistrement"' +
                             " dans le texte sur la partie gauche. Rentrez votre identifiant fourni par l'établissement, votre nom et mot" +
                             " de passe.\nNote: le nom que vous entrez à ce moment apparaîtra sur le document officiel du Grand oral." +
                             " Faites donc attention aux fautes, si toutefois, vous avez fais une erreur, contacter un administrateur qui" +

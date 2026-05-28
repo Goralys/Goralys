@@ -63,7 +63,7 @@ export default function SupportForm(): ReactElement {
                 <TextArea id="message" label="Message" helper="Veuillez décrire précisément votre problème." required />
 
                 <input type="hidden" name="csrf-token" value={(csrfToken ? csrfToken : "no-token").trim()} />
-                <input type="hidden" name="reason" value={reasonsConfig[reason].label} />
+                <input type="hidden" name="reason" value={/* reasonsConfig[reason].label */ reason} />
 
                 <Button type="submit" text="Envoyer mon message" className="bottom-0 mt-13" />
             </form>

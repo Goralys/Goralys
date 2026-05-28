@@ -2,25 +2,25 @@
 "use no memo";
 
 import { createContext, useContext, useState, ReactNode, useCallback, useMemo, ReactElement } from "react";
-import PasswordModalElement from "@/app/ui/modals/password/password-modal-element";
+import EmailModalElement from "@/app/ui/modals/email/email-modal-element";
 import { createPortal } from "react-dom";
 
-export type PasswordModalContext = {
-    showPasswordModal: (confirm?: string) => Promise<string | null>;
+export type EmailModalContext = {
+    showEmailModal: () => Promise<string | null>;
 };
 
-const PasswordModalContext = createContext<PasswordModalContext | null>(null);
+const EmailModalContext = createContext<EmailModalContext | null>(null);
 
-export function PasswordModalProvider({ children }: { children: ReactNode }): ReactElement {
+export function EmailModalProvider({ children }: { children: ReactNode }): ReactElement {
     const [state, setState] = useState<{
         resolve: (value: string | null) => void;
     } | null>(null);
     const [visible, setVisible] = useState(false);
     const [message, setMessage] = useState<string>("");
-    const DEFAULT_PASSWORD_CONFIRM = "cette action";
+    const DEFAULT_EMAIL_CONFIRM = "Veuillez entrer nouvel email pour confirmer.";
 
-    const showPasswordModal = useCallback((confirm: string = DEFAULT_PASSWORD_CONFIRM): Promise<string | null> => {
-        setMessage("Veuillez entrer votre mot de passe pour confirmer " + confirm.replace(".", " ").trim() + ".");
+    const showEmailModal = useCallback((): Promise<string | null> => {
+        setMessage(DEFAULT_EMAIL_CONFIRM);
         return new Promise((resolve) => {
             setState({ resolve });
             setVisible(false);
@@ -28,10 +28,10 @@ export function PasswordModalProvider({ children }: { children: ReactNode }): Re
         });
     }, []);
 
-    function handleConfirm(password: string): void {
+    function handleConfirm(email: string): void {
         setVisible(false);
         setTimeout(() => {
-            state?.resolve(password);
+            state?.resolve(email);
             setState(null);
         }, 500);
     }
@@ -52,17 +52,17 @@ export function PasswordModalProvider({ children }: { children: ReactNode }): Re
         }, 500);
     }
 
-    const value = useMemo(() => ({ showPasswordModal }), [showPasswordModal]);
+    const value = useMemo(() => ({ showEmailModal }), [showEmailModal]);
 
     return (
-        <PasswordModalContext.Provider value={value}>
+        <EmailModalContext.Provider value={value}>
             {children}
 
             {state &&
                 typeof document !== "undefined" &&
                 createPortal(
                     <div className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm">
-                        <PasswordModalElement
+                        <EmailModalElement
                             message={message}
                             visible={visible}
                             onConfirmAction={handleConfirm}
@@ -70,16 +70,16 @@ export function PasswordModalProvider({ children }: { children: ReactNode }): Re
                             onCloseModalAction={handleClose}
                         />
                     </div>,
-                    document.getElementById("password-modal-root")!,
+                    document.getElementById("email-modal-root")!,
                 )}
-        </PasswordModalContext.Provider>
+        </EmailModalContext.Provider>
     );
 }
 
-export function usePasswordModal(): PasswordModalContext {
-    const context = useContext(PasswordModalContext);
+export function useEmailModal(): EmailModalContext {
+    const context = useContext(EmailModalContext);
     if (!context) {
-        throw new Error("usePasswordModal must be used within a EmailModalProvider");
+        throw new Error("useEmailModal must be used within a EmailModalProvider");
     }
     return context;
 }
