@@ -1,13 +1,30 @@
 import { Card } from "@/app/ui/card";
 import { FloatingInput } from "@/app/ui/inputs/floating-input";
 import { Button } from "@/app/ui/button";
-import { ReactElement, useEffect, useState } from "react";
+import { ReactElement, useEffect, useRef, useState } from "react";
 import { fetchCsrfClient } from "@/app/lib/fetch/fetch.client";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function RegisterForm(): ReactElement {
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const [id, setId] = useState<string | undefined>(undefined);
+    const hasRun = useRef(false);
+    useEffect(() => {
+        if (hasRun.current) return;
+        hasRun.current = true;
+
+        const update = (): void => setId(searchParams.get("id") ?? undefined);
+        if (!searchParams.get("id")) {
+            router.replace("/user/register");
+            return;
+        }
+        update();
+        router.replace("/user/register");
+    }, [searchParams, router]);
+
     const [csrfToken, setCsrfToken] = useState<string | null>(null);
     const requestUrl = `${process.env.NEXT_PUBLIC_API_DOMAIN}/user/register`;
-
     useEffect(() => {
         const run = async (): Promise<void> => setCsrfToken(await fetchCsrfClient("register"));
 
@@ -19,7 +36,14 @@ export default function RegisterForm(): ReactElement {
             <h1 className="text-xl">Créez votre compte chez Goralys</h1>
 
             <form className="relative flex flex-col h-full" method="POST" action={requestUrl} autoComplete="on">
-                <FloatingInput id="user-name" label="Identifiant" helper="Identifiant au format p.nomX." autocomplete="username" required />
+                <FloatingInput
+                    id="user-name"
+                    label="Identifiant"
+                    helper="Identifiant au format p.nomX."
+                    defaultValue={id}
+                    autocomplete="username"
+                    required
+                />
                 <FloatingInput id="first-name" label="Prénom" autocomplete="given-name" required />
                 <FloatingInput id="last-name" label="Nom de famille" autocomplete="family-name" required />
 

@@ -561,6 +561,21 @@ final class UserRepository implements UserRepositoryInterface
     }
 
     /**
+     * Gets a user's email from the database.
+     * @param string $username The username of the user.
+     * @return ?string The email of the user (or `null` if it has no email).
+     */
+    public function getEmail(string $username): ?string
+    {
+        $result = $this->db->fetch(
+            "select email from emails where username = ?",
+            "s",
+            $username
+        );
+        return $result->fetch_assoc()['email'] ?? null;
+    }
+
+    /**
      * Sets a user's email address inside the database.
      * @param string $username The username of the user.
      * @param string $email The new email for this user

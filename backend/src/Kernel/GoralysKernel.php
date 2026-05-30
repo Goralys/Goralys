@@ -58,11 +58,11 @@ use Goralys\App\User\Controllers\AuthController;
 use Goralys\App\User\Controllers\UserController;
 use Goralys\App\User\Data\Enums\UserAuthStatus;
 use Goralys\App\User\Data\UsernameTable;
-use Goralys\Core\User\Services\UsernameManager;
 use Goralys\App\Utils\Toast\Controllers\ToastController;
 use Goralys\App\Utils\Toast\Data\Enums\ToastType;
 use Goralys\Core\User\Data\Enums\UserRole;
 use Goralys\Core\User\Repository\UserRepository;
+use Goralys\Core\User\Services\UsernameManager;
 use Goralys\Kernel\Data\ErrorMessageConfig;
 use Goralys\Platform\DB\Facade\DbContainer;
 use Goralys\Platform\DB\Interfaces\DbContainerInterface;
@@ -86,7 +86,6 @@ use Throwable;
  */
 class GoralysKernel
 {
-    private string $rootPath;
     public EnvService $env;
     public UtilitiesManager $utils;
     public DbContainerInterface $db;
@@ -101,13 +100,14 @@ class GoralysKernel
     public SupportController $support;
     public GuardInterface $guard;
     public CSRFService $csrf;
+    public UsernameManager $usernames;
+    private string $rootPath;
     private RateLimiter $rateLimiter;
     /**
      * This variable is used to determine the context of the app.
      * @var AppContext
      */
     private AppContext $context;
-    public UsernameManager $usernameManager;
     private RequestInterface $request;
     private DomPdfExporter $exporter;
     private int $sessionLifetime;
@@ -176,13 +176,34 @@ class GoralysKernel
     }
 
     /**
-     * Sets the exceptions and errors handlers to be the ones from the `GoralysKernel`.
+     * Loads the environment variables inside $_ENV using `DotEnv`.
+     * The path to the .env file is supposed to be `$rootPath`.
      * @return void
      */
-    public function setHandlers(): void
+    private function initEnv(): void
     {
-        set_exception_handler([$this, 'exceptionHandler']);
-        set_error_handler([$this, 'errorHandler']);
+        $this->env = new EnvService();
+        $this->env->load($this->rootPath);
+    }
+
+    /**
+     * Initializes all the utility services
+     * @return void
+     */
+    private function initUtils(): void
+    {
+        $this->utils = new UtilitiesManager();
+    }
+
+    /**
+     * Initializes the logger of the kernel.
+     * The logger used is a `GoralysLogger`, which is a custom logger made specially for this project.
+     * @return void
+     */
+    private function initLogger(): void
+    {
+        $this->logger = new GoralysLogger();
+        $this->logger->rotate();
     }
 
     /**
@@ -217,43 +238,13 @@ class GoralysKernel
         }
     }
 
-    private function destroySession(): void
-    {
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            session_unset();
-            session_destroy();
-        }
-    }
-
     /**
-     * Loads the environment variables inside $_ENV using `DotEnv`.
-     * The path to the .env file is supposed to be `$rootPath`.
+     * Initializes the toast controller used by the kernel.
      * @return void
      */
-    private function initEnv(): void
+    private function initToast(): void
     {
-        $this->env = new EnvService();
-        $this->env->load($this->rootPath);
-    }
-
-    /**
-     * Initializes all the utility services
-     * @return void
-     */
-    private function initUtils(): void
-    {
-        $this->utils = new UtilitiesManager();
-    }
-
-    /**
-     * Initializes the logger of the kernel.
-     * The logger used is a `GoralysLogger`, which is a custom logger made specially for this project.
-     * @return void
-     */
-    private function initLogger(): void
-    {
-        $this->logger = new GoralysLogger();
-        $this->logger->rotate();
+        $this->toast = new ToastController();
     }
 
     /**
@@ -302,6 +293,15 @@ class GoralysKernel
     }
 
     /**
+     * Initializes the kernel's username manager.
+     * @return void
+     */
+    private function initUsernameManager(): void
+    {
+        $this->usernames = new UsernameManager(new UserRepository($this->logger, $this->db));
+    }
+
+    /**
      * Initializes the support controller of the kernel.
      * @return void
      */
@@ -310,7 +310,7 @@ class GoralysKernel
         $this->support = new SupportController(
             $this->logger,
             $this->db,
-            $this->usernameManager,
+            $this->usernames,
         );
     }
 
@@ -381,24 +381,6 @@ class GoralysKernel
     }
 
     /**
-     * Initializes the toast controller used by the kernel.
-     * @return void
-     */
-    private function initToast(): void
-    {
-        $this->toast = new ToastController();
-    }
-
-    /**
-     * Initializes the guard used by the kernel.
-     * @return void
-     */
-    private function initGuard(): void
-    {
-        $this->guard = new HttpGuard($this->usernameManager, $this->context);
-    }
-
-    /**
      * Initializes the CSRF service used by the kernel
      * @return void
      */
@@ -408,12 +390,12 @@ class GoralysKernel
     }
 
     /**
-     * Initializes the kernel's username manager.
+     * Initializes the guard used by the kernel.
      * @return void
      */
-    private function initUsernameManager(): void
+    private function initGuard(): void
     {
-        $this->usernameManager = new UsernameManager(new UserRepository($this->logger, $this->db));
+        $this->guard = new HttpGuard($this->usernames, $this->context);
     }
 
     /**
@@ -426,15 +408,13 @@ class GoralysKernel
     }
 
     /**
-     * Connects the kernel to the database.
-     * @throws GoralysConnectException Throws an exception if the connection with the database could not be established.
+     * Sets the exceptions and errors handlers to be the ones from the `GoralysKernel`.
+     * @return void
      */
-    private function connect(): bool
+    public function setHandlers(): void
     {
-        if (!isset($this->db)) {
-            $this->db = new DbContainer($this->logger);
-        }
-        return $this->db->connect();
+        set_exception_handler([$this, 'exceptionHandler']);
+        set_error_handler([$this, 'errorHandler']);
     }
 
     /**
@@ -449,6 +429,54 @@ class GoralysKernel
     public function setExceptionMessage(string $eClass, string $msg, int $code = 500, string $redirect = "/"): void
     {
         $this->errorMessages[$eClass] = new ErrorMessageConfig($msg, $redirect, $code);
+    }
+
+    /**
+     * The custom error handler for the kernel.
+     * It ignores errors considered "non-fatal":
+     * - `E_ERROR`
+     * - `E_USER_ERROR`
+     * - `E_CORE_ERROR`
+     * - `E_COMPILE_ERROR`
+     * - `E_RECOVERABLE_ERROR`
+     * @param int $severity The severity of the error.
+     * @param string $message The error's message.
+     * @param string $file The file where the error occurred.
+     * @param int $line The line that caused the error.
+     * @return void
+     * @throws ErrorException Only thrown when the exception is considered fatal.
+     */
+    public function errorHandler(int $severity, string $message, string $file, int $line): void
+    {
+        $this->logger->warning(
+            LoggerInitiator::APP,
+            "PHP Error (severity $severity) : $message — $file:$line",
+        );
+
+        // Ignore non-fatal errors
+        if (!in_array($severity, [E_ERROR, E_USER_ERROR, E_CORE_ERROR, E_COMPILE_ERROR, E_RECOVERABLE_ERROR])) {
+            return;
+        }
+
+        throw new ErrorException($message, 0, $severity, $file, $line);
+    }
+
+    /**
+     * Runs the provided function and catches any exception to handle it.
+     * @param callable $callback The function to execute.
+     * @return void
+     */
+    public function run(callable $callback): void
+    {
+        try {
+            $callback($this, $this->request);
+
+            if (session_status() == PHP_SESSION_ACTIVE) {
+                session_write_close();
+            }
+        } catch (Throwable $e) {
+            $this->exceptionHandler($e);
+        }
     }
 
     /**
@@ -498,84 +526,10 @@ class GoralysKernel
         }
     }
 
-    /**
-     * The custom error handler for the kernel.
-     * It ignores errors considered "non-fatal":
-     * - `E_ERROR`
-     * - `E_USER_ERROR`
-     * - `E_CORE_ERROR`
-     * - `E_COMPILE_ERROR`
-     * - `E_RECOVERABLE_ERROR`
-     * @param int $severity The severity of the error.
-     * @param string $message The error's message.
-     * @param string $file The file where the error occurred.
-     * @param int $line The line that caused the error.
-     * @return void
-     * @throws ErrorException Only thrown when the exception is considered fatal.
-     */
-    public function errorHandler(int $severity, string $message, string $file, int $line): void
-    {
-        $this->logger->warning(
-            LoggerInitiator::APP,
-            "PHP Error (severity $severity) : $message — $file:$line",
-        );
-
-        // Ignore non-fatal errors
-        if (!in_array($severity, [E_ERROR, E_USER_ERROR, E_CORE_ERROR, E_COMPILE_ERROR, E_RECOVERABLE_ERROR])) {
-            return;
-        }
-
-        throw new ErrorException($message, 0, $severity, $file, $line);
-    }
-
-    /**
-     * Gets the kernel's current HTTP request
-     * @return RequestInterface The request.
-     */
-    public function request(): RequestInterface
-    {
-        if (!isset($this->request)) {
-            $this->request = new GoralysRequest();
-        }
-
-        return $this->request;
-    }
-
-    /**
-     * Generate a new HTTP response.
-     * @param int $code The response's code (default = 200).
-     * @return ImmediateResponseInterface The response.
-     */
-    public function response(int $code = 200): ImmediateResponseInterface
-    {
-        $files = new HttpFileResponder();
-        $json = new HttpJsonResponder();
-        return new ImmediateResponse($code, $this->logger, $files, $json);
-    }
-
     public function deferredResponse(int $code = 200): DeferredResponseInterface
     {
         return new DeferredResponse($this->context, $code);
     }
-
-    /**
-     * Runs the provided function and catches any exception to handle it.
-     * @param callable $callback The function to execute.
-     * @return void
-     */
-    public function run(callable $callback): void
-    {
-        try {
-            $callback($this, $this->request);
-
-            if (session_status() == PHP_SESSION_ACTIVE) {
-                session_write_close();
-            }
-        } catch (Throwable $e) {
-            $this->exceptionHandler($e);
-        }
-    }
-
 
     /**
      * Helper used to centralize db connection logic and failure behavior.
@@ -598,6 +552,18 @@ class GoralysKernel
                 ->redirect("/")
                 ->send();
         }
+    }
+
+    /**
+     * Connects the kernel to the database.
+     * @throws GoralysConnectException Throws an exception if the connection with the database could not be established.
+     */
+    private function connect(): bool
+    {
+        if (!isset($this->db)) {
+            $this->db = new DbContainer($this->logger);
+        }
+        return $this->db->connect();
     }
 
     /**
@@ -654,6 +620,26 @@ class GoralysKernel
         }
     }
 
+    private function destroySession(): void
+    {
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_unset();
+            session_destroy();
+        }
+    }
+
+    /**
+     * Generate a new HTTP response.
+     * @param int $code The response's code (default = 200).
+     * @return ImmediateResponseInterface The response.
+     */
+    public function response(int $code = 200): ImmediateResponseInterface
+    {
+        $files = new HttpFileResponder();
+        $json = new HttpJsonResponder();
+        return new ImmediateResponse($code, $this->logger, $files, $json);
+    }
+
     /**
      * Helper to check if the user is authenticated
      * @return bool If the user is authenticated
@@ -682,6 +668,19 @@ class GoralysKernel
                 ->redirect($redirect ?? "/")
                 ->send();
         }
+    }
+
+    /**
+     * Gets the kernel's current HTTP request
+     * @return RequestInterface The request.
+     */
+    public function request(): RequestInterface
+    {
+        if (!isset($this->request)) {
+            $this->request = new GoralysRequest();
+        }
+
+        return $this->request;
     }
 
     /**

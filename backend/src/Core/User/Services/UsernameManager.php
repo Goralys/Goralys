@@ -28,12 +28,12 @@ final class UsernameManager
     }
 
     /**
-     * 'Creates' a token by retrieving the public id of the user.
+     * Resolves the public id of the user.
      * @param string $username The username to get the public id of.
      * @return string The public id linked to the username.
      * @throws GoralysRuntimeException If the username is not valid.
      */
-    public function create(string $username): string
+    public function resolve(string $username): string
     {
         $publicId = $this->users->getPublicIdForUsername($username);
 

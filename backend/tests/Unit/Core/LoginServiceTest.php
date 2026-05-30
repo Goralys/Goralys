@@ -15,24 +15,6 @@ class LoginServiceTest extends TestCase
     private FakeUserRepository $repo;
     private LoginService $service;
 
-    protected function setUp(): void
-    {
-        $this->logger = new FakeGoralysLogger();
-        $this->repo = new FakeUserRepository();
-
-        $this->service = new LoginService(
-            $this->logger,
-            $this->repo,
-        );
-    }
-
-    protected function tearDown(): void
-    {
-        unset($this->logger);
-        unset($this->repo);
-        unset($this->service);
-    }
-
     public function testLoginNoUser()
     {
         $this->repo->setGetResult(null);
@@ -90,5 +72,23 @@ class LoginServiceTest extends TestCase
     {
         $this->repo->setGetResult(new UserLoginDTO("j.doe1", password_hash("foo", PASSWORD_DEFAULT)));
         self::assertTrue($this->service->checkPassword(new UserLoginDTO("j.doe1", "foo")));
+    }
+
+    protected function setUp(): void
+    {
+        $this->logger = new FakeGoralysLogger();
+        $this->repo = new FakeUserRepository();
+
+        $this->service = new LoginService(
+            $this->logger,
+            $this->repo,
+        );
+    }
+
+    protected function tearDown(): void
+    {
+        unset($this->logger);
+        unset($this->repo);
+        unset($this->service);
     }
 }

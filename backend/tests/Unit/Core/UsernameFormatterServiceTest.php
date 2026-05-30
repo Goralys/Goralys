@@ -9,16 +9,6 @@ class UsernameFormatterServiceTest extends TestCase
 {
     private UsernameFormatterService $service;
 
-    protected function setUp(): void
-    {
-        $this->service = new UsernameFormatterService();
-    }
-
-    protected function tearDown(): void
-    {
-        unset($this->service);
-    }
-
     public function testFormatUsernameStandardFormat(): void
     {
         self::assertSame(
@@ -80,5 +70,15 @@ class UsernameFormatterServiceTest extends TestCase
             $this->service->formatUsername("doe"),
             "Expected username without dot to be returned as-is",
         );
+    }
+
+    protected function setUp(): void
+    {
+        $this->service = new UsernameFormatterService();
+    }
+
+    protected function tearDown(): void
+    {
+        unset($this->service);
     }
 }

@@ -14,6 +14,7 @@ use Goralys\Core\User\Data\UserLoginDTO;
 use Goralys\Core\User\Data\UserRegisterDTO;
 use Goralys\Kernel\GoralysKernel;
 use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
+use Goralys\Platform\Mail\Config\MailerConfig;
 use Goralys\Shared\Config\GoralysConfig;
 use Goralys\Shared\Utils\String\Data\StringCase;
 
@@ -288,6 +289,7 @@ function createUserRoutes(GoralysRouter $router): void
 
     $router->patch('users/reset-password', function (GoralysKernel $kernel, RequestInterface $request) {
         if (!$kernel->users->validatePassword($request->param("admin-password"))) {
+            $kernel->logger->debug(LoggerInitiator::APP, "Terminating reset password !");
             $kernel->deferredResponse(501)->toast( // Unauthorized
                 ToastType::WARNING,
                 "Mot de passe",
@@ -297,7 +299,10 @@ function createUserRoutes(GoralysRouter $router): void
                     ->send();
         }
 
-        if (!$kernel->users->resetPassword($request->param("target"))) {
+        $target = $request->param("target"); // (public id)
+        $email = $kernel->users->getEmail($target);
+        if (!$kernel->users->resetPassword($target)) {
+            $kernel->logger->debug(LoggerInitiator::APP, "Terminating reset password ! (failed to reset)");
             $kernel->deferredResponse(500)->error(
                 "Le mot de passe n'a pas pu être réinitialisé.",
             )
@@ -305,10 +310,28 @@ function createUserRoutes(GoralysRouter $router): void
                     ->send();
         }
 
+        $message = "Le mot de passe a bien été réinitialisé, l'utilisateur peut maintenant recréer son compte.";
+
+        if ($email) {
+            $registerLink = $kernel->env->getByKey("ORIGIN_DOMAIN")
+                            . "/user/register?id=" . $kernel->usernames->get($target);
+            $kernel->mailer->sendMail(
+                MailerConfig::BASE_ALIAS,
+                "Goralys - Réinitialisation du mot de passe",
+                "Bonjour, <br>
+                        Nous vous informons que le mot de passe de votre compte <b>Goralys</b> a été réintialisé par un 
+                        administrateur le " . date("d/m/y à H:i") . ".<br>Vous pouvez <a href=$registerLink>recréer
+                        votre compte </a>avec le même identifiant <b>({$kernel->usernames->get($target)}</b>).",
+                $email
+            );
+
+            $message .= " Un email automatique lui a été envoyé.";
+        }
+
         $kernel->deferredResponse()->toast(
             ToastType::INFO,
             "Mot de passe",
-            "Le mot de passe a bien été réinitialisé, l'utilisateur peut maintenant recréer son compte.",
+            $message,
         )
                 ->redirect("/admin/user")
                 ->send();
@@ -400,7 +423,7 @@ function createUserRoutes(GoralysRouter $router): void
         $kernel->deferredResponse()->toast(
             ToastType::INFO,
             "Identifiant",
-            "Identifiant pour ce compte: " . $kernel->usernameManager->get($request->param("target")),
+            "Identifiant pour ce compte: " . $kernel->usernames->get($request->param("target")),
         )
                 ->redirect("/admin/user")
                 ->send();

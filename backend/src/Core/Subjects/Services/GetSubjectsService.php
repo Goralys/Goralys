@@ -9,11 +9,11 @@ namespace Goralys\Core\Subjects\Services;
 
 use DateMalformedStringException;
 use DateTime;
-use Goralys\Core\User\Services\UsernameManager;
 use Goralys\Core\Subjects\Data\Enums\SubjectStatus;
 use Goralys\Core\Subjects\Data\SubjectDTO;
 use Goralys\Core\Subjects\Data\SubjectsCollection;
 use Goralys\Core\Subjects\Repository\Interfaces\SubjectsRepositoryInterface;
+use Goralys\Core\User\Services\UsernameManager;
 use Goralys\Core\Utils\User\Services\UsernameFormatterService;
 use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
 use Goralys\Platform\Logger\Interfaces\LoggerInterface;
@@ -55,6 +55,28 @@ final class GetSubjectsService
     }
 
     /**
+     * Gets all the subjects for a given student.
+     * It uses the subject repository to communicate with the database.
+     * The subjects are returned using a subject collection object.
+     * @param string $studentUsername The student's username.
+     * @return SubjectsCollection The array of all the student's subjects.
+     * @throws DateMalformedStringException If one the date column fails to create a valid {@see DateTime} object.
+     * @throws GoralysRuntimeException If the user's public id cannot be retrieved.
+     */
+    public function getStudentSubjects(string $studentUsername): SubjectsCollection
+    {
+
+        $result = $this->repo->findByStudent($studentUsername);
+
+        $this->logger->info(
+            LoggerInitiator::CORE,
+            "Successfully fetched the subjects for student : " . $studentUsername,
+        );
+
+        return $this->formatStudentSubjects($result, $studentUsername);
+    }
+
+    /**
      * A simple helper to transform a request result from the repository into a usable subjects collection.
      * This version is specific to student subjects.
      * There are three declinations of this function for students, teachers and admins (all) as the formatting varies
@@ -81,7 +103,7 @@ final class GetSubjectsService
 
             $subject = new SubjectDTO(
                 $this->formatter->formatUsername($studentUsername),
-                $this->usernameManager->create($studentUsername),
+                $this->usernameManager->resolve($studentUsername),
                 $row['subject'] ?? "",
                 SubjectStatus::from($row['subject_status'] ?? 0),
                 $row['comment'] ?? "",
@@ -90,7 +112,7 @@ final class GetSubjectsService
                 $row['topic'],
                 $row['topic_code'] ?? "",
                 implode(", ", $formattedNames),
-                $this->usernameManager->create($teachers[0]),
+                $this->usernameManager->resolve($teachers[0]),
                 $row['is_interdisciplinary'],
             );
 
@@ -98,6 +120,27 @@ final class GetSubjectsService
         }
 
         return $subjects;
+    }
+
+    /**
+     * Gets all the subjects for a given teacher.
+     * It uses the subject repository to communicate with the database.
+     * The subjects are returned using a subject collection object.
+     * @param string $teacherUsername The teacher's username.
+     * @return SubjectsCollection The array of all the teacher's subjects.
+     * @throws DateMalformedStringException If one the date column fails to create a valid {@see DateTime} object.
+     * @throws GoralysRuntimeException If the user's public id cannot be retrieved.
+     * */
+    public function getTeacherSubjects(string $teacherUsername): SubjectsCollection
+    {
+        $result = $this->repo->findByTeacher($teacherUsername);
+
+        $this->logger->info(
+            LoggerInitiator::CORE,
+            "Successfully fetched the subjects for teacher : " . $teacherUsername,
+        );
+
+        return $this->formatTeacherSubjects($result, $teacherUsername);
     }
 
     /**
@@ -120,7 +163,7 @@ final class GetSubjectsService
         while ($row = $result->fetch_assoc()) {
             $subject = new SubjectDTO(
                 $this->formatter->formatUsername($row['student']),
-                $this->usernameManager->create($row['student']),
+                $this->usernameManager->resolve($row['student']),
                 $row['subject'] ?? "",
                 SubjectStatus::from($row['subject_status'] ?? 0),
                 $row['comment'] ?? "",
@@ -129,7 +172,7 @@ final class GetSubjectsService
                 $row['topic'],
                 $row['topic_code'] ?? "",
                 $this->formatter->formatUsername($teacherUsername),
-                $this->usernameManager->create($teacherUsername),
+                $this->usernameManager->resolve($teacherUsername),
                 $row['is_interdisciplinary'],
                 (bool) $row['draftPath'],
             );
@@ -138,6 +181,26 @@ final class GetSubjectsService
         }
 
         return $subjects;
+    }
+
+    /**
+     * Gets all the subjects thus it should only be used for admins.
+     * It uses the subject repository to communicate with the database.
+     * The subjects are returned using a subject collection object.
+     * @return SubjectsCollection The array of all the subjects inside the database.
+     * @throws DateMalformedStringException If one the date column fails to create a valid {@see DateTime} object.
+     * @throws GoralysRuntimeException If the user's public id cannot be retrieved.
+     */
+    public function getAllSubjects(): SubjectsCollection
+    {
+        $result = $this->repo->findAll();
+
+        $this->logger->info(
+            LoggerInitiator::CORE,
+            "Granted access to all subjects for user : " . ($_SESSION[GoralysConfig::SESSION::USERNAME] ?? ""),
+        );
+
+        return $this->formatAllSubjects($result);
     }
 
     /**
@@ -168,7 +231,7 @@ final class GetSubjectsService
 
             $subject = new SubjectDTO(
                 $this->formatter->formatUsername($row['student']),
-                $this->usernameManager->create($row['student']),
+                $this->usernameManager->resolve($row['student']),
                 $row['subject'] ?? "",
                 SubjectStatus::from($row['subject_status'] ?? 0),
                 $row['comment'] ?? "",
@@ -177,7 +240,7 @@ final class GetSubjectsService
                 $row['topic'],
                 $row['topic_code'] ?? "",
                 implode(", ", $formattedNames),
-                $this->usernameManager->create($teachers[0]),
+                $this->usernameManager->resolve($teachers[0]),
                 $row['is_interdisciplinary'],
             );
 
@@ -185,68 +248,5 @@ final class GetSubjectsService
         }
 
         return $subjects;
-    }
-
-    /**
-     * Gets all the subjects for a given student.
-     * It uses the subject repository to communicate with the database.
-     * The subjects are returned using a subject collection object.
-     * @param string $studentUsername The student's username.
-     * @return SubjectsCollection The array of all the student's subjects.
-     * @throws DateMalformedStringException If one the date column fails to create a valid {@see DateTime} object.
-     * @throws GoralysRuntimeException If the user's public id cannot be retrieved.
-     */
-    public function getStudentSubjects(string $studentUsername): SubjectsCollection
-    {
-
-        $result = $this->repo->findByStudent($studentUsername);
-
-        $this->logger->info(
-            LoggerInitiator::CORE,
-            "Successfully fetched the subjects for student : " . $studentUsername,
-        );
-
-        return $this->formatStudentSubjects($result, $studentUsername);
-    }
-
-    /**
-     * Gets all the subjects for a given teacher.
-     * It uses the subject repository to communicate with the database.
-     * The subjects are returned using a subject collection object.
-     * @param string $teacherUsername The teacher's username.
-     * @return SubjectsCollection The array of all the teacher's subjects.
-     * @throws DateMalformedStringException If one the date column fails to create a valid {@see DateTime} object.
-     * @throws GoralysRuntimeException If the user's public id cannot be retrieved.
-     * */
-    public function getTeacherSubjects(string $teacherUsername): SubjectsCollection
-    {
-        $result = $this->repo->findByTeacher($teacherUsername);
-
-        $this->logger->info(
-            LoggerInitiator::CORE,
-            "Successfully fetched the subjects for teacher : " . $teacherUsername,
-        );
-
-        return $this->formatTeacherSubjects($result, $teacherUsername);
-    }
-
-    /**
-     * Gets all the subjects thus it should only be used for admins.
-     * It uses the subject repository to communicate with the database.
-     * The subjects are returned using a subject collection object.
-     * @return SubjectsCollection The array of all the subjects inside the database.
-     * @throws DateMalformedStringException If one the date column fails to create a valid {@see DateTime} object.
-     * @throws GoralysRuntimeException If the user's public id cannot be retrieved.
-     */
-    public function getAllSubjects(): SubjectsCollection
-    {
-        $result = $this->repo->findAll();
-
-        $this->logger->info(
-            LoggerInitiator::CORE,
-            "Granted access to all subjects for user : " . ($_SESSION[GoralysConfig::SESSION::USERNAME] ?? ""),
-        );
-
-        return $this->formatAllSubjects($result);
     }
 }

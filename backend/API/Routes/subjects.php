@@ -46,8 +46,8 @@ function createSubjectsRoutes(GoralysRouter $router): void
         'subjects/draft',
         function (GoralysKernel $kernel, RequestInterface $request) {
             $path = $kernel->subjects->draftsManager->getPath(
-                $kernel->usernameManager->get($request->param("student")),
-                $kernel->usernameManager->get($request->param("teacher")),
+                $kernel->usernames->get($request->param("student")),
+                $kernel->usernames->get($request->param("teacher")),
                 $request->param("topic"),
             );
 
@@ -95,8 +95,8 @@ function createSubjectsRoutes(GoralysRouter $router): void
             }
 
             $kernel->subjects->updateField(
-                $kernel->usernameManager->get($request->param('teacher')),
-                $kernel->usernameManager->get($request->param('student')),
+                $kernel->usernames->get($request->param('teacher')),
+                $kernel->usernames->get($request->param('student')),
                 $request->param("topic"),
                 SubjectFields::STATUS,
                 SubjectStatus::fromString($request->param("status"))
@@ -123,8 +123,8 @@ function createSubjectsRoutes(GoralysRouter $router): void
             $kernel->guard->matchCurrentUser($request, 'student')?->send();
 
             $result = $kernel->subjects->updateField(
-                $kernel->usernameManager->get($request->param('teacher')),
-                $kernel->usernameManager->get($request->param('student')),
+                $kernel->usernames->get($request->param('teacher')),
+                $kernel->usernames->get($request->param('student')),
                 $request->param('topic'),
                 SubjectFields::SUBJECT,
                 $request->param('draft'),
@@ -160,8 +160,8 @@ function createSubjectsRoutes(GoralysRouter $router): void
         function (GoralysKernel $kernel, RequestInterface $request) {
             $kernel->guard->matchCurrentUser($request, 'student')?->send();
 
-            $teacherUsername = $kernel->usernameManager->get($request->param('teacher'));
-            $studentUsername = $kernel->usernameManager->get($request->param('student'));
+            $teacherUsername = $kernel->usernames->get($request->param('teacher'));
+            $studentUsername = $kernel->usernames->get($request->param('student'));
             $topic = $request->param('topic');
             $subject = $request->param('subject');
             $interdisciplinary = (bool) $request->param('interdisciplinary');
@@ -257,8 +257,8 @@ function createSubjectsRoutes(GoralysRouter $router): void
         function (GoralysKernel $kernel, RequestInterface $request) {
             $kernel->guard->matchCurrentUser($request, 'teacher')?->send();
 
-            $teacherUsername = $kernel->usernameManager->get($request->param('teacher'));
-            $studentUsername = $kernel->usernameManager->get($request->param('student'));
+            $teacherUsername = $kernel->usernames->get($request->param('teacher'));
+            $studentUsername = $kernel->usernames->get($request->param('student'));
             $topic = $request->param('topic');
             $comment = $request->param('comment');
             $currentStatus = $kernel->subjects->getStatus($teacherUsername, $studentUsername, $topic);
@@ -321,8 +321,8 @@ function createSubjectsRoutes(GoralysRouter $router): void
             $kernel->guard->matchCurrentUser($request, 'teacher')?->send();
 
             $result = $kernel->subjects->updateField(
-                $kernel->usernameManager->get($request->param('teacher')),
-                $kernel->usernameManager->get($request->param('student')),
+                $kernel->usernames->get($request->param('teacher')),
+                $kernel->usernames->get($request->param('student')),
                 $request->param("topic"),
                 SubjectFields::STATUS,
                 SubjectStatus::APPROVED,

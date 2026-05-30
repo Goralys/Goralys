@@ -17,6 +17,7 @@ use Goralys\Shared\Config\GoralysConfig;
  */
 function bootstrapAPI(GoralysKernel $kernel): void
 {
+    date_default_timezone_set('Europe/Paris');  // change if you are not french
     if (isset($_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'])) {
         $_SERVER['REQUEST_METHOD'] = $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'];
     }

@@ -10,7 +10,6 @@ namespace Goralys\App\User\Controllers;
 use Goralys\App\User\Data\UserCollection;
 use Goralys\App\User\Data\UserGetDTO;
 use Goralys\App\User\Data\UsernameTable;
-use Goralys\Core\User\Services\UsernameManager;
 use Goralys\Core\User\Data\Enums\UserRole;
 use Goralys\Core\User\Data\UserFullDTO;
 use Goralys\Core\User\Data\UserLoginDTO;
@@ -18,6 +17,7 @@ use Goralys\Core\User\Data\VirtualUserDTO;
 use Goralys\Core\User\Repository\Interfaces\UserRepositoryInterface;
 use Goralys\Core\User\Repository\UserRepository;
 use Goralys\Core\User\Services\LoginService;
+use Goralys\Core\User\Services\UsernameManager;
 use Goralys\Platform\DB\Interfaces\DbContainerInterface;
 use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
 use Goralys\Platform\Logger\Interfaces\LoggerInterface;
@@ -66,6 +66,15 @@ final class UserController
     }
 
     /**
+     * Returns all non-admin users from the database.
+     * @return UserCollection The users (teachers and students).
+     */
+    public function getAll(): UserCollection
+    {
+        return $this->buildCollection($this->repo->getAll(), UserGetDTO::fromFull(...));
+    }
+
+    /**
      * Builds a {@see UserCollection} from an array of user DTOs using the provided mapping callable.
      * @param VirtualUserDTO[]|UserFullDTO[] $users The users to build the collection from.
      * @param callable $fromDTO The callable used to map each user to a {@see UserGetDTO}.
@@ -83,15 +92,6 @@ final class UserController
             )]));
         }
         return $collection;
-    }
-
-    /**
-     * Returns all non-admin users from the database.
-     * @return UserCollection The users (teachers and students).
-     */
-    public function getAll(): UserCollection
-    {
-        return $this->buildCollection($this->repo->getAll(), UserGetDTO::fromFull(...));
     }
 
     /**
@@ -200,6 +200,21 @@ final class UserController
             "Attempting to delete user " . $target . " (initiator: " . $_SESSION[GoralysConfig::SESSION::USERNAME]
         );
         return $this->repo->hardDelete($target);
+    }
+
+    /**
+     * Gets the email for the current user or the provided one.
+     * @param $publicId ?string The public id of the target user, if `null` (default),
+     * the controller will query the email for the current user.
+     * @return ?string The email of the user (or `null` if it has no email).
+     * @throws GoralysRuntimeException If the username of the user cannot be retrieved.
+     */
+    public function getEmail(?string $publicId = null): ?string
+    {
+        return $this->repo->getEmail(
+            $publicId ? $this->usernames->get($publicId)
+            : $_SESSION[GoralysConfig::SESSION::USERNAME]
+        );
     }
 
     /**

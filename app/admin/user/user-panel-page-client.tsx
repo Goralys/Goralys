@@ -2,7 +2,7 @@
 
 import { useUsers, useVirtualUsers } from "@/app/src/hooks/useUsers";
 import UserCard from "../../ui/admin-panel/user-card";
-import { useState, Suspense, ReactElement } from "react";
+import { ReactElement, Suspense, useState } from "react";
 import { User } from "@/app/lib/types";
 import { UsersSearchBar } from "../../ui/admin-panel/users-search-bar";
 import UserCardSkeleton from "../../ui/skeletons/admin-panel/user-card";
@@ -33,6 +33,7 @@ export default function UserPanelPageClient(): ReactElement {
                                 <div className="flex flex-col gap-2">
                                     {currentUsers?.map((u) => (
                                         <UserCard
+                                            type="real"
                                             key={u.role + u.publicId}
                                             user={u}
                                             onUpdateAction={refetch}
@@ -56,6 +57,7 @@ export default function UserPanelPageClient(): ReactElement {
                                 <div className="flex flex-col gap-2">
                                     {currentVirtualUsers?.map((u) => (
                                         <UserCard
+                                            type="virtual"
                                             key={u.role + u.publicId + "-virtual"}
                                             user={u}
                                             onUpdateAction={virtualRefetch}

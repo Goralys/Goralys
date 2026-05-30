@@ -39,32 +39,6 @@ final class StudentDraftsManager
     }
 
     /**
-     * Clears existing draft files for the given student/teacher pair and ensures the target directory exists.
-     * @param string $studentUsername The student's username.
-     * @param string $teacherUsername The teacher's username.
-     * @return void
-     */
-    private function emptyDir(string $studentUsername, string $teacherUsername): void
-    {
-        $fullDir = __DIR__ . "/../../../../Assets/StudentsDrafts/$teacherUsername/$studentUsername/";
-
-        if (is_dir($fullDir)) {
-            foreach (new DirectoryIterator($fullDir) as $file) {
-                if (
-                    $file->isFile()
-                    && pathinfo($file->getFilename(), PATHINFO_FILENAME) === "draft"
-                    && in_array(pathinfo($file->getFilename(), PATHINFO_EXTENSION), ['txt', 'odt', 'docx'])
-                ) {
-                    unlink($file->getPathname());
-                }
-            }
-        }
-        if (!is_dir($fullDir)) {
-            mkdir($fullDir, 0o777, true);
-        }
-    }
-
-    /**
      * Updates a student's draft in the database.
      * @param string $studentUsername The student's username.
      * @param string $teacherUsername The teachers's username.
@@ -102,6 +76,32 @@ final class StudentDraftsManager
         );
 
         return false;
+    }
+
+    /**
+     * Clears existing draft files for the given student/teacher pair and ensures the target directory exists.
+     * @param string $studentUsername The student's username.
+     * @param string $teacherUsername The teacher's username.
+     * @return void
+     */
+    private function emptyDir(string $studentUsername, string $teacherUsername): void
+    {
+        $fullDir = __DIR__ . "/../../../../Assets/StudentsDrafts/$teacherUsername/$studentUsername/";
+
+        if (is_dir($fullDir)) {
+            foreach (new DirectoryIterator($fullDir) as $file) {
+                if (
+                    $file->isFile()
+                    && pathinfo($file->getFilename(), PATHINFO_FILENAME) === "draft"
+                    && in_array(pathinfo($file->getFilename(), PATHINFO_EXTENSION), ['txt', 'odt', 'docx'])
+                ) {
+                    unlink($file->getPathname());
+                }
+            }
+        }
+        if (!is_dir($fullDir)) {
+            mkdir($fullDir, 0o777, true);
+        }
     }
 
     /**

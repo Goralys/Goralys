@@ -13,21 +13,6 @@ class GetUserRoleServiceTest extends TestCase
     private FakeUserRepository $repo;
     private GetUserRoleService $service;
 
-    protected function setUp(): void
-    {
-        $this->repo = new FakeUserRepository();
-
-        $this->service = new GetUserRoleService(
-            $this->repo,
-        );
-    }
-
-    protected function tearDown(): void
-    {
-        unset($this->repo);
-        unset($this->service);
-    }
-
     public function testGetRoleByUsernameNoUser()
     {
         $this->repo->setGetResult(null);
@@ -55,5 +40,20 @@ class GetUserRoleServiceTest extends TestCase
     {
         $this->repo->setGetResult(UserRole::STUDENT);
         self::assertEquals(UserRole::STUDENT, $this->service->getRoleByUsername("j.doe1"));
+    }
+
+    protected function setUp(): void
+    {
+        $this->repo = new FakeUserRepository();
+
+        $this->service = new GetUserRoleService(
+            $this->repo,
+        );
+    }
+
+    protected function tearDown(): void
+    {
+        unset($this->repo);
+        unset($this->service);
     }
 }

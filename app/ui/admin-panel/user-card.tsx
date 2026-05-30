@@ -13,12 +13,13 @@ import { ReactElement } from "react";
 
 interface UserCardProps {
     user: User;
+    type: "real" | "virtual";
     onUpdateAction: () => void;
     syncKey: string;
     virtualSyncKey: string;
 }
 
-export default function UserCard({ user, onUpdateAction, syncKey, virtualSyncKey }: UserCardProps): ReactElement {
+export default function UserCard({ user, type, onUpdateAction, syncKey, virtualSyncKey }: UserCardProps): ReactElement {
     const password = usePasswordModal();
     const toast = useToast();
     const cookies = new Cookies();
@@ -102,8 +103,8 @@ export default function UserCard({ user, onUpdateAction, syncKey, virtualSyncKey
                         </strong>
                     </button>
                 </div>
-                <div className="flex flex-row w-100 gap-1">
-                    <Button type="button" text="Réinitialiser le mot de passe" onClick={resetPassword} />
+                <div className="flex flex-row w-100 gap-1 place-content-end">
+                    {type === "real" && <Button type="button" text="Réinitialiser le mot de passe" onClick={resetPassword} />}
                     <Button color="red" className="w-50!" type="button" text="Supprimer" onClick={deleteUser} />
                 </div>
             </div>

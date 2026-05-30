@@ -3,11 +3,11 @@
 namespace Goralys\App\Support\Controllers;
 
 use DateMalformedStringException;
-use Goralys\Core\User\Services\UsernameManager;
 use Goralys\Core\Support\Data\Enums\SupportReason;
 use Goralys\Core\Support\Data\SupportTicketDTO;
 use Goralys\Core\Support\Data\SupportTicketsCollection;
 use Goralys\Core\Support\Repository\SupportRepository;
+use Goralys\Core\User\Services\UsernameManager;
 use Goralys\Platform\DB\Facade\DbContainer;
 use Goralys\Platform\Logger\Interfaces\LoggerInterface;
 use Goralys\Platform\Mail\Config\MailerConfig;
@@ -31,15 +31,6 @@ final readonly class SupportController
     public function getTickets(): SupportTicketsCollection
     {
         return $this->repo->getAllTickets();
-    }
-
-    public function getTicket(int $id): ?SupportTicketDTO
-    {
-        try {
-            return $this->repo->getTicket($id);
-        } catch (GoralysRuntimeException) {
-            return null;
-        }
     }
 
     public function createTicket(SupportReason $reason, string $email, string $message): ?int
@@ -70,5 +61,14 @@ final readonly class SupportController
             $ticket->email
         );
         return true;
+    }
+
+    public function getTicket(int $id): ?SupportTicketDTO
+    {
+        try {
+            return $this->repo->getTicket($id);
+        } catch (GoralysRuntimeException) {
+            return null;
+        }
     }
 }

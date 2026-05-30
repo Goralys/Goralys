@@ -19,30 +19,6 @@ class RegisterServiceTest extends TestCase
     private FakeCreateUser $userCreator;
     private RegisterService $service;
 
-    protected function setUp(): void
-    {
-        $this->logger = new FakeGoralysLogger();
-        $this->validator = new FakeRegisterValidatorService();
-        $this->roleGetter = new FakeGetUserRole();
-        $this->userCreator = new FakeCreateUser();
-
-        $this->service = new RegisterService(
-            $this->logger,
-            $this->validator,
-            $this->roleGetter,
-            $this->userCreator,
-        );
-    }
-
-    protected function tearDown(): void
-    {
-        unset($this->logger);
-        unset($this->validator);
-        unset($this->roleGetter);
-        unset($this->userCreator);
-        unset($this->service);
-    }
-
     public function testRegisterInvalidUsername()
     {
         $this->validator->setCanRegister(false);
@@ -73,5 +49,29 @@ class RegisterServiceTest extends TestCase
         $this->roleGetter->role = UserRole::STUDENT;
         $this->userCreator->success = true;
         self::assertTrue($this->service->register(new UserRegisterDTO("j.doe1", "John Doe", "foo")));
+    }
+
+    protected function setUp(): void
+    {
+        $this->logger = new FakeGoralysLogger();
+        $this->validator = new FakeRegisterValidatorService();
+        $this->roleGetter = new FakeGetUserRole();
+        $this->userCreator = new FakeCreateUser();
+
+        $this->service = new RegisterService(
+            $this->logger,
+            $this->validator,
+            $this->roleGetter,
+            $this->userCreator,
+        );
+    }
+
+    protected function tearDown(): void
+    {
+        unset($this->logger);
+        unset($this->validator);
+        unset($this->roleGetter);
+        unset($this->userCreator);
+        unset($this->service);
     }
 }

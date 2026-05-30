@@ -4,10 +4,10 @@ namespace Goralys\Core\Support\Repository;
 
 use DateMalformedStringException;
 use DateTime;
-use Goralys\Core\User\Services\UsernameManager;
 use Goralys\Core\Support\Data\Enums\SupportReason;
 use Goralys\Core\Support\Data\SupportTicketDTO;
 use Goralys\Core\Support\Data\SupportTicketsCollection;
+use Goralys\Core\User\Services\UsernameManager;
 use Goralys\Core\Utils\User\Services\UsernameFormatterService;
 use Goralys\Platform\DB\Interfaces\DbContainerInterface;
 use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
@@ -36,6 +36,53 @@ final class SupportRepository implements Interfaces\SupportRepositoryInterface
         $this->usernames = $usernames;
     }
 
+    public function getAllTickets(): SupportTicketsCollection
+    {
+        $result = $this->db->fetchNoArgs(
+            "SELECT id, opener, message, reason, email, created_at from tickets",
+        );
+
+        return $this->buildTicketsFromResult($result);
+    }
+
+    private function buildTicketsFromResult(mysqli_result $result): SupportTicketsCollection
+    {
+        $collection = new SupportTicketsCollection();
+        while ($row = $result->fetch_assoc()) {
+            try {
+                $collection->addTicket(
+                    new SupportTicketDTO(
+                        $row['id'],
+                        SupportReason::fromString($row['reason']),
+                        UsernameFormatterService::formatUsername($row['opener']),
+                        $this->usernames->resolve($row['opener']),
+                        $row['email'],
+                        $row['message'],
+                        new DateTime($row['created_at'])
+                    ),
+                );
+            } catch (GoralysRuntimeException | DateMalformedStringException) {
+                continue;
+            }
+        }
+
+        return $collection;
+    }
+
+    /**
+     * @throws GoralysRuntimeException|DateMalformedStringException
+     */
+    public function getTicket(int $id): SupportTicketDTO
+    {
+        $result = $this->db->fetch(
+            "SELECT id, opener, message, reason, email, created_at from tickets where id = ?",
+            "i",
+            $id,
+        );
+
+        return $this->buildTicketFromResult($result);
+    }
+
     /**
      * @throws GoralysRuntimeException|DateMalformedStringException
      */
@@ -51,58 +98,11 @@ final class SupportRepository implements Interfaces\SupportRepositoryInterface
             $row['id'],
             SupportReason::fromString($row['reason']),
             UsernameFormatterService::formatUsername($row['opener']),
-            $this->usernames->create($row['opener']),
+            $this->usernames->resolve($row['opener']),
             $row['email'],
             $row['message'],
             new DateTime($row['created_at'])
         );
-    }
-
-    private function buildTicketsFromResult(mysqli_result $result): SupportTicketsCollection
-    {
-        $collection = new SupportTicketsCollection();
-        while ($row = $result->fetch_assoc()) {
-            try {
-                $collection->addTicket(
-                    new SupportTicketDTO(
-                        $row['id'],
-                        SupportReason::fromString($row['reason']),
-                        UsernameFormatterService::formatUsername($row['opener']),
-                        $this->usernames->create($row['opener']),
-                        $row['email'],
-                        $row['message'],
-                        new DateTime($row['created_at'])
-                    ),
-                );
-            } catch (GoralysRuntimeException | DateMalformedStringException) {
-                continue;
-            }
-        }
-
-        return $collection;
-    }
-
-    public function getAllTickets(): SupportTicketsCollection
-    {
-        $result = $this->db->fetchNoArgs(
-            "SELECT id, opener, message, reason, email, created_at from tickets",
-        );
-
-        return $this->buildTicketsFromResult($result);
-    }
-
-    /**
-     * @throws GoralysRuntimeException|DateMalformedStringException
-     */
-    public function getTicket(int $id): SupportTicketDTO
-    {
-        $result = $this->db->fetch(
-            "SELECT id, opener, message, reason, email, created_at from tickets where id = ?",
-            "i",
-            $id,
-        );
-
-        return $this->buildTicketFromResult($result);
     }
 
     /**

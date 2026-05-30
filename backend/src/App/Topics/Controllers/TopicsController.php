@@ -58,26 +58,6 @@ final class TopicsController
     }
 
     /**
-     * Creates a new TopicDTO instance.
-     * @param string $name The name of the topic.
-     * @param string $code The code (ID) of the topic.
-     * @param string[] $students A list of student names or usernames.
-     * @param string[] $teachers A list of teacher names or usernames.
-     * @return TopicDTO The topic.
-     */
-    public function makeTopic(string $name, string $code, array $students, array $teachers): TopicDTO
-    {
-        $this->nextId++;
-        return new TopicDTO(
-            $this->nextId,
-            $name,
-            $code,
-            $teachers,
-            $students,
-        );
-    }
-
-    /**
      * Inserts a TopicDTO into the database, including its students and teachers.
      * @param TopicDTO $topic The topic data transfer object to insert.
      * @return bool If the insertion succeeded.
@@ -108,6 +88,40 @@ final class TopicsController
             $topic->id,
             $this->usernames->resolve($s),
         ));
+    }
+
+    /**
+     * Processes an uploaded ZIP file and creates TopicDTO objects from its content.
+     * @param UploadedFileDTO $file The ZIP file metadata.
+     * @return TopicDTO[] A list of constructed TopicDTO objects.
+     * @throws GoralysRuntimeException If no valid topic files are found.
+     */
+    public function makeTopicsFromZip(UploadedFileDTO $file): array
+    {
+        $extractTo = $this->makeExtractionDir($file);
+        $this->files->extract($file, $extractTo);
+
+        $groupsToTeachers = $this->loadGroupsMapping($extractTo);
+
+        $topics = [];
+
+        foreach ($this->findTopicsCsv($extractTo) as $csvPath) {
+            $descriptor = $this->parseTopicFilename($csvPath);
+            if ($descriptor === null) {
+                continue;
+            }
+
+            $students = $this->CSVBuilder->buildStudents($csvPath);
+            $teachers = $groupsToTeachers[$descriptor->code] ?? [];
+
+            $topics[] = $this->makeTopic($descriptor->name, $descriptor->code, $students, $teachers);
+        }
+
+        if (count($topics) === 0) {
+            throw new GoralysRuntimeException("No topic CSV files found in ZIP (expected files like CODE_Name.csv).");
+        }
+
+        return $topics;
     }
 
     /**
@@ -183,37 +197,23 @@ final class TopicsController
     }
 
     /**
-     * Processes an uploaded ZIP file and creates TopicDTO objects from its content.
-     * @param UploadedFileDTO $file The ZIP file metadata.
-     * @return TopicDTO[] A list of constructed TopicDTO objects.
-     * @throws GoralysRuntimeException If no valid topic files are found.
+     * Creates a new TopicDTO instance.
+     * @param string $name The name of the topic.
+     * @param string $code The code (ID) of the topic.
+     * @param string[] $students A list of student names or usernames.
+     * @param string[] $teachers A list of teacher names or usernames.
+     * @return TopicDTO The topic.
      */
-    public function makeTopicsFromZip(UploadedFileDTO $file): array
+    public function makeTopic(string $name, string $code, array $students, array $teachers): TopicDTO
     {
-        $extractTo = $this->makeExtractionDir($file);
-        $this->files->extract($file, $extractTo);
-
-        $groupsToTeachers = $this->loadGroupsMapping($extractTo);
-
-        $topics = [];
-
-        foreach ($this->findTopicsCsv($extractTo) as $csvPath) {
-            $descriptor = $this->parseTopicFilename($csvPath);
-            if ($descriptor === null) {
-                continue;
-            }
-
-            $students = $this->CSVBuilder->buildStudents($csvPath);
-            $teachers = $groupsToTeachers[$descriptor->code] ?? [];
-
-            $topics[] = $this->makeTopic($descriptor->name, $descriptor->code, $students, $teachers);
-        }
-
-        if (count($topics) === 0) {
-            throw new GoralysRuntimeException("No topic CSV files found in ZIP (expected files like CODE_Name.csv).");
-        }
-
-        return $topics;
+        $this->nextId++;
+        return new TopicDTO(
+            $this->nextId,
+            $name,
+            $code,
+            $teachers,
+            $students,
+        );
     }
 
     /**

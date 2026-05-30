@@ -14,25 +14,6 @@ class UpdateSubjectServiceTest extends TestCase
     private FakeSubjectsRepository $repo;
     private UpdateSubjectService $service;
 
-    protected function setUp(): void
-    {
-        $this->logger = new FakeGoralysLogger();
-        $this->repo = new FakeSubjectsRepository();
-
-        $this->service = new UpdateSubjectService(
-            $this->logger,
-            $this->repo,
-        );
-    }
-
-    protected function tearDown(): void
-    {
-        unset($this->logger);
-        unset($this->repo);
-        unset($this->mysqliResult);
-        unset($this->service);
-    }
-
     public function testUpdateSubjectStatus()
     {
         $this->repo->setUpdateResult(false);
@@ -90,5 +71,24 @@ class UpdateSubjectServiceTest extends TestCase
             "bar",
             true,
         ));
+    }
+
+    protected function setUp(): void
+    {
+        $this->logger = new FakeGoralysLogger();
+        $this->repo = new FakeSubjectsRepository();
+
+        $this->service = new UpdateSubjectService(
+            $this->logger,
+            $this->repo,
+        );
+    }
+
+    protected function tearDown(): void
+    {
+        unset($this->logger);
+        unset($this->repo);
+        unset($this->mysqliResult);
+        unset($this->service);
     }
 }
