@@ -165,7 +165,7 @@ final class UserController
      * @return bool Whether the operation was successful.
      * @throws GoralysRuntimeException If the username of the user could not be retrieved.
      */
-    public function resetPassword(string $publicId): bool
+    public function reset(string $publicId): bool
     {
         return $this->repo->softDelete($this->usernames->get($publicId));
     }

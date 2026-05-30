@@ -12,6 +12,7 @@ export type HttpMethod = "POST" | "PATCH" | "PUT" | "DELETE" | "GET" | "BREW";
 export const reasonsConfig = {
     "password-forgot": { label: "Mot de passe oublié" },
     "subject-error": { label: "Question envoyée/validée/rejetée par erreur" },
+    "personal-info-error": { label: "Informations personnelles erronées (ex: Nom/Prénom)" },
     other: { label: "Autre (précisez)" },
 } as const;
 

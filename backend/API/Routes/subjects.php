@@ -39,9 +39,10 @@ function createSubjectsRoutes(GoralysRouter $router): void
     })
             ->middlewares(...MiddlewareSets::subjectsRoute('get-student-subjects', UserRole::STUDENT));
 
-    // -------------------------
+    // --------------------------------------------------
     // [SUB SECTION] Get draft
-    // -------------------------
+    // --------------------------------------------------
+
     $router->get(
         'subjects/draft',
         function (GoralysKernel $kernel, RequestInterface $request) {
@@ -114,9 +115,9 @@ function createSubjectsRoutes(GoralysRouter $router): void
     )
         ->middlewares(...MiddlewareSets::subjectsRoute('update-subject-status', UserRole::ADMIN));
 
-    // -------------------------
+    // --------------------------------------------------
     // [SUB SECTION] Student
-    // -------------------------
+    // --------------------------------------------------
     $router->put(
         'subjects/draft',
         function (GoralysKernel $kernel, RequestInterface $request) {
@@ -249,9 +250,9 @@ function createSubjectsRoutes(GoralysRouter $router): void
     )
             ->middlewares(...MiddlewareSets::subjectsRoute('submit-subject', UserRole::STUDENT, transaction: true));
 
-    // -------------------------
+    // --------------------------------------------------
     // [SUB SECTION] Teacher
-    // -------------------------
+    // --------------------------------------------------
     $router->post(
         'subjects/reject',
         function (GoralysKernel $kernel, RequestInterface $request) {

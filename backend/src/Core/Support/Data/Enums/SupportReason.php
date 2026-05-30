@@ -6,15 +6,16 @@ enum SupportReason: string
 {
     case PASSWORD_FORGOT = "password-forgot";
     case SUBJECT_ERROR = "subject-error";
+    case PERSONAL_INFO_ERROR = "personal-info-error";
     case OTHER = "other";
 
     /**
-     * Creates a SupportReason from a string representation.
-     * Returns OTHER if the string does not match any known reason.
+     * Creates a {@see SupportReason} from a string representation.
+     * Returns {@see SupportReason::OTHER} if the string does not match any known reason.
      * @param string $str The reason string to convert.
-     * @return SupportReason The matching reason.
+     * @return self The matching reason.
      */
-    public static function fromString(string $str): SupportReason
+    public static function fromString(string $str): self
     {
         return match (strtolower(trim($str))) {
             "password-forgot" => SupportReason::PASSWORD_FORGOT,
@@ -28,6 +29,7 @@ enum SupportReason: string
         return match ($reason) {
             self::PASSWORD_FORGOT => "Mot de passe oublié",
             self::SUBJECT_ERROR => "Question envoyée/validée/rejetée par erreur",
+            self::PERSONAL_INFO_ERROR => "Informations personnelles erronées",
             default => "Autre"
         };
     }

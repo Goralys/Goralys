@@ -214,9 +214,9 @@ function createUserRoutes(GoralysRouter $router): void
             ->middlewares(...MiddlewareSets::adminPanelRoute('get-virtual-admins', fetch: true))
             ->middleware(...DbMiddleware::require());
 
-    // -------------------------
+    // --------------------------------------------------
     // [SUB SECTION] Admins create and revoke
-    // -------------------------
+    // --------------------------------------------------
 
     $router->post('admin/create', function (GoralysKernel $kernel, RequestInterface $request) {
         if (!$kernel->users->validatePassword($request->param("admin-password"))) {
@@ -287,7 +287,11 @@ function createUserRoutes(GoralysRouter $router): void
             ->middlewares(...MiddlewareSets::adminPanelRoute('revoke-admin', '/admin/admin'))
             ->middleware(...DbMiddleware::transaction());
 
-    $router->patch('users/reset-password', function (GoralysKernel $kernel, RequestInterface $request) {
+    // --------------------------------------------------
+    // [SUB SECTION] Users reset/delete
+    // --------------------------------------------------
+
+    $router->patch('users/reset', function (GoralysKernel $kernel, RequestInterface $request) {
         if (!$kernel->users->validatePassword($request->param("admin-password"))) {
             $kernel->logger->debug(LoggerInitiator::APP, "Terminating reset password !");
             $kernel->deferredResponse(501)->toast( // Unauthorized
@@ -301,27 +305,28 @@ function createUserRoutes(GoralysRouter $router): void
 
         $target = $request->param("target"); // (public id)
         $email = $kernel->users->getEmail($target);
-        if (!$kernel->users->resetPassword($target)) {
-            $kernel->logger->debug(LoggerInitiator::APP, "Terminating reset password ! (failed to reset)");
+        if (!$kernel->users->reset($target)) {
             $kernel->deferredResponse(500)->error(
-                "Le mot de passe n'a pas pu être réinitialisé.",
+                "Le compte n'a pas pu être réinitialisé.",
             )
                     ->redirect("/admin/user")
                     ->send();
         }
 
-        $message = "Le mot de passe a bien été réinitialisé, l'utilisateur peut maintenant recréer son compte.";
+        $message = "Le compte a bien été réinitialisé, l'utilisateur peut maintenant recréer son compte.";
 
         if ($email) {
             $registerLink = $kernel->env->getByKey("ORIGIN_DOMAIN")
                             . "/user/register?id=" . $kernel->usernames->get($target);
             $kernel->mailer->sendMail(
                 MailerConfig::BASE_ALIAS,
-                "Goralys - Réinitialisation du mot de passe",
+                "Goralys - Réinitialisation du compte",
                 "Bonjour, <br>
-                        Nous vous informons que le mot de passe de votre compte <b>Goralys</b> a été réintialisé par un 
+                        Nous vous informons que votre compte <b>Goralys</b> a été réinitialisé par un 
                         administrateur le " . date("d/m/y à H:i") . ".<br>Vous pouvez <a href=$registerLink>recréer
-                        votre compte </a>avec le même identifiant <b>({$kernel->usernames->get($target)}</b>).",
+                        votre compte </a>avec le même identifiant <b>({$kernel->usernames->get($target)}</b>).<br>
+                        <b>Note :</b> Cela peut notamment être dû à une erreur de saisie dans vos informations
+                        (ex : Nom/Prénom) ou un oubli de mot de passe.",
                 $email
             );
 
@@ -330,13 +335,13 @@ function createUserRoutes(GoralysRouter $router): void
 
         $kernel->deferredResponse()->toast(
             ToastType::INFO,
-            "Mot de passe",
+            "Compte",
             $message,
         )
                 ->redirect("/admin/user")
                 ->send();
     }, ...RouterOptions::$INPUT::require("target", "admin-password"))
-            ->middlewares(...MiddlewareSets::adminPanelRoute('reset-password'))
+            ->middlewares(...MiddlewareSets::adminPanelRoute('reset-account'))
             ->middleware(...DbMiddleware::require());
 
     $router->delete('users', function (GoralysKernel $kernel, RequestInterface $request) {
@@ -369,9 +374,9 @@ function createUserRoutes(GoralysRouter $router): void
             ->middlewares(...MiddlewareSets::adminPanelRoute('delete-user'))
             ->middleware(...DbMiddleware::transaction());
 
-    // -------------------------
+    // --------------------------------------------------
     // [SUB SECTION] User replacement
-    // -------------------------
+    // --------------------------------------------------
 
     $router->put('users/teacher/replace', function (GoralysKernel $kernel, RequestInterface $request) {
         if (!$kernel->users->validatePassword($request->param("admin-password"))) {

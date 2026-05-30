@@ -71,8 +71,8 @@ export default function UserCard({ user, type, onUpdateAction, syncKey, virtualS
         }
     };
 
-    const resetPassword = async (): Promise<void> =>
-        await fetchAdmin("users/reset-password", "PATCH", "reset-password", "la réinitialisation du mot de passe");
+    const resetAccount = async (): Promise<void> =>
+        await fetchAdmin("users/reset", "PATCH", "reset-account", "la réinitialisation du compte");
 
     const deleteUser = async (): Promise<void> => await fetchAdmin("users", "DELETE", "delete-user", "la suppression de l'utilisateur");
 
@@ -104,8 +104,8 @@ export default function UserCard({ user, type, onUpdateAction, syncKey, virtualS
                     </button>
                 </div>
                 <div className="flex flex-row w-100 gap-1 place-content-end">
-                    {type === "real" && <Button type="button" text="Réinitialiser le mot de passe" onClick={resetPassword} />}
-                    <Button color="red" className="w-50!" type="button" text="Supprimer" onClick={deleteUser} />
+                    {type === "real" && <Button type="button" className="w-55!" text="Réinitialiser le compte" onClick={resetAccount} />}
+                    <Button color="red" className="w-45!" type="button" text="Supprimer" onClick={deleteUser} />
                 </div>
             </div>
             {user.role == "teacher" && <ReplaceTeacherElement onReplaceAction={replaceTeacher} />}
