@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { User } from "@/app/lib/types";
 import { useToast } from "@/app/ui/toast/toast-provider";
 import Cookies from "universal-cookie";
-import { fetchUsersClient, fetchVirtualUsersClient, fetchAdminsClient, fetchVirtualAdminsClient } from "@/app/lib/user/user.client";
+import { fetchAdminsClient, fetchUsersClient, fetchVirtualAdminsClient, fetchVirtualUsersClient } from "@/app/lib/user/user.client";
 import { handleToastRequest } from "@/app/lib/fetch/fetch.client";
 
 function useUserCollection(
@@ -39,7 +39,7 @@ function useUserCollection(
 
         try {
             if (cookies.get(syncKey) == "1") {
-                const cached = JSON.parse(sessionStorage.getItem(cacheKey) ?? "null");
+                const cached = JSON.parse(localStorage.getItem(cacheKey) ?? "null");
                 setUsers((prev) => {
                     if (JSON.stringify(prev) === JSON.stringify(cached)) return prev;
                     return cached;
@@ -53,7 +53,7 @@ function useUserCollection(
 
             if (res?.ok) {
                 cookies.set(syncKey, "1", { path: "/" });
-                sessionStorage.setItem(cacheKey, JSON.stringify(data));
+                localStorage.setItem(cacheKey, JSON.stringify(data));
             }
 
             const result = Array.isArray(data) ? (data as User[]) : null;

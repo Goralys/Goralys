@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, ReactNode, useCallback, useMemo, ReactElement } from "react";
+import { createContext, ReactElement, ReactNode, useCallback, useContext, useMemo, useState } from "react";
 import ToastElement from "@/app/ui/toast/toast-element";
 import { Toast } from "@/app/lib/types";
 import { createPortal } from "react-dom";
@@ -18,7 +18,7 @@ export function ToastProvider({ children }: { children: ReactNode }): ReactEleme
 
     const cacheToast = useCallback((toastInput: Toast, duration: number = 5500) => {
         if (!toastInput.expires) toastInput.expires = Date.now() + duration;
-        sessionStorage.setItem("flash_toast", JSON.stringify(toastInput));
+        localStorage.setItem("flash_toast", JSON.stringify(toastInput));
     }, []);
 
     const showToast = useCallback(

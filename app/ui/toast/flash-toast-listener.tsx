@@ -18,10 +18,10 @@ export default function FlashToastListener(): null {
         let cancelled = false;
 
         const showCachedToast = (): void => {
-            const raw = sessionStorage.getItem("flash_toast");
+            const raw = localStorage.getItem("flash_toast");
             if (!raw) return;
 
-            sessionStorage.removeItem("flash_toast");
+            localStorage.removeItem("flash_toast");
 
             try {
                 const parsed: Toast = JSON.parse(raw);
@@ -48,7 +48,7 @@ export default function FlashToastListener(): null {
 
                 if (data?.toast) {
                     // Server returned a toast — clear cache to avoid double-showing
-                    sessionStorage.removeItem("flash_toast");
+                    localStorage.removeItem("flash_toast");
                     showToastRef.current({
                         type: data.toast.toastType,
                         title: data.toast.toastTitle,

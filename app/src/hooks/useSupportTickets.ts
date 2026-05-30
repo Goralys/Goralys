@@ -51,10 +51,10 @@ export function useSupportTickets(): {
             const syncValue = cookies.get(syncKey);
 
             if (syncValue == "1") {
-                const raw = sessionStorage.getItem(cacheKey);
+                const raw = localStorage.getItem(cacheKey);
                 if (raw === null || raw === undefined) {
                     cookies.set(syncKey, "0", { path: "/" });
-                    sessionStorage.removeItem(cacheKey);
+                    localStorage.removeItem(cacheKey);
                     await fetchSupportTickets();
                     return;
                 }
@@ -76,9 +76,9 @@ export function useSupportTickets(): {
             const data = await res?.json();
 
             cookies.set(syncKey, "1", { path: "/" });
-            sessionStorage.setItem(cacheKey, JSON.stringify(data));
-            console.log("[useSupportTickets] set syncKey and cached to sessionStorage");
-            console.log("[useSupportTickets] sessionStorage after set:", sessionStorage.getItem(cacheKey)?.slice(0, 100));
+            localStorage.setItem(cacheKey, JSON.stringify(data));
+            console.log("[useSupportTickets] set syncKey and cached to localStorage");
+            console.log("[useSupportTickets] localStorage after set:", localStorage.getItem(cacheKey)?.slice(0, 100));
 
             const result = Array.isArray(data) ? data : null;
             console.log("[useSupportTickets] setting supportTickets:", result ? `array(${result.length})` : result);
