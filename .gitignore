@@ -40,13 +40,17 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+#backend
 /backend/Logs
 /backend/Assets
 *.cache
 /backend/vendor
 /backend/RateLimiter
 /backend/migration.sql
+
+# IDE
 /.idea
+/.vscode
 
 deploy-local.bat
 flush-logs.bat
