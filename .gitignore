@@ -45,6 +45,7 @@ next-env.d.ts
 *.cache
 /backend/vendor
 /backend/RateLimiter
+/backend/migration.sql
 /.idea
 
 deploy-local.bat
