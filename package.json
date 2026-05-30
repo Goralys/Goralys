@@ -8,8 +8,8 @@
         "build": "next build",
         "start": "next start",
         "lint": "eslint app",
-        "phpcs": "@composer --work-dir=backend phpcs",
-        "phpcbf": "@composer --work-dir=backend phpcbf",
+        "phpcs": "@composer --working-dir=backend phpcs",
+        "phpcbf": "@composer --working-dir=backend phpcbf",
         "check": "npm-run-all lint phpcs"
     },
     "dependencies": {
