@@ -3,7 +3,7 @@
 import { getStatusLabel, Subject, SubjectStatus, SubjectStatusConfig } from "@/app/lib/types";
 import { SubjectInputAdmin } from "@/app/ui/inputs/subject-input-admin";
 import React, { ReactElement } from "react";
-import { fetchCsrfClient, goralysFetchClient } from "@/app/lib/fetch/fetch.client";
+import { fetchCsrfClient, goralysFetchClient, handleToastRequest } from "@/app/lib/fetch/fetch.client";
 import { usePasswordModal } from "@/app/ui/modals/password/password-modal-provider";
 import { useToast } from "@/app/ui/toast/toast-provider";
 import Cookies from "universal-cookie";
@@ -49,16 +49,8 @@ export default function AdminCard({ subjectData, onUpdateAction, syncKey }: Subj
             method: "PATCH",
             body: JSON.stringify(payload),
         });
-
+        await handleToastRequest(res, toast.showToast, false);
         const data = await res?.json();
-
-        if (data?.toast) {
-            toast.showToast({
-                type: data.toastType,
-                title: data.toastTitle,
-                message: data.toastMessage,
-            });
-        }
 
         if (data.toastType === "info" && res.ok) {
             cookies.set(syncKey, "0", { path: "/" });

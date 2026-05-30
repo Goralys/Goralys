@@ -19,5 +19,6 @@ final readonly class MailDTO
         public string $subject,
         public string $body,
         public array $to,
-    ) {}
+    ) {
+    }
 }

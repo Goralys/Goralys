@@ -11,7 +11,7 @@ use DateMalformedStringException;
 use DateTime;
 use Goralys\App\HTTP\Files\GoralysFileManager;
 use Goralys\App\Subjects\Data\Enums\SubjectFields;
-use Goralys\App\User\Services\UsernameManager;
+use Goralys\Core\User\Services\UsernameManager;
 use Goralys\Core\Drafts\Services\StudentDraftsManager;
 use Goralys\Core\Subjects\Config\SubjectsExportConfig;
 use Goralys\Core\Subjects\Data\Enums\SubjectStatus;
@@ -209,7 +209,8 @@ final class SubjectsController
                                 );
                             }
                             return new StudentSubjectsDTO(
-                                $this->userRepo->getFullNameForUsername($username) ?? $this->formatter->formatUsername($username, true),
+                                $this->userRepo->getFullNameForUsername($username)
+                                            ?? $this->formatter->formatUsername($username, true),
                                 $specialities,
                             );
                         },

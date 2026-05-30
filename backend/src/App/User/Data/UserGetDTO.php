@@ -29,7 +29,8 @@ final readonly class UserGetDTO implements JsonSerializable
         public string $fullName,
         public UserRole $role,
         public string $publicId,
-    ) {}
+    ) {
+    }
 
     /**
      * Returns a {@see UserGetDTO}, which is used to transfer data to the frontend, from {@see UserFullDTO}.

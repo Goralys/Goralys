@@ -6,7 +6,7 @@ import { Button } from "@/app/ui/button";
 import { ShieldExclamationIcon } from "@heroicons/react/24/outline";
 import { usePasswordModal } from "@/app/ui/modals/password/password-modal-provider";
 import { useToast } from "@/app/ui/toast/toast-provider";
-import { buildApiUrl, fetchCsrfClient, goralysFetchClient } from "@/app/lib/fetch/fetch.client";
+import { buildApiUrl, fetchCsrfClient, goralysFetchClient, handleToastRequest } from "@/app/lib/fetch/fetch.client";
 import Cookies from "universal-cookie";
 import { ReactElement } from "react";
 
@@ -51,16 +51,8 @@ export default function AdminCard({ admin, onUpdateAction, syncKey }: AdminCardP
                 method: method,
             },
         );
-
+        await handleToastRequest(res, toast.showToast, false);
         const data = await res?.json();
-
-        if (data?.toast) {
-            toast.showToast({
-                type: data.toastType,
-                title: data.toastTitle,
-                message: data.toastMessage,
-            });
-        }
 
         if (data.toastType === "info" && res.ok) {
             cookies.set(syncKey, "0", { path: "/" });

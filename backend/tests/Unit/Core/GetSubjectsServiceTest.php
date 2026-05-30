@@ -3,11 +3,12 @@
 namespace Goralys\Tests\Unit\Core;
 
 use DateMalformedStringException;
-use Goralys\App\User\Services\UsernameManager;
+use Goralys\Core\User\Services\UsernameManager;
 use Goralys\Core\Subjects\Services\GetSubjectsService;
 use Goralys\Core\User\Data\Enums\UserRole;
 use Goralys\Core\User\Data\UserFullDTO;
 use Goralys\Core\Utils\User\Services\UsernameFormatterService;
+use Goralys\Shared\Exception\GoralysRuntimeException;
 use Goralys\Tests\Fakes\FakeGoralysLogger;
 use Goralys\Tests\Fakes\FakeSubjectsRepository;
 use Goralys\Tests\Fakes\FakeUserRepository;
@@ -28,16 +29,40 @@ class GetSubjectsServiceTest extends TestCase
     private function seedUsers(): void
     {
         $this->userRepo->setPublicId("j.doe1", "u1");
-        $this->userRepo->setUser("u1", new UserFullDTO(1, "j.doe1", UserRole::TEACHER, "DOE J."));
+        $this->userRepo->setUser("u1", new UserFullDTO(
+            1,
+            "j.doe1",
+            UserRole::TEACHER,
+            "DOE J.",
+            "jhon.doe@exemplemail.com"
+        ));
 
         $this->userRepo->setPublicId("m.smith2", "u2");
-        $this->userRepo->setUser("u2", new UserFullDTO(2, "m.smith2", UserRole::TEACHER, "SMITH M."));
+        $this->userRepo->setUser("u2", new UserFullDTO(
+            2,
+            "m.smith2",
+            UserRole::TEACHER,
+            "SMITH M.",
+            "merry.smith@exemplemail.com"
+        ));
 
         $this->userRepo->setPublicId("e.doe3", "u3");
-        $this->userRepo->setUser("u3", new UserFullDTO(3, "e.doe3", UserRole::STUDENT, "DOE E."));
+        $this->userRepo->setUser("u3", new UserFullDTO(
+            3,
+            "e.doe3",
+            UserRole::STUDENT,
+            "DOE E.",
+            "emma.doe@exemplemail.com"
+        ));
 
         $this->userRepo->setPublicId("l.dupont4", "u4");
-        $this->userRepo->setUser("u4", new UserFullDTO(4, "l.dupont4", UserRole::STUDENT, "DUPONT L."));
+        $this->userRepo->setUser("u4", new UserFullDTO(
+            4,
+            "l.dupont4",
+            UserRole::STUDENT,
+            "DUPONT L.",
+            "laurent.dupont@exemplemail.com"
+        ));
     }
 
     private function stripTokens(array $data): array
@@ -79,7 +104,7 @@ class GetSubjectsServiceTest extends TestCase
     }
 
     /**
-     * @throws DateMalformedStringException
+     * @throws DateMalformedStringException|GoralysRuntimeException
      */
     public function testGetAllSubjects()
     {
@@ -193,7 +218,7 @@ class GetSubjectsServiceTest extends TestCase
     }
 
     /**
-     * @throws DateMalformedStringException
+     * @throws DateMalformedStringException|GoralysRuntimeException
      */
     public function testGetStudentSubjects()
     {
@@ -263,7 +288,7 @@ class GetSubjectsServiceTest extends TestCase
     }
 
     /**
-     * @throws DateMalformedStringException
+     * @throws DateMalformedStringException|GoralysRuntimeException
      */
     public function testGetTeacherSubjects()
     {

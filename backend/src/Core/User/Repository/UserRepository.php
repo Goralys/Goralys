@@ -42,24 +42,22 @@ final class UserRepository implements UserRepositoryInterface
     }
 
     /**
-     * This helper is used to build a user DTO containing all the user's info (full) from a database row.
-     * It is in charge of the logging process.
-     * @param array $row The row from the database result.
-     * @return UserFullDTO All the user's info.
+     * Get a user's info with its username.
+     * @param string $username The user's username.
+     * @return UserFullDTO The user's info.
+     * @throws UserNotFoundException If the user is invalid.
      */
-    private function buildUserFromRow(array $row): UserFullDTO
+    public function getByUsername(string $username): UserFullDTO
     {
-        $this->logger->info(
-            LoggerInitiator::CORE,
-            "User's data were successfully fetched for user : " . $row['username'] . " - Data:\n" . print_r($row, true),
+        $result = $this->db->fetch(
+            "select id, u.username, role, full_name, email from users u
+                   left join emails e on u.username = e.username
+                   where u.username = ?",
+            "s",
+            $username,
         );
-        return new UserFullDTO(
-            (int) $row['id'],
-            $row['username'],
-            UserRole::fromString($row['role']),
-            $row['full_name'],
-            $row['email'] ?? "",
-        );
+
+        return $this->buildUserFromResult($result);
     }
 
     /**
@@ -83,69 +81,24 @@ final class UserRepository implements UserRepositoryInterface
     }
 
     /**
-     * This helper is used to build multiple users DTO containing all the users' info (full) from a database request's
-     * result, it is in charge of the logging process.
-     * @param mysqli_result $result The result from the database.
-     * @return UserFullDTO[] All the users' info.
-     */
-    private function buildUsersFromResult(mysqli_result $result): array
-    {
-        $users = [];
-        while ($row = $result->fetch_assoc()) {
-            $users[] = $this->buildUserFromRow($row);
-        }
-        return $users;
-    }
-
-    /**
-     * This helper is used to build a virtual user DTO from a database row.
+     * This helper is used to build a user DTO containing all the user's info (full) from a database row.
+     * It is in charge of the logging process.
      * @param array $row The row from the database result.
-     * @return VirtualUserDTO The virtual user's info.
+     * @return UserFullDTO All the user's info.
      */
-    private function buildVirtualUserFromRow(array $row): VirtualUserDTO
+    private function buildUserFromRow(array $row): UserFullDTO
     {
         $this->logger->info(
             LoggerInitiator::CORE,
-            "Virtual user's data were successfully fetched for user : " . $row['username'],
+            "User's data were successfully fetched for user : " . $row['username'] . " - Data:\n" . print_r($row, true),
         );
-        return new VirtualUserDTO(
+        return new UserFullDTO(
+            (int) $row['id'],
             $row['username'],
             UserRole::fromString($row['role']),
+            $row['full_name'],
+            $row['email'] ?? "",
         );
-    }
-
-    /**
-     * This helper is used to build multiple virtual user DTOs from a database request's result,
-     * it is in charge of the logging process.
-     * @param mysqli_result $result The result from the database.
-     * @return VirtualUserDTO[] All the virtual users' info.
-     */
-    private function buildVirtualUsersFromResult(mysqli_result $result): array
-    {
-        $users = [];
-        while ($row = $result->fetch_assoc()) {
-            $users[] = $this->buildVirtualUserFromRow($row);
-        }
-        return $users;
-    }
-
-    /**
-     * Get a user's info with its username.
-     * @param string $username The user's username.
-     * @return UserFullDTO The user's info.
-     * @throws UserNotFoundException If the user is invalid.
-     */
-    public function getByUsername(string $username): UserFullDTO
-    {
-        $result = $this->db->fetch(
-            "select id, u.username, role, full_name, email from users u
-                   left join emails e on u.username = e.username
-                   where u.username = ?",
-            "s",
-            $username,
-        );
-
-        return $this->buildUserFromResult($result);
     }
 
     /**
@@ -383,6 +336,21 @@ final class UserRepository implements UserRepositoryInterface
     }
 
     /**
+     * This helper is used to build multiple users DTO containing all the users' info (full) from a database request's
+     * result, it is in charge of the logging process.
+     * @param mysqli_result $result The result from the database.
+     * @return UserFullDTO[] All the users' info.
+     */
+    private function buildUsersFromResult(mysqli_result $result): array
+    {
+        $users = [];
+        while ($row = $result->fetch_assoc()) {
+            $users[] = $this->buildUserFromRow($row);
+        }
+        return $users;
+    }
+
+    /**
      * Unlike {@see UserRepository::hardDelete()}, this deletes a user only from the `users` table.
      * This is used to reset the user's password.
      * @param string $username The user's username.
@@ -443,8 +411,18 @@ final class UserRepository implements UserRepositoryInterface
     {
         $this->db->beginTransaction();
         try {
-            $this->db->run("update topic_teachers set teacher_username = ? where teacher_username = ?", "ss", $new, $old);
-            $this->db->run("update public_ids set username = ?, public_id = uuid() where username = ?", "ss", $new, $old);
+            $this->db->run(
+                "update topic_teachers set teacher_username = ? where teacher_username = ?",
+                "ss",
+                $new,
+                $old
+            );
+            $this->db->run(
+                "update public_ids set username = ?, public_id = uuid() where username = ?",
+                "ss",
+                $new,
+                $old
+            );
 
             $this->db->commit();
             return true;
@@ -469,6 +447,38 @@ final class UserRepository implements UserRepositoryInterface
         );
 
         return $this->buildVirtualUsersFromResult($result);
+    }
+
+    /**
+     * This helper is used to build multiple virtual user DTOs from a database request's result,
+     * it is in charge of the logging process.
+     * @param mysqli_result $result The result from the database.
+     * @return VirtualUserDTO[] All the virtual users' info.
+     */
+    private function buildVirtualUsersFromResult(mysqli_result $result): array
+    {
+        $users = [];
+        while ($row = $result->fetch_assoc()) {
+            $users[] = $this->buildVirtualUserFromRow($row);
+        }
+        return $users;
+    }
+
+    /**
+     * This helper is used to build a virtual user DTO from a database row.
+     * @param array $row The row from the database result.
+     * @return VirtualUserDTO The virtual user's info.
+     */
+    private function buildVirtualUserFromRow(array $row): VirtualUserDTO
+    {
+        $this->logger->info(
+            LoggerInitiator::CORE,
+            "Virtual user's data were successfully fetched for user : " . $row['username'],
+        );
+        return new VirtualUserDTO(
+            $row['username'],
+            UserRole::fromString($row['role']),
+        );
     }
 
     /**

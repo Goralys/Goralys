@@ -9,7 +9,6 @@ namespace Goralys\App\User\Data;
 
 use Goralys\App\Config\AppConfig;
 use Goralys\Core\User\Data\Enums\UserRole;
-use Goralys\Core\User\Repository\UserRepository;
 use Goralys\Shared\Exception\User\GoralysUserException;
 use Goralys\Shared\Utils\String\Data\StringCase;
 use Goralys\Shared\Utils\UtilitiesManager;
@@ -19,7 +18,9 @@ final class UsernameTable
     /** @var array<string, string> */
     private array $table = [];
 
-    public function __construct(private readonly UtilitiesManager $utils) {}
+    public function __construct(private readonly UtilitiesManager $utils)
+    {
+    }
 
     /**
      * Returns the username for a full name, generating and caching it if needed.

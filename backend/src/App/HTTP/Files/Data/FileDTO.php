@@ -27,7 +27,8 @@ readonly class FileDTO
         public string $tmpPath,
         public int $size,
         public int $error,
-    ) {}
+    ) {
+    }
 
     /**
      * Validates a FileDTO object and turns it into an UploadedFileDTO if the validation pass.

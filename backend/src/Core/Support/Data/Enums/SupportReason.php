@@ -22,4 +22,13 @@ enum SupportReason: string
             default => SupportReason::OTHER,
         };
     }
+
+    public static function getDisplay(self $reason): string
+    {
+        return match ($reason) {
+            self::PASSWORD_FORGOT => "Mot de passe oublié",
+            self::SUBJECT_ERROR => "Question envoyée/validée/rejetée par erreur",
+            default => "Autre"
+        };
+    }
 }

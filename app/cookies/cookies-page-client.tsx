@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ReactElement, useState } from "react";
-import { goralysFetchClient } from "@/app/lib/fetch/fetch.client";
+import { goralysFetchClient, handleToastRequest } from "@/app/lib/fetch/fetch.client";
 import { Button } from "@/app/ui/button";
 import { useToast } from "@/app/ui/toast/toast-provider";
 import { isFoolsDay } from "@/app/lib/fools";
@@ -27,17 +27,7 @@ export default function CookiesPageClient(): ReactElement {
             body: JSON.stringify(payload),
         });
 
-        const data = await res.json();
-
-        if (data?.toast) {
-            showToast({
-                type: data.toastType,
-                title: data.toastTitle,
-                message: data.toastMessage,
-            });
-
-            window.location.href = data?.redirect ?? "/";
-        }
+        await handleToastRequest(res, showToast);
     };
 
     return (

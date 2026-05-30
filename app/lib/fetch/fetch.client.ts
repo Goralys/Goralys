@@ -9,6 +9,7 @@
 
 import { emitAuthEvent } from "@/app/lib/auth/auth-event";
 import { GoralysActionHandler } from "@/app/lib/fetch/goralys-action-handler";
+import { ToastContext } from "@/app/ui/toast/toast-provider";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_DOMAIN;
 const actionHandler = new GoralysActionHandler();
@@ -106,4 +107,31 @@ function buildQueryString(params: Record<string, string | null>): string {
 export function buildApiUrl(endpoint: string, params: Record<string, string | null>, domain: boolean = true): string {
     const queryString = buildQueryString(params);
     return `${domain ? process.env.NEXT_PUBLIC_API_DOMAIN + "/" : ""}${endpoint}${queryString ? `?${queryString}` : ""}`;
+}
+
+export async function handleToastRequest(
+    r: Response,
+    showToast: ToastContext["showToast"],
+    redirect: boolean = true,
+    duration?: number,
+): Promise<boolean> {
+    const res = r.clone();
+
+    const data = await res.json();
+
+    if (data?.toast) {
+        showToast(
+            {
+                type: data.toastType,
+                title: data.toastTitle,
+                message: data.toastMessage,
+            },
+            duration,
+        );
+        if (data?.redirect && redirect) window.location.href = data?.redirect;
+
+        return true;
+    }
+
+    return false;
 }

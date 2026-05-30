@@ -1,6 +1,6 @@
 "use client";
 
-import { useUsers, useVirtualUsers } from "@/app/hooks/useUsers";
+import { useUsers, useVirtualUsers } from "@/app/src/hooks/useUsers";
 import UserCard from "../../ui/admin-panel/user-card";
 import { useState, Suspense, ReactElement } from "react";
 import { User } from "@/app/lib/types";

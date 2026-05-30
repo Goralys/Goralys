@@ -5,6 +5,7 @@ import { User } from "@/app/lib/types";
 import { useToast } from "@/app/ui/toast/toast-provider";
 import Cookies from "universal-cookie";
 import { fetchUsersClient, fetchVirtualUsersClient, fetchAdminsClient, fetchVirtualAdminsClient } from "@/app/lib/user/user.client";
+import { handleToastRequest } from "@/app/lib/fetch/fetch.client";
 
 function useUserCollection(
     fetchFn: () => Promise<Response | undefined>,
@@ -47,15 +48,8 @@ function useUserCollection(
             }
 
             const res = await fetchFn();
+            if (res) await handleToastRequest(res, showToastRef.current, false);
             const data = await res?.json();
-
-            if (data?.toast) {
-                showToastRef.current({
-                    type: data.toastType,
-                    title: data.toastTitle,
-                    message: data.toastMessage,
-                });
-            }
 
             if (res?.ok) {
                 cookies.set(syncKey, "1", { path: "/" });

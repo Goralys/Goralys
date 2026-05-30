@@ -31,10 +31,14 @@ final class LoggerService
         // Trace[2] = log() [from the logger]
         // Trace[3] = info/debug/warning/error/fatal()
         // Trace[4] = actual caller
+        if (!isset($trace[4]['class'])) {
+            return 'Unknown';
+        }
         if (!$class = $trace[4]['class']) {
             return 'Unknown';
         }
-        return array_last(explode("\\", $class));
+        $parts = explode("\\", $class);
+        return $parts[count($parts) - 1];
     }
 
     /**

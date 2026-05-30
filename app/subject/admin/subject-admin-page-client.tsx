@@ -1,10 +1,10 @@
 "use client";
 
 import { useImportTopicsModal } from "@/app/ui/modals/import-topics/import-topics-modal-provider";
-import { fetchCsrfClient, goralysFetchClient } from "@/app/lib/fetch/fetch.client";
+import { fetchCsrfClient, goralysFetchClient, handleToastRequest } from "@/app/lib/fetch/fetch.client";
 import { useToast } from "@/app/ui/toast/toast-provider";
 import { Button } from "@/app/ui/button";
-import { useSubjects } from "@/app/hooks/useSubjects";
+import { useSubjects } from "@/app/src/hooks/useSubjects";
 import AdminCard from "@/app/ui/subjects/admin-card";
 import { Subject } from "@/app/lib/types";
 import { SubjectsSearchBar } from "@/app/ui/subjects/subjects-search-bar";
@@ -62,15 +62,7 @@ export default function SubjectAdminPageClient(): ReactElement {
             return;
         }
 
-        const data = await res.json();
-
-        if (data?.toast) {
-            toast.showToast({
-                type: data.toastType,
-                title: data.toastTitle,
-                message: data.toastMessage,
-            });
-        }
+        await handleToastRequest(res, toast.showToast, false);
     };
 
     const deleteTopics = async (): Promise<void> => {
@@ -91,15 +83,7 @@ export default function SubjectAdminPageClient(): ReactElement {
             body: JSON.stringify(payload),
         });
 
-        const data = await res.json();
-
-        if (data?.toast) {
-            toast.showToast({
-                type: data.toastType,
-                title: data.toastTitle,
-                message: data.toastMessage,
-            });
-        }
+        await handleToastRequest(res, toast.showToast, false);
 
         if (res.ok) {
             cookies.set(syncKey, "0", { path: "/" });
@@ -132,15 +116,7 @@ export default function SubjectAdminPageClient(): ReactElement {
             return;
         }
 
-        const data = await res.json();
-
-        if (data?.toast) {
-            toast.showToast({
-                type: data.toastType,
-                title: data.toastTitle,
-                message: data.toastMessage,
-            });
-        }
+        await handleToastRequest(res, toast.showToast, false);
     };
 
     const skeletons = Array.from({ length: 3 }, (_, i) => <AdminSubjectCardSkeleton key={i} />);

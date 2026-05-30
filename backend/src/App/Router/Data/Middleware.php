@@ -16,5 +16,6 @@ final readonly class Middleware
     public function __construct(
         public string $name,
         public array $params = [],
-    ) {}
+    ) {
+    }
 }

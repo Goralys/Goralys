@@ -46,6 +46,7 @@ export function SideNav(): ReactElement {
         { name: getSubjectLinkText(), url: "/subject" },
         role == "admin" && { name: "Utilisateurs", url: "/admin/user" },
         role == "admin" && { name: "Accès", url: "/admin/admin" },
+        role == "admin" && { name: "Support", url: "/support" },
     );
 
     return (

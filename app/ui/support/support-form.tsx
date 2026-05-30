@@ -5,19 +5,13 @@ import { fetchCsrfClient } from "@/app/lib/fetch/fetch.client";
 import { TextArea } from "@/app/ui/inputs/text-area";
 import { FloatingInput } from "@/app/ui/inputs/floating-input";
 import Cookies from "universal-cookie";
+import { SupportReasons, reasonsConfig } from "@/app/lib/types";
 
 export default function SupportForm(): ReactElement {
     const [csrfToken, setCsrfToken] = useState<string | null>(null);
-    const requestUrl = `${process.env.NEXT_PUBLIC_API_DOMAIN}/support`;
+    const requestUrl = `${process.env.NEXT_PUBLIC_API_DOMAIN}/support/contact`;
     const cookie = new Cookies();
 
-    const reasonsConfig = {
-        "password-forgot": { label: "Mot de passe oublié" },
-        "subject-error": { label: "Question envoyée/validée/rejetée par erreur" },
-        other: { label: "Autre (précisez)" },
-    } as const;
-
-    type SupportReasons = keyof typeof reasonsConfig;
     const [reason, setReason] = useState<SupportReasons>("password-forgot");
 
     useEffect(() => {
@@ -63,7 +57,7 @@ export default function SupportForm(): ReactElement {
                 <TextArea id="message" label="Message" helper="Veuillez décrire précisément votre problème." required />
 
                 <input type="hidden" name="csrf-token" value={(csrfToken ? csrfToken : "no-token").trim()} />
-                <input type="hidden" name="reason" value={/* reasonsConfig[reason].label */ reason} />
+                <input type="hidden" name="reason" value={reason} />
 
                 <Button type="submit" text="Envoyer mon message" className="bottom-0 mt-13" />
             </form>

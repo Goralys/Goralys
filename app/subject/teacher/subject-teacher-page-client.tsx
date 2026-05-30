@@ -1,6 +1,6 @@
 "use client";
 
-import { useSubjects } from "@/app/hooks/useSubjects";
+import { useSubjects } from "@/app/src/hooks/useSubjects";
 import TeacherCard from "@/app/ui/subjects/teacher-card";
 import { SubjectsSearchBar } from "@/app/ui/subjects/subjects-search-bar";
 import { useState, Suspense, ReactElement } from "react";

@@ -8,7 +8,8 @@ use Goralys\Core\Support\Data\SupportTicketsCollection;
 
 interface SupportRepositoryInterface
 {
-    public function createTicket(SupportReason $reason, string $opener, string $message): ?SupportTicketDTO;
+    public function createTicket(SupportReason $reason, string $opener, string $email, string $message): ?int;
     public function getAllTickets(): SupportTicketsCollection;
     public function getTicket(int $id): SupportTicketDTO;
+    public function deleteTicket(int $id): bool;
 }

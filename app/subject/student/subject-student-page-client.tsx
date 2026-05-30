@@ -1,7 +1,7 @@
 "use client";
 
 import StudentCard from "@/app/ui/subjects/student-card";
-import { useSubjects } from "@/app/hooks/useSubjects";
+import { useSubjects } from "@/app/src/hooks/useSubjects";
 import Cookies from "universal-cookie";
 import { ReactElement, Suspense } from "react";
 import StudentCardSkeleton from "@/app/ui/skeletons/subjects/student-card";

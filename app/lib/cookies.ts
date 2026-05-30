@@ -10,7 +10,7 @@ export function setCookiesExpire(duration: number): void {
     localStorage.setItem("goralys-cookies-expire", String(Date.now() + duration * 1000));
 }
 
-export function setCookie(cookie: Cookies, key: string, value: CookieValue, maxAge: number): void {
+export function setCookie(cookie: Cookies, key: string, value: CookieValue, maxAge: number = 1.5 * 60 * 60): void {
     cookie.set(key, value, {
         path: "/",
         maxAge: maxAge, // Expires in 1.5 hours

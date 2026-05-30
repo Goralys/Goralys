@@ -5,7 +5,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace Goralys\App\User\Services;
+namespace Goralys\Core\User\Services;
 
 use Goralys\Core\User\Repository\Interfaces\UserRepositoryInterface;
 use Goralys\Shared\Exception\GoralysRuntimeException;

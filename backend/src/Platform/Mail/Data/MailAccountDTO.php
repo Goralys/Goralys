@@ -14,7 +14,6 @@ class MailAccountDTO
     public function __construct(
         public string $address,
         public string $displayName,
-    )
-    {
+    ) {
     }
 }

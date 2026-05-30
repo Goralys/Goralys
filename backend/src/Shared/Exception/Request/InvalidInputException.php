@@ -2,4 +2,6 @@
 
 namespace Goralys\Shared\Exception\Request;
 
-class InvalidInputException extends RequestException {}
+class InvalidInputException extends RequestException
+{
+}

@@ -25,5 +25,6 @@ final readonly class TopicDTO
         public string $code,
         public array $teachers,
         public array $students,
-    ) {}
+    ) {
+    }
 }

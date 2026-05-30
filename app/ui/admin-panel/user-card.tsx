@@ -6,7 +6,7 @@ import { Button } from "@/app/ui/button";
 import { AcademicCapIcon, BookOpenIcon } from "@heroicons/react/24/outline";
 import { usePasswordModal } from "@/app/ui/modals/password/password-modal-provider";
 import { useToast } from "@/app/ui/toast/toast-provider";
-import { buildApiUrl, fetchCsrfClient, goralysFetchClient } from "@/app/lib/fetch/fetch.client";
+import { buildApiUrl, fetchCsrfClient, goralysFetchClient, handleToastRequest } from "@/app/lib/fetch/fetch.client";
 import Cookies from "universal-cookie";
 import ReplaceTeacherElement from "./replace-teacher-element";
 import { ReactElement } from "react";
@@ -60,19 +60,8 @@ export default function UserCard({ user, onUpdateAction, syncKey, virtualSyncKey
                 method: method,
             },
         );
-
+        await handleToastRequest(res, toast.showToast, false, toastDuration + 500);
         const data = await res?.json();
-
-        if (data?.toast) {
-            toast.showToast(
-                {
-                    type: data.toastType,
-                    title: data.toastTitle,
-                    message: data.toastMessage,
-                },
-                toastDuration + 500,
-            );
-        }
 
         if (data.toastType === "info" && res.ok) {
             cookies.set(syncKey, "0", { path: "/" });

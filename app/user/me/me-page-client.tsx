@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/app/ui/button";
-import { fetchCsrfClient, goralysFetchClient } from "@/app/lib/fetch/fetch.client";
+import { fetchCsrfClient, goralysFetchClient, handleToastRequest } from "@/app/lib/fetch/fetch.client";
 import { useToast } from "@/app/ui/toast/toast-provider";
 import { emitUserEvent } from "@/app/lib/auth/user-event";
 import { Card } from "@/app/ui/card";
@@ -64,18 +64,10 @@ export default function MePageClient(): ReactElement {
         });
 
         if (res.ok) {
-            await updateUserData(); // ← Maintenant ça met à jour email ET currentEmail
+            await updateUserData();
         }
 
-        const data = await res.json();
-
-        if (data?.toast) {
-            showToast({
-                type: data.toastType,
-                title: data.toastTitle,
-                message: data.toastMessage,
-            });
-        }
+        await handleToastRequest(res, showToast, false);
     };
 
     const deleteEmail = async (): Promise<void> => {
@@ -87,15 +79,8 @@ export default function MePageClient(): ReactElement {
         });
 
         if (res.ok) await updateUserData();
-        const data = await res.json();
 
-        if (data?.toast) {
-            showToast({
-                type: data.toastType,
-                title: data.toastTitle,
-                message: data.toastMessage,
-            });
-        }
+        await handleToastRequest(res, showToast, false);
     };
 
     return (

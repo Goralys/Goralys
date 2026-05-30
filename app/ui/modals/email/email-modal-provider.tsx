@@ -6,7 +6,7 @@ import EmailModalElement from "@/app/ui/modals/email/email-modal-element";
 import { createPortal } from "react-dom";
 
 export type EmailModalContext = {
-    showEmailModal: () => Promise<string | null>;
+    showEmailModal: (message?: string) => Promise<string | null>;
 };
 
 const EmailModalContext = createContext<EmailModalContext | null>(null);
@@ -19,8 +19,8 @@ export function EmailModalProvider({ children }: { children: ReactNode }): React
     const [message, setMessage] = useState<string>("");
     const DEFAULT_EMAIL_CONFIRM = "Veuillez entrer nouvel email pour confirmer.";
 
-    const showEmailModal = useCallback((): Promise<string | null> => {
-        setMessage(DEFAULT_EMAIL_CONFIRM);
+    const showEmailModal = useCallback((message: string = DEFAULT_EMAIL_CONFIRM): Promise<string | null> => {
+        setMessage(message);
         return new Promise((resolve) => {
             setState({ resolve });
             setVisible(false);

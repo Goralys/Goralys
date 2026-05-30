@@ -5,7 +5,7 @@ import { SubjectInputStudent } from "@/app/ui/inputs/subject-input-student";
 import { Button } from "@/app/ui/button";
 import { ReactElement, useState } from "react";
 import CommentStudent from "@/app/ui/subjects/comment-student";
-import { fetchCsrfClient, goralysFetchClient } from "@/app/lib/fetch/fetch.client";
+import { fetchCsrfClient, goralysFetchClient, handleToastRequest } from "@/app/lib/fetch/fetch.client";
 import { useToast } from "@/app/ui/toast/toast-provider";
 import Cookies from "universal-cookie";
 import { useDraftModal } from "@/app/ui/modals/drafts/draft-modal-provider";
@@ -41,16 +41,8 @@ export default function StudentCard({ subjectData, onUpdateAction }: StudentCard
             credentials: "include",
             body: JSON.stringify(payload),
         });
-
+        await handleToastRequest(res, toast.showToast, false);
         const data = await res.json();
-
-        if (data?.toast) {
-            toast.showToast({
-                type: data.toastType,
-                title: data.toastTitle,
-                message: data.toastMessage,
-            });
-        }
 
         if (data.toastType === "info" && res.ok) {
             cookies.set("subjects-synced-student", "0", { path: "/" });
@@ -117,15 +109,8 @@ export default function StudentCard({ subjectData, onUpdateAction }: StudentCard
             body: formData,
         });
 
-        const data = await res.json();
-
-        if (data?.toast) {
-            toast.showToast({
-                type: data.toastType,
-                title: data.toastTitle,
-                message: data.toastMessage,
-            });
-
+        if (await handleToastRequest(res, toast.showToast, false)) {
+            const data = await res.json();
             if (data.toastType === "info" && res.ok) {
                 cookies.set("subjects-synced-student", "0", { path: "/" });
                 onUpdateAction();

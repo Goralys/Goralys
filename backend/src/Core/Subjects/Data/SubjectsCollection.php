@@ -15,11 +15,7 @@ use JsonSerializable;
 final class SubjectsCollection implements JsonSerializable
 {
     /* @var SubjectDTO[] */
-    public array $subjects = [] {
-        get {
-            return $this->subjects;
-        }
-    }
+    public array $subjects = [];
 
     /**
      * Adds a new subject to the collection.

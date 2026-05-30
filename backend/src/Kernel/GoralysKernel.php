@@ -58,7 +58,7 @@ use Goralys\App\User\Controllers\AuthController;
 use Goralys\App\User\Controllers\UserController;
 use Goralys\App\User\Data\Enums\UserAuthStatus;
 use Goralys\App\User\Data\UsernameTable;
-use Goralys\App\User\Services\UsernameManager;
+use Goralys\Core\User\Services\UsernameManager;
 use Goralys\App\Utils\Toast\Controllers\ToastController;
 use Goralys\App\Utils\Toast\Data\Enums\ToastType;
 use Goralys\Core\User\Data\Enums\UserRole;
@@ -164,13 +164,13 @@ class GoralysKernel
         $this->initMailer();
         $this->initAuth();
         $this->initUser();
+        $this->initUsernameManager();
         $this->initSupport();
         $this->bootFileSubsystem($mover);
         $this->initExporter();
         $this->initSubjects();
         $this->initTopics();
         $this->initCSRF();
-        $this->initUsernameManager();
         $this->initGuard();
         $this->initRateLimiter();
     }
@@ -310,6 +310,7 @@ class GoralysKernel
         $this->support = new SupportController(
             $this->logger,
             $this->db,
+            $this->usernameManager,
         );
     }
 
@@ -325,7 +326,7 @@ class GoralysKernel
         $extractor = new HttpFileExtractor();
 
         try {
-            $this->initFileManager($resolvedMover, $extractor, $resolvedMover->files);
+            $this->initFileManager($resolvedMover, $extractor, $resolvedMover->getFiles());
         } catch (GoralysRuntimeException $e) {
             $this->logger->fatal(
                 LoggerInitiator::KERNEL,

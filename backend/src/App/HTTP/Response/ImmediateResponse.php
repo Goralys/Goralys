@@ -118,4 +118,17 @@ final class ImmediateResponse implements ImmediateResponseInterface
         http_response_code($this->code);
         exit;
     }
+
+    #[NoReturn]
+    /**
+     * Send a simple redirect to the client.
+     * @param string $dest The url to redirect the client to.
+     * @return never
+     */
+    public function redirect(string $dest): never
+    {
+        header("Location: " . $dest);
+        $this->logger->debug(LoggerInitiator::APP, "Redirected client to: " . $dest);
+        exit;
+    }
 }

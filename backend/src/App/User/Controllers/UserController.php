@@ -10,7 +10,7 @@ namespace Goralys\App\User\Controllers;
 use Goralys\App\User\Data\UserCollection;
 use Goralys\App\User\Data\UserGetDTO;
 use Goralys\App\User\Data\UsernameTable;
-use Goralys\App\User\Services\UsernameManager;
+use Goralys\Core\User\Services\UsernameManager;
 use Goralys\Core\User\Data\Enums\UserRole;
 use Goralys\Core\User\Data\UserFullDTO;
 use Goralys\Core\User\Data\UserLoginDTO;

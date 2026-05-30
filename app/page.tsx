@@ -38,7 +38,7 @@ export default function HomePage(): ReactElement {
                     <h2 className="font-bold text-2xl mb-3 mt-2">Vous avez un problème ?</h2>
                     <p>
                         Contactez le{" "}
-                        <Link className="text-sky-600 underline hover:text-sky-800 transition-colors duration-200" href="/support">
+                        <Link className="text-sky-600 underline hover:text-sky-800 transition-colors duration-200" href="/support/contact">
                             support
                         </Link>
                     </p>

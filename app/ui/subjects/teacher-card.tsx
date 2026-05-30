@@ -3,7 +3,7 @@
 import { Subject } from "@/app/lib/types";
 import { Button } from "@/app/ui/button";
 import { ReactElement, useRef, useState } from "react";
-import { fetchCsrfClient, goralysFetchClient } from "@/app/lib/fetch/fetch.client";
+import { fetchCsrfClient, goralysFetchClient, handleToastRequest } from "@/app/lib/fetch/fetch.client";
 import { useToast } from "@/app/ui/toast/toast-provider";
 import { useConfirm } from "@/app/ui/modals/confirm/confirm-provider";
 import Cookies from "universal-cookie";
@@ -73,19 +73,12 @@ export default function TeacherCard({ subjectData, onUpdateAction }: TeacherCard
             body: JSON.stringify(payload),
         });
 
-        const data = await res.json();
-
-        if (data?.toast) {
-            toast.showToast({
-                type: data.toastType,
-                title: data.toastTitle,
-                message: data.toastMessage,
-            });
-        }
-
-        if (data.toastType === "info" && res.ok) {
-            cookies.set("subjects-synced-teacher", false, { path: "/" });
-            onUpdateAction();
+        if (await handleToastRequest(res, toast.showToast, false)) {
+            const data = await res.json();
+            if (data.toastType === "info" && res.ok) {
+                cookies.set("subjects-synced-teacher", false, { path: "/" });
+                onUpdateAction();
+            }
         }
     };
 
@@ -116,15 +109,8 @@ export default function TeacherCard({ subjectData, onUpdateAction }: TeacherCard
             body: JSON.stringify(payload),
         });
 
-        const data = await res.json();
-
-        if (data?.toast) {
-            toast.showToast({
-                type: data.toastType,
-                title: data.toastTitle,
-                message: data.toastMessage,
-            });
-
+        if (await handleToastRequest(res, toast.showToast, false)) {
+            const data = await res.json();
             if (data.toastType === "info" && res.ok) {
                 cookies.set("subjects-synced-teacher", false, { path: "/" });
                 onUpdateAction();

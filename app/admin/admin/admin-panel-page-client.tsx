@@ -1,6 +1,6 @@
 "use client";
 
-import { useAdmins, useVirtualAdmins } from "@/app/hooks/useUsers";
+import { useAdmins, useVirtualAdmins } from "@/app/src/hooks/useUsers";
 import { useEffect, useState, Suspense, ReactElement } from "react";
 import { User } from "@/app/lib/types";
 import { AdminsSearchBar } from "../../ui/admin-panel/admins-search-bar";

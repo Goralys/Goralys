@@ -28,7 +28,10 @@ function createUserRoutes(GoralysRouter $router): void
             "full_name"  => trim($_SESSION[GoralysConfig::SESSION::FULL_NAME]),
             "role"       => trim($_SESSION[GoralysConfig::SESSION::ROLE]),
             "public_id"  => trim($_SESSION[GoralysConfig::SESSION::PUBLIC_ID]),
-            ...(isset($_SESSION[GoralysConfig::SESSION::EMAIL]) ? ["email" => trim($_SESSION[GoralysConfig::SESSION::EMAIL])] : []),
+            ...(isset($_SESSION[GoralysConfig::SESSION::EMAIL])
+                    ? ["email" => trim($_SESSION[GoralysConfig::SESSION::EMAIL])]
+                    : []
+            ),
         ];
 
         $kernel->logger->info(

@@ -10,6 +10,7 @@ import { Subject, UserRole } from "@/app/lib/types";
 import { useToast } from "@/app/ui/toast/toast-provider";
 import Cookies from "universal-cookie";
 import { fetchSubjectsForRoleClient } from "@/app/lib/subjects/subjects.client";
+import { handleToastRequest } from "@/app/lib/fetch/fetch.client";
 
 export function useSubjects(role: UserRole["role"]): {
     subjects: Subject[] | null;
@@ -69,15 +70,8 @@ export function useSubjects(role: UserRole["role"]): {
             }
 
             const res = await fetchSubjectsForRoleClient({ role });
+            if (res) await handleToastRequest(res, showToastRef.current, false);
             const data = await res?.json();
-
-            if (data?.toast) {
-                showToastRef.current({
-                    type: data.toastType,
-                    title: data.toastTitle,
-                    message: data.toastMessage,
-                });
-            }
 
             cookies.set(syncKey, "1", { path: "/" });
             sessionStorage.setItem(cacheKey, JSON.stringify(data));

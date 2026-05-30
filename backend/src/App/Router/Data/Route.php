@@ -21,7 +21,8 @@ final class Route
         public readonly Closure $handler,
         public readonly array $options,
         public array $middlewares = [],
-    ) {}
+    ) {
+    }
 
     /**
      * Appends single-named middleware (with optional parameters) to the route's stack.

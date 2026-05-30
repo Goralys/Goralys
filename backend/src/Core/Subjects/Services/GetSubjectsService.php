@@ -9,7 +9,7 @@ namespace Goralys\Core\Subjects\Services;
 
 use DateMalformedStringException;
 use DateTime;
-use Goralys\App\User\Services\UsernameManager;
+use Goralys\Core\User\Services\UsernameManager;
 use Goralys\Core\Subjects\Data\Enums\SubjectStatus;
 use Goralys\Core\Subjects\Data\SubjectDTO;
 use Goralys\Core\Subjects\Data\SubjectsCollection;

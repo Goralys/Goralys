@@ -23,5 +23,6 @@ final readonly class FlashToastDTO
         public string $redirect,
         public bool $flash = false,
         public string $action = "",
-    ) {}
+    ) {
+    }
 }

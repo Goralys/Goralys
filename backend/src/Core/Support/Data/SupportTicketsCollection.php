@@ -7,11 +7,7 @@ use JsonSerializable;
 class SupportTicketsCollection implements JsonSerializable
 {
     /* @var SupportTicketDTO[] */
-    public array $tickets = [] {
-        get {
-            return $this->tickets;
-        }
-    }
+    public array $tickets = [];
 
     /**
      * Adds a new ticket to the collection.

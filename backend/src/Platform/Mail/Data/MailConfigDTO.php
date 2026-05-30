@@ -18,5 +18,6 @@ final readonly class MailConfigDTO
         public int $port,
         public string $username,
         public string $password,
-    ) {}
+    ) {
+    }
 }

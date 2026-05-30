@@ -102,7 +102,7 @@ export default function HelpPage(): ReactElement {
                 <div className="h-px w-full bg-gray-300 top-0"></div>
                 <p className="mb-5 mt-2">
                     Contactez le{" "}
-                    <Link className="text-sky-600 underline hover:text-sky-800 transition-colors duration-200" href="/support">
+                    <Link className="text-sky-600 underline hover:text-sky-800 transition-colors duration-200" href="/support/contact">
                         support
                     </Link>{" "}
                 </p>

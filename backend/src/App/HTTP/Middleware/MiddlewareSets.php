@@ -68,4 +68,20 @@ final class MiddlewareSets
             new Middleware(...RoleMiddleware::require(UserRole::ADMIN, true)),
         ];
     }
+
+    /**
+     * Middlewares for general support routes
+     * @param string $action The action to perform.
+     * @return list<Middleware> The pre-composed middlewares list.
+     */
+    public static function supportRoute(string $action): array
+    {
+        return [
+            new Middleware(...RoleMiddleware::require(UserRole::ADMIN, true)),
+            new Middleware(...RateLimitMiddleware::for($action, "/")),
+            new Middleware(...CSRFMiddleware::form($action, "/")),
+            new Middleware(...AuthMiddleware::require()),
+            new Middleware(...DbMiddleware::require()),
+        ];
+    }
 }

@@ -9,6 +9,39 @@ export function buildArray<T>(...items: (T | false | null | undefined)[]): T[] {
 
 export type HttpMethod = "POST" | "PATCH" | "PUT" | "DELETE" | "GET" | "BREW";
 
+export const reasonsConfig = {
+    "password-forgot": { label: "Mot de passe oublié" },
+    "subject-error": { label: "Question envoyée/validée/rejetée par erreur" },
+    other: { label: "Autre (précisez)" },
+} as const;
+
+export type SupportReasons = keyof typeof reasonsConfig;
+
+interface PHPDateTime {
+    date: string;
+    timezone_type: number;
+    timezone: string;
+}
+
+export type SupportTicket = {
+    id: number;
+    reason: SupportReasons;
+    opener: string;
+    openerToken: string;
+    message: string;
+    createdAt: PHPDateTime;
+};
+
+export const parsePhpDateTime = (phpDate: PHPDateTime): string => {
+    return new Date(phpDate.date).toLocaleString("fr-FR", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+    });
+};
+
 export type UserRole = {
     role: "admin" | "teacher" | "student" | "none";
 };

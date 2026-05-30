@@ -1,9 +1,9 @@
 import { Button } from "@/app/ui/button";
 import { FloatingInput } from "@/app/ui/inputs/floating-input";
-import { LockClosedIcon } from "@heroicons/react/16/solid";
 import { clsx } from "clsx";
 import { useModalClose } from "@/app/lib/modals";
 import { ReactElement, useRef, useState } from "react";
+import { AtSymbolIcon } from "@heroicons/react/24/outline";
 
 interface EmailModalProps {
     visible: boolean;
@@ -52,7 +52,7 @@ export default function EmailModalElement({
         >
             <div className="flex gap-3">
                 <div className="w-11 h-11 flex self-center items-center justify-center">
-                    <LockClosedIcon className="size-15 text-blue-500" />
+                    <AtSymbolIcon className="size-15 text-blue-500" />
                 </div>
 
                 <div className="flex flex-col justify-center flex-1">
@@ -63,7 +63,7 @@ export default function EmailModalElement({
 
             <FloatingInput
                 id="confirm-email"
-                label="Mot de passe"
+                label="Adresse mail"
                 email
                 autocomplete="current-email"
                 onInput={(e) => setEmail(e.currentTarget.value)}
