@@ -31,8 +31,8 @@ export default function SupportTicketPageClient(): ReactElement {
 
         const run = async (): Promise<void> => {
             const res = await goralysFetchClient(
-                buildApiUrl("support/ticket", { "csrf-token": await fetchCsrfClient("get-ticket"), t: id.toString() }, false),
-                { method: "GET" },
+                "GET",
+                buildApiUrl("support/ticket", { "csrf-token": await fetchCsrfClient("get-ticket"), t: id.toString() }),
             );
 
             if (res.ok) {
@@ -46,8 +46,9 @@ export default function SupportTicketPageClient(): ReactElement {
 
     const resolve = async (): Promise<void> => {
         const res = await goralysFetchClient(
-            buildApiUrl("ticket/resolve", { "csrf-token": await fetchCsrfClient("resolve-ticket"), t: ticket.id.toString() }, false),
-            { method: "PATCH", body: JSON.stringify({ message: message ?? "" }) },
+            "PATCH",
+            buildApiUrl("ticket/resolve", { "csrf-token": await fetchCsrfClient("resolve-ticket"), t: ticket.id.toString() }),
+            { message: message ?? "" },
         );
 
         if (res.ok) setCookie(cookies, "support-tickets-synced", "0");

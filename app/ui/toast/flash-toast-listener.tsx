@@ -36,9 +36,7 @@ export default function FlashToastListener(): null {
 
         const run = async (): Promise<void> => {
             try {
-                const res = await goralysFetchClient("toast/flash", {
-                    method: "GET",
-                    credentials: "include",
+                const res = await goralysFetchClient("GET", "toast/flash", undefined, {
                     cache: "no-store",
                 });
 

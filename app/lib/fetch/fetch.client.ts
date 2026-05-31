@@ -10,6 +10,7 @@
 import { emitAuthEvent } from "@/app/lib/auth/auth-event";
 import { GoralysActionHandler } from "@/app/lib/fetch/goralys-action-handler";
 import { ToastContext } from "@/app/ui/toast/toast-provider";
+import { HttpMethod } from "@/app/lib/types";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_DOMAIN;
 const actionHandler = new GoralysActionHandler();
@@ -18,16 +19,25 @@ const actionHandler = new GoralysActionHandler();
  * Custom function to detect session expiration when fetching data.
  * If a 401-response code is detected, the user is redirected to the login page with a toast.
  * Else, the function returns the response of the fetch request.
+ * @param method The HTTP method of the request.
  * @param input The url to fetch (relative to the public api domain).
+ * @param payload The payload of the request.
  * @param requestOptions The options of the request, they are the same as for a normal fetch call.
  * @return Promise<Response> The result of the request.
  */
-export async function goralysFetchClient(input: string | URL | Request, requestOptions?: RequestInit): Promise<Response> {
+export async function goralysFetchClient(
+    method: HttpMethod,
+    input: string | URL | Request,
+    payload?: Record<string, string | number | boolean | null> | FormData,
+    requestOptions?: RequestInit,
+): Promise<Response> {
     const res = await fetch(`${apiUrl}/${input}`, {
         credentials: "include",
+        method: method === "BREW" ? "POST" : method,
+        headers: method === "BREW" ? { "X-HTTP-Method-Override": method } : {},
+        body: payload ? (payload instanceof FormData ? payload : JSON.stringify(payload)) : undefined,
         ...requestOptions,
     });
-
     // Ensure JSON before parsing:
     const clone = res.clone();
     const contentType = clone.headers.get("Content-Type");
@@ -104,7 +114,7 @@ function buildQueryString(params: Record<string, string | null>): string {
  * @param domain Wether to append the domain at the start of the url.
  * @return string The encoded query string (without leading ?).
  */
-export function buildApiUrl(endpoint: string, params: Record<string, string | null>, domain: boolean = true): string {
+export function buildApiUrl(endpoint: string, params: Record<string, string | null>, domain: boolean = false): string {
     const queryString = buildQueryString(params);
     return `${domain ? process.env.NEXT_PUBLIC_API_DOMAIN + "/" : ""}${endpoint}${queryString ? `?${queryString}` : ""}`;
 }

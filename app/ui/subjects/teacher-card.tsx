@@ -67,11 +67,7 @@ export default function TeacherCard({ subjectData, onUpdateAction }: TeacherCard
             "csrf-token": csrfToken,
         };
 
-        const res = await goralysFetchClient("subjects/reject", {
-            method: "POST",
-            credentials: "include",
-            body: JSON.stringify(payload),
-        });
+        const res = await goralysFetchClient("POST", "subjects/reject", payload);
 
         if (await handleToastRequest(res, toast.showToast, false)) {
             const data = await res.json();
@@ -103,11 +99,7 @@ export default function TeacherCard({ subjectData, onUpdateAction }: TeacherCard
             "csrf-token": csrfToken,
         };
 
-        const res = await goralysFetchClient("subjects/approve", {
-            method: "POST",
-            credentials: "include",
-            body: JSON.stringify(payload),
-        });
+        const res = await goralysFetchClient("POST", "subjects/approve", payload);
 
         if (await handleToastRequest(res, toast.showToast, false)) {
             const data = await res.json();

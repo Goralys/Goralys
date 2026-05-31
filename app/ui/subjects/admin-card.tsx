@@ -45,10 +45,7 @@ export default function AdminCard({ subjectData, onUpdateAction, syncKey }: Subj
             "csrf-token": csrfToken,
         };
 
-        const res = await goralysFetchClient("subjects/status", {
-            method: "PATCH",
-            body: JSON.stringify(payload),
-        });
+        const res = await goralysFetchClient("PATCH", "subjects/status", payload);
         await handleToastRequest(res, toast.showToast, false);
         const data = await res?.json();
 

@@ -67,10 +67,8 @@ export function useSupportTickets(): {
             }
 
             const res = await goralysFetchClient(
-                buildApiUrl("support/tickets", { "csrf-token": await fetchCsrfClient("get-tickets") }, false),
-                {
-                    method: "GET",
-                },
+                "GET",
+                buildApiUrl("support/tickets", { "csrf-token": await fetchCsrfClient("get-tickets") }),
             );
             if (res) await handleToastRequest(res, showToastRef.current, false);
             const data = await res?.json();

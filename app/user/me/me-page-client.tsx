@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/app/ui/button";
-import { fetchCsrfClient, goralysFetchClient, handleToastRequest } from "@/app/lib/fetch/fetch.client";
+import { buildApiUrl, fetchCsrfClient, goralysFetchClient, handleToastRequest } from "@/app/lib/fetch/fetch.client";
 import { useToast } from "@/app/ui/toast/toast-provider";
 import { emitUserEvent } from "@/app/lib/auth/user-event";
 import { Card } from "@/app/ui/card";
@@ -27,10 +27,7 @@ export default function MePageClient(): ReactElement {
     const logout = async (): Promise<void> => {
         const payload = { "csrf-token": await fetchCsrfClient("logout") };
 
-        await goralysFetchClient("user/logout", {
-            method: "POST",
-            body: JSON.stringify(payload),
-        });
+        await goralysFetchClient("POST", "user/logout", payload);
         emitUserEvent("logout");
 
         showToast({
@@ -58,10 +55,7 @@ export default function MePageClient(): ReactElement {
 
         const payload = { "csrf-token": await fetchCsrfClient("update-email"), email: newEmail };
 
-        const res = await goralysFetchClient("user/email", {
-            method: "PUT",
-            body: JSON.stringify(payload),
-        });
+        const res = await goralysFetchClient("PUT", "user/email", payload);
 
         if (res.ok) {
             await updateUserData();
@@ -73,10 +67,7 @@ export default function MePageClient(): ReactElement {
     const deleteEmail = async (): Promise<void> => {
         const payload = { "csrf-token": await fetchCsrfClient("delete-email") };
 
-        const res = await goralysFetchClient("user/email", {
-            method: "DELETE",
-            body: JSON.stringify(payload),
-        });
+        const res = await goralysFetchClient("DELETE", buildApiUrl("user/email", payload));
 
         if (res.ok) await updateUserData();
 

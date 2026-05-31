@@ -38,18 +38,12 @@ export default function AdminCard({ admin, onUpdateAction, syncKey }: AdminCardP
         const csrfToken = await fetchCsrfClient(action);
 
         const res = await goralysFetchClient(
-            buildApiUrl(
-                route,
-                {
-                    target: admin.publicId,
-                    "admin-password": pwd,
-                    "csrf-token": csrfToken,
-                },
-                false,
-            ),
-            {
-                method: method,
-            },
+            method,
+            buildApiUrl(route, {
+                target: admin.publicId,
+                "admin-password": pwd,
+                "csrf-token": csrfToken,
+            }),
         );
         await handleToastRequest(res, toast.showToast, false);
         const data = await res?.json();

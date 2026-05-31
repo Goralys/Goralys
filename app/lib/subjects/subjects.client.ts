@@ -15,9 +15,7 @@ async function fetchStudentSubjectsClient(): Promise<Response | null> {
 
     if (!csrfToken) return null;
 
-    return await goralysFetchClient(buildApiUrl("subjects/student", { "csrf-token": csrfToken }, false), {
-        method: "GET",
-    });
+    return await goralysFetchClient("GET", buildApiUrl("subjects/student", { "csrf-token": csrfToken }));
 }
 
 async function fetchTeacherSubjectsClient(): Promise<Response | null> {
@@ -25,9 +23,7 @@ async function fetchTeacherSubjectsClient(): Promise<Response | null> {
 
     if (!csrfToken) return null;
 
-    return await goralysFetchClient(buildApiUrl("subjects/teacher", { "csrf-token": csrfToken }, false), {
-        method: "GET",
-    });
+    return await goralysFetchClient("GET", buildApiUrl("subjects/teacher", { "csrf-token": csrfToken }));
 }
 
 async function fetchAdminSubjectsClient(): Promise<Response | null> {
@@ -35,9 +31,7 @@ async function fetchAdminSubjectsClient(): Promise<Response | null> {
 
     if (!csrfToken) return null;
 
-    return await goralysFetchClient(buildApiUrl("subjects/admin", { "csrf-token": csrfToken }, false), {
-        method: "GET",
-    });
+    return await goralysFetchClient("GET", buildApiUrl("subjects/admin", { "csrf-token": csrfToken }));
 }
 
 export async function fetchSubjectsForRoleClient(role: UserRole): Promise<Response | null> {

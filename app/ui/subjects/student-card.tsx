@@ -36,11 +36,7 @@ export default function StudentCard({ subjectData, onUpdateAction }: StudentCard
             "csrf-token": csrfToken,
         };
 
-        const res = await goralysFetchClient("subjects/draft", {
-            method: "PUT",
-            credentials: "include",
-            body: JSON.stringify(payload),
-        });
+        const res = await goralysFetchClient("PUT", "subjects/draft", payload);
         await handleToastRequest(res, toast.showToast, false);
         const data = await res.json();
 
@@ -103,11 +99,7 @@ export default function StudentCard({ subjectData, onUpdateAction }: StudentCard
             formData.append("draft-file", result.file ?? "");
         }
 
-        const res = await goralysFetchClient("subjects/submit", {
-            method: "POST",
-            credentials: "include",
-            body: formData,
-        });
+        const res = await goralysFetchClient("POST", "subjects/submit", formData);
 
         if (await handleToastRequest(res, toast.showToast, false)) {
             const data = await res.json();

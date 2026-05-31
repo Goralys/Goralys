@@ -47,19 +47,13 @@ export default function UserCard({ user, type, onUpdateAction, syncKey, virtualS
         const csrfToken = await fetchCsrfClient(action);
 
         const res = await goralysFetchClient(
-            buildApiUrl(
-                route,
-                {
-                    target: user.publicId,
-                    "admin-password": pwd,
-                    "csrf-token": csrfToken,
-                    ...extraPayload,
-                },
-                false,
-            ),
-            {
-                method: method,
-            },
+            method,
+            buildApiUrl(route, {
+                target: user.publicId,
+                "admin-password": pwd,
+                "csrf-token": csrfToken,
+                ...extraPayload,
+            }),
         );
         await handleToastRequest(res, toast.showToast, false, toastDuration + 500);
         const data = await res?.json();

@@ -3,11 +3,13 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+import { HTTP_METHOD } from "next/dist/server/web/http";
+
 export function buildArray<T>(...items: (T | false | null | undefined)[]): T[] {
     return items.filter((item): item is T => Boolean(item));
 }
 
-export type HttpMethod = "POST" | "PATCH" | "PUT" | "DELETE" | "GET" | "BREW";
+export type HttpMethod = HTTP_METHOD | "BREW";
 
 export const reasonsConfig = {
     "password-forgot": { label: "Mot de passe oublié" },

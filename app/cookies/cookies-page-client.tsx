@@ -21,11 +21,7 @@ export default function CookiesPageClient(): ReactElement {
     const orderCookie = async (): Promise<void> => {
         const payload = { flavour: flavour };
 
-        const res = await goralysFetchClient(`cookies`, {
-            method: "POST",
-            headers: { "X-HTTP-Method-Override": "BREW" },
-            body: JSON.stringify(payload),
-        });
+        const res = await goralysFetchClient("BREW", "cookies", payload);
 
         await handleToastRequest(res, showToast);
     };

@@ -65,7 +65,7 @@ export default function EmailModalElement({
                 id="confirm-email"
                 label="Adresse mail"
                 email
-                autocomplete="current-email"
+                autocomplete="email"
                 onInput={(e) => setEmail(e.currentTarget.value)}
             />
 

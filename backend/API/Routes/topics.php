@@ -29,7 +29,7 @@ function createTopicsRoutes(GoralysRouter $router): void
     })
             ->middlewares(...MiddlewareSets::topicsRoute('import-topics'));
 
-    $router->post('topics/delete', function (GoralysKernel $kernel) {
+    $router->delete('topics', function (GoralysKernel $kernel) {
         if (!$kernel->topics->clear() || !$kernel->users->clear()) {
             $kernel->db->rollback();
             $kernel->deferredResponse(500)->error( // Internal Server Error

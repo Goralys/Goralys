@@ -19,7 +19,7 @@ export default function SupportTicketCard({ ticket }: SupportTicketCardProps): R
                 </span>
 
                 <a
-                    href={buildApiUrl("ticket/contact", { t: ticket.id.toString() })}
+                    href={buildApiUrl("ticket/contact", { t: ticket.id.toString() }, true)}
                     target="_blank"
                     title="Contactez l'utilisateur"
                     className="cursor-pointer"

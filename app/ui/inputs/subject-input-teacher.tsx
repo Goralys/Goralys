@@ -33,12 +33,16 @@ export function SubjectInputTeacher({ id, label, helper, subjectData, onChangeAc
     };
 
     const getDraft = (): void => {
-        window.location.href = buildApiUrl("subjects/draft", {
-            teacher: subjectData.teacherToken,
-            student: subjectData.studentToken,
-            topic: subjectData.topic,
-            "file-name": `Brouillon - ${subjectData.student} ${subjectData.topic}`,
-        });
+        window.location.href = buildApiUrl(
+            "subjects/draft",
+            {
+                teacher: subjectData.teacherToken,
+                student: subjectData.studentToken,
+                topic: subjectData.topic,
+                "file-name": `Brouillon - ${subjectData.student} ${subjectData.topic}`,
+            },
+            true,
+        );
     };
 
     return (

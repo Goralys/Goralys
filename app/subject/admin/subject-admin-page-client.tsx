@@ -1,14 +1,14 @@
 "use client";
 
 import { useImportTopicsModal } from "@/app/ui/modals/import-topics/import-topics-modal-provider";
-import { fetchCsrfClient, goralysFetchClient, handleToastRequest } from "@/app/lib/fetch/fetch.client";
+import { buildApiUrl, fetchCsrfClient, goralysFetchClient, handleToastRequest } from "@/app/lib/fetch/fetch.client";
 import { useToast } from "@/app/ui/toast/toast-provider";
 import { Button } from "@/app/ui/button";
 import { useSubjects } from "@/app/src/hooks/useSubjects";
 import AdminCard from "@/app/ui/subjects/admin-card";
 import { Subject } from "@/app/lib/types";
 import { SubjectsSearchBar } from "@/app/ui/subjects/subjects-search-bar";
-import { useState, Suspense, ReactElement } from "react";
+import { ReactElement, Suspense, useState } from "react";
 import AdminSubjectCardSkeleton from "@/app/ui/skeletons/subjects/admin-card";
 import { useConfirm } from "@/app/ui/modals/confirm/confirm-provider";
 import Cookies from "universal-cookie";
@@ -40,11 +40,7 @@ export default function SubjectAdminPageClient(): ReactElement {
         formData.append("csrf-token", csrfToken ?? "");
         formData.append("topics-file", file);
 
-        const res = await goralysFetchClient("topics/import", {
-            method: "POST",
-            credentials: "include",
-            body: formData,
-        });
+        const res = await goralysFetchClient("POST", "topics/import", formData);
 
         if (res.ok) {
             const blob = await res.blob();
@@ -73,15 +69,7 @@ export default function SubjectAdminPageClient(): ReactElement {
 
         if (!confirmResult) return;
 
-        const csrfToken = await fetchCsrfClient("delete-topics");
-        const payload = {
-            "csrf-token": csrfToken,
-        };
-
-        const res = await goralysFetchClient("topics/delete", {
-            method: "POST",
-            body: JSON.stringify(payload),
-        });
+        const res = await goralysFetchClient("GET", buildApiUrl("topics", { "csrf-token": await fetchCsrfClient("delete-topics") }));
 
         await handleToastRequest(res, toast.showToast, false);
 
@@ -98,10 +86,7 @@ export default function SubjectAdminPageClient(): ReactElement {
             "csrf-token": csrfToken,
         };
 
-        const res = await goralysFetchClient("subjects/export", {
-            method: "POST",
-            body: JSON.stringify(payload),
-        });
+        const res = await goralysFetchClient("POST", "subjects/export", payload);
 
         if (res.ok) {
             const blob = await res.blob();
