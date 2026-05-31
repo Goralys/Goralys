@@ -3,8 +3,8 @@
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { useToast } from "@/app/ui/toast/toast-provider";
-import { goralysFetchClient } from "@/app/lib/fetch/fetch.client";
-import { Toast } from "@/app/lib/types";
+import { goralysFetchClient } from "@/app/src/lib/fetch/fetch.client";
+import { Toast } from "@/app/src/lib/types";
 
 export default function FlashToastListener(): null {
     const { showToast } = useToast();

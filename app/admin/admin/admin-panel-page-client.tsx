@@ -2,7 +2,7 @@
 
 import { useAdmins, useVirtualAdmins } from "@/app/src/hooks/useUsers";
 import { useEffect, useState, Suspense, ReactElement } from "react";
-import { User } from "@/app/lib/types";
+import { User } from "@/app/src/lib/types";
 import { AdminsSearchBar } from "../../ui/admin-panel/admins-search-bar";
 import AdminCard from "../../ui/admin-panel/admin-card";
 import CreateAdminElement from "../../ui/admin-panel/create-admin-element";

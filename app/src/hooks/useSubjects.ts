@@ -6,11 +6,11 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Subject, UserRole } from "@/app/lib/types";
+import { Subject, UserRole } from "@/app/src/lib/types";
 import { useToast } from "@/app/ui/toast/toast-provider";
 import Cookies from "universal-cookie";
-import { fetchSubjectsForRoleClient } from "@/app/lib/subjects/subjects.client";
-import { handleToastRequest } from "@/app/lib/fetch/fetch.client";
+import { fetchSubjectsForRoleClient } from "@/app/src/lib/subjects/subjects.client";
+import { handleToastRequest } from "@/app/src/lib/fetch/fetch.client";
 
 export function useSubjects(role: UserRole["role"]): {
     subjects: Subject[] | null;

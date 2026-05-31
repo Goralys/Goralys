@@ -6,8 +6,8 @@
 "use client";
 
 import { useEffect } from "react";
-import { onUserEvent } from "@/app/lib/auth/user-event";
-import { emptyUserCacheClient } from "@/app/lib/user/user.client";
+import { onUserEvent } from "@/app/src/lib/auth/user-event";
+import { emptyUserCacheClient } from "@/app/src/lib/user/user.client";
 
 export function UserListener(): null {
     useEffect(() => {

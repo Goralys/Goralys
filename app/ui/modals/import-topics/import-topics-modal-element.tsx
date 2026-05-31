@@ -5,7 +5,7 @@ import { Button } from "@/app/ui/button";
 import { ReactElement, useRef, useState } from "react";
 import InputZipFile from "@/app/ui/inputs/input-zip-file";
 import { QuestionMarkCircleIcon } from "@heroicons/react/24/outline";
-import { useModalClose } from "@/app/lib/modals";
+import { useModalClose } from "@/app/src/lib/modals";
 
 interface ImportTopicsModalProps {
     visible: boolean;

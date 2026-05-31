@@ -2,7 +2,7 @@ import { Card } from "@/app/ui/card";
 import { FloatingInput } from "@/app/ui/inputs/floating-input";
 import { Button } from "@/app/ui/button";
 import { ReactElement, useEffect, useRef, useState } from "react";
-import { fetchCsrfClient } from "@/app/lib/fetch/fetch.client";
+import { fetchCsrfClient } from "@/app/src/lib/fetch/fetch.client";
 import { useRouter, useSearchParams } from "next/navigation";
 
 export default function RegisterForm(): ReactElement {

@@ -5,11 +5,11 @@
 
 "use client";
 
-import { removeCookie, setCookie } from "@/app/lib/cookies";
+import { removeCookie, setCookie } from "@/app/src/lib/cookies";
 import Cookies from "universal-cookie";
-import { buildApiUrl, fetchCsrfClient, goralysFetchClient } from "@/app/lib/fetch/fetch.client";
-import { UserData } from "@/app/lib/types";
-import { PERSISTANT_COOKIES } from "@/app/lib/config";
+import { buildApiUrl, fetchCsrfClient, goralysFetchClient } from "@/app/src/lib/fetch/fetch.client";
+import { UserData } from "@/app/src/lib/types";
+import { PERSISTANT_COOKIES } from "@/app/src/lib/config";
 
 export async function cacheUserDataClient(): Promise<void> {
     const res = await goralysFetchClient("GET", "user/profile");

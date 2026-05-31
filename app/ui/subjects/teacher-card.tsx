@@ -1,9 +1,9 @@
 "use client";
 
-import { Subject } from "@/app/lib/types";
+import { Subject } from "@/app/src/lib/types";
 import { Button } from "@/app/ui/button";
 import { ReactElement, useRef, useState } from "react";
-import { fetchCsrfClient, goralysFetchClient, handleToastRequest } from "@/app/lib/fetch/fetch.client";
+import { fetchCsrfClient, goralysFetchClient, handleToastRequest } from "@/app/src/lib/fetch/fetch.client";
 import { useToast } from "@/app/ui/toast/toast-provider";
 import { useConfirm } from "@/app/ui/modals/confirm/confirm-provider";
 import Cookies from "universal-cookie";

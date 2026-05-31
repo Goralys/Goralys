@@ -1,11 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { User } from "@/app/lib/types";
+import { User } from "@/app/src/lib/types";
 import { useToast } from "@/app/ui/toast/toast-provider";
 import Cookies from "universal-cookie";
-import { fetchAdminsClient, fetchUsersClient, fetchVirtualAdminsClient, fetchVirtualUsersClient } from "@/app/lib/user/user.client";
-import { handleToastRequest } from "@/app/lib/fetch/fetch.client";
+import { fetchAdminsClient, fetchUsersClient, fetchVirtualAdminsClient, fetchVirtualUsersClient } from "@/app/src/lib/user/user.client";
+import { handleToastRequest } from "@/app/src/lib/fetch/fetch.client";
 
 function useUserCollection(
     fetchFn: () => Promise<Response | undefined>,

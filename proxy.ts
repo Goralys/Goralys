@@ -1,8 +1,8 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { SubjectsProxy } from "./app/lib/proxies/subjects-proxy";
-import { AdminsProxy } from "./app/lib/proxies/admins-proxy";
-import { FoolsProxy } from "@/app/lib/proxies/fools-proxy";
+import { SubjectsProxy } from "@/app/src/lib/proxies/subjects-proxy";
+import { AdminsProxy } from "@/app/src/lib/proxies/admins-proxy";
+import { FoolsProxy } from "@/app/src/lib/proxies/fools-proxy";
 
 const routes: Array<{
     matcher: RegExp;

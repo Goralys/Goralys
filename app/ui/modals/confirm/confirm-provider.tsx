@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, ReactNode, useCallback, useMemo, ReactElement } from "react";
 import ConfirmElement from "@/app/ui/modals/confirm/confirm-element";
-import { ConfirmOptions } from "@/app/lib/types";
+import { ConfirmOptions } from "@/app/src/lib/types";
 import { createPortal } from "react-dom";
 
 export type ConfirmContext = {

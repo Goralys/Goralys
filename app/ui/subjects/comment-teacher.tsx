@@ -1,4 +1,4 @@
-import { Subject } from "@/app/lib/types";
+import { Subject } from "@/app/src/lib/types";
 import { TextArea } from "@/app/ui/inputs/text-area";
 import { ChangeEventHandler, ReactElement, RefObject } from "react";
 import { ChevronRightIcon } from "@heroicons/react/24/outline";

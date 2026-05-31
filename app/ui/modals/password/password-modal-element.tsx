@@ -2,7 +2,7 @@ import { Button } from "@/app/ui/button";
 import { FloatingInput } from "@/app/ui/inputs/floating-input";
 import { LockClosedIcon } from "@heroicons/react/16/solid";
 import { clsx } from "clsx";
-import { useModalClose } from "@/app/lib/modals";
+import { useModalClose } from "@/app/src/lib/modals";
 import { ReactElement, useRef, useState } from "react";
 
 interface PasswordModalProps {

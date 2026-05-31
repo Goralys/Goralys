@@ -1,11 +1,11 @@
 import { Card } from "@/app/ui/card";
 import { Button } from "@/app/ui/button";
 import React, { ReactElement, useEffect, useState } from "react";
-import { fetchCsrfClient } from "@/app/lib/fetch/fetch.client";
+import { fetchCsrfClient } from "@/app/src/lib/fetch/fetch.client";
 import { TextArea } from "@/app/ui/inputs/text-area";
 import { FloatingInput } from "@/app/ui/inputs/floating-input";
 import Cookies from "universal-cookie";
-import { SupportReasons, reasonsConfig } from "@/app/lib/types";
+import { SupportReasons, reasonsConfig } from "@/app/src/lib/types";
 
 export default function SupportForm(): ReactElement {
     const [csrfToken, setCsrfToken] = useState<string | null>(null);

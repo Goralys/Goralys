@@ -4,7 +4,7 @@ import { NavLink } from "@/app/ui/nav/nav-link";
 import { UserNav } from "@/app/ui/nav/user-nav";
 import Cookies from "universal-cookie";
 import { ReactElement, useEffect, useState } from "react";
-import { UserRole, USER_ROLES, buildArray } from "@/app/lib/types";
+import { UserRole, USER_ROLES, buildArray } from "@/app/src/lib/types";
 import Image from "next/image";
 
 export function SideNav(): ReactElement {

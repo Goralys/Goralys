@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { UserRole } from "@/app/lib/types";
+import { UserRole } from "@/app/src/lib/types";
 
 interface RoleGuardOptions {
     allowedRoles: UserRole["role"][];

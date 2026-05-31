@@ -5,8 +5,8 @@
 
 "use client";
 
-import { UserRole } from "@/app/lib/types";
-import { buildApiUrl, fetchCsrfClient, goralysFetchClient } from "@/app/lib/fetch/fetch.client";
+import { UserRole } from "@/app/src/lib/types";
+import { buildApiUrl, fetchCsrfClient, goralysFetchClient } from "@/app/src/lib/fetch/fetch.client";
 
 // Subjects fetches
 

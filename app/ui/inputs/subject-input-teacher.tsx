@@ -1,10 +1,10 @@
 import { clsx } from "clsx";
-import { getStatusHelper, Subject } from "@/app/lib/types";
+import { getStatusHelper, Subject } from "@/app/src/lib/types";
 import { ArrowDownTrayIcon } from "@heroicons/react/24/outline";
 import { SubjectTextArea } from "@/app/ui/inputs/subject-text-area";
 import Checkbox from "@/app/ui/inputs/checkbox";
 import React, { ChangeEventHandler, ReactElement, useState } from "react";
-import { buildApiUrl } from "@/app/lib/fetch/fetch.client";
+import { buildApiUrl } from "@/app/src/lib/fetch/fetch.client";
 
 interface SubjectInputMultilineProps {
     helper?: string;

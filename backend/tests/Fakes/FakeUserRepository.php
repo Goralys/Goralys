@@ -186,4 +186,9 @@ class FakeUserRepository implements UserRepositoryInterface
     {
         return $this->updateResult;
     }
+
+    public function getEmail(string $username): ?string
+    {
+        return $this->getResult;
+    }
 }

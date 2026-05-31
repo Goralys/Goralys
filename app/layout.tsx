@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { SideNav } from "@/app/ui/nav/side-nav";
-import { Lusitania } from "@/app/lib/fonts";
+import { Lusitania } from "@/app/src/lib/fonts";
 import React, { ReactElement } from "react";
-import { AuthListener } from "@/app/lib/auth/auth-listener";
+import { AuthListener } from "@/app/src/lib/auth/auth-listener";
 import FlashToastListener from "@/app/ui/toast/flash-toast-listener";
-import { UserListener } from "@/app/lib/auth/user-listerner";
+import { UserListener } from "@/app/src/lib/auth/user-listerner";
 import { Providers } from "@/app/ui/modals/providers";
 import CookieBanner from "@/app/ui/basic/cookies-banner";
 

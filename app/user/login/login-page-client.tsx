@@ -7,7 +7,7 @@ import LoginForm from "@/app/ui/user/forms/login-form";
 import { ReactElement, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useToast } from "@/app/ui/toast/toast-provider";
-import { emitUserEvent } from "@/app/lib/auth/user-event";
+import { emitUserEvent } from "@/app/src/lib/auth/user-event";
 
 export default function LoginPageClient(): ReactElement {
     const searchParams = useSearchParams();

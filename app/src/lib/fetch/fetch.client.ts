@@ -7,10 +7,10 @@
 
 "use client";
 
-import { emitAuthEvent } from "@/app/lib/auth/auth-event";
-import { GoralysActionHandler } from "@/app/lib/fetch/goralys-action-handler";
+import { emitAuthEvent } from "@/app/src/lib/auth/auth-event";
+import { GoralysActionHandler } from "@/app/src/lib/fetch/goralys-action-handler";
 import { ToastContext } from "@/app/ui/toast/toast-provider";
-import { HttpMethod } from "@/app/lib/types";
+import { HttpMethod } from "@/app/src/lib/types";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_DOMAIN;
 const actionHandler = new GoralysActionHandler();

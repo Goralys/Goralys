@@ -2,7 +2,7 @@
 
 import { clsx } from "clsx";
 import React, { ChangeEventHandler, ReactElement, RefObject } from "react";
-import { useAutoResize } from "@/app/lib/inputs";
+import { useAutoResize } from "@/app/src/lib/inputs";
 
 interface TextAreaProps {
     defaultValue?: string;

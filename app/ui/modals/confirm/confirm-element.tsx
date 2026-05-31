@@ -3,7 +3,7 @@
 import { clsx } from "clsx";
 import { Button } from "@/app/ui/button";
 import { QuestionMarkCircleIcon } from "@heroicons/react/24/outline";
-import { useModalClose } from "@/app/lib/modals";
+import { useModalClose } from "@/app/src/lib/modals";
 import { ReactElement, useRef } from "react";
 
 interface ConfirmProps {

@@ -1,5 +1,5 @@
 import { clsx } from "clsx";
-import { getStatusHelper, Subject } from "@/app/lib/types";
+import { getStatusHelper, Subject } from "@/app/src/lib/types";
 import { SubjectTextArea } from "@/app/ui/inputs/subject-text-area";
 import { ChangeEventHandler, ReactElement } from "react";
 

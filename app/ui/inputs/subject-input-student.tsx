@@ -2,7 +2,7 @@
 
 import React, { useState, ChangeEventHandler, ReactElement } from "react";
 import { clsx } from "clsx";
-import { getStatusHelper, Subject } from "@/app/lib/types";
+import { getStatusHelper, Subject } from "@/app/src/lib/types";
 import { SubjectTextArea } from "@/app/ui/inputs/subject-text-area";
 import Checkbox from "@/app/ui/inputs/checkbox";
 

@@ -1,9 +1,9 @@
 "use client";
 
-import { getStatusLabel, Subject, SubjectStatus, SubjectStatusConfig } from "@/app/lib/types";
+import { getStatusLabel, Subject, SubjectStatus, SubjectStatusConfig } from "@/app/src/lib/types";
 import { SubjectInputAdmin } from "@/app/ui/inputs/subject-input-admin";
 import React, { ReactElement } from "react";
-import { fetchCsrfClient, goralysFetchClient, handleToastRequest } from "@/app/lib/fetch/fetch.client";
+import { fetchCsrfClient, goralysFetchClient, handleToastRequest } from "@/app/src/lib/fetch/fetch.client";
 import { usePasswordModal } from "@/app/ui/modals/password/password-modal-provider";
 import { useToast } from "@/app/ui/toast/toast-provider";
 import Cookies from "universal-cookie";

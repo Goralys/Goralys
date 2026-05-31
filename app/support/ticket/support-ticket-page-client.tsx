@@ -1,14 +1,14 @@
 "use client";
 
 import { ReactElement, useEffect, useState } from "react";
-import { buildApiUrl, fetchCsrfClient, goralysFetchClient, handleToastRequest } from "@/app/lib/fetch/fetch.client";
-import { parsePhpDateTime, SupportTicket } from "@/app/lib/types";
+import { buildApiUrl, fetchCsrfClient, goralysFetchClient, handleToastRequest } from "@/app/src/lib/fetch/fetch.client";
+import { parsePhpDateTime, SupportTicket } from "@/app/src/lib/types";
 import { useSearchParams } from "next/navigation";
 import { Card } from "@/app/ui/card";
 import { Button } from "@/app/ui/button";
 import { TextArea } from "@/app/ui/inputs/text-area";
 import { FloatingInput } from "@/app/ui/inputs/floating-input";
-import { setCookie } from "@/app/lib/cookies";
+import { setCookie } from "@/app/src/lib/cookies";
 import Cookies from "universal-cookie";
 import { useToast } from "@/app/ui/toast/toast-provider";
 
@@ -41,7 +41,7 @@ export default function SupportTicketPageClient(): ReactElement {
             }
         };
 
-        run();
+        run().then();
     }, [searchParams]);
 
     const resolve = async (): Promise<void> => {

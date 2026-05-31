@@ -2,7 +2,7 @@ import { Card } from "@/app/ui/card";
 import { FloatingInput } from "@/app/ui/inputs/floating-input";
 import { Button } from "@/app/ui/button";
 import { ReactElement, useEffect, useState } from "react";
-import { fetchCsrfClient } from "@/app/lib/fetch/fetch.client";
+import { fetchCsrfClient } from "@/app/src/lib/fetch/fetch.client";
 
 export default function LoginForm(): ReactElement {
     const [csrfToken, setCsrfToken] = useState<string | null>(null);

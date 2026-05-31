@@ -2,8 +2,8 @@
 
 import { clsx } from "clsx";
 import React, { ChangeEventHandler, ReactElement, RefObject } from "react";
-import { useAutoResize } from "@/app/lib/inputs";
-import { Subject } from "@/app/lib/types";
+import { useAutoResize } from "@/app/src/lib/inputs";
+import { Subject } from "@/app/src/lib/types";
 
 interface SubjectTextAreaProps {
     defaultValue?: string;

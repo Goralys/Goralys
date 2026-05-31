@@ -5,7 +5,7 @@ import { FloatingInput } from "@/app/ui/inputs/floating-input";
 import { Button } from "@/app/ui/button";
 import { usePasswordModal } from "@/app/ui/modals/password/password-modal-provider";
 import { useToast } from "@/app/ui/toast/toast-provider";
-import { fetchCsrfClient, goralysFetchClient, handleToastRequest } from "@/app/lib/fetch/fetch.client";
+import { fetchCsrfClient, goralysFetchClient, handleToastRequest } from "@/app/src/lib/fetch/fetch.client";
 import Cookies from "universal-cookie";
 
 interface CreatAdminElementProps {
@@ -44,10 +44,7 @@ export default function CreateAdminElement({ onUpdateAction, syncKey, virtualSyn
             "csrf-token": csrfToken,
         };
 
-        const res = await goralysFetchClient("admin/create", {
-            method: "POST",
-            body: JSON.stringify(payload),
-        });
+        const res = await goralysFetchClient("POST", "admin/create", payload);
         await handleToastRequest(res, toast.showToast, false);
         const data = await res?.json();
 

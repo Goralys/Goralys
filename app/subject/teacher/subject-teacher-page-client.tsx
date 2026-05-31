@@ -4,7 +4,7 @@ import { useSubjects } from "@/app/src/hooks/useSubjects";
 import TeacherCard from "@/app/ui/subjects/teacher-card";
 import { SubjectsSearchBar } from "@/app/ui/subjects/subjects-search-bar";
 import { useState, Suspense, ReactElement } from "react";
-import { Subject } from "@/app/lib/types";
+import { Subject } from "@/app/src/lib/types";
 import Cookies from "universal-cookie";
 import TeacherCardSkeleton from "@/app/ui/skeletons/subjects/teacher-card";
 

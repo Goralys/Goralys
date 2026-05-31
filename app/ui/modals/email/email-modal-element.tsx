@@ -1,7 +1,7 @@
 import { Button } from "@/app/ui/button";
 import { FloatingInput } from "@/app/ui/inputs/floating-input";
 import { clsx } from "clsx";
-import { useModalClose } from "@/app/lib/modals";
+import { useModalClose } from "@/app/src/lib/modals";
 import { ReactElement, useRef, useState } from "react";
 import { AtSymbolIcon } from "@heroicons/react/24/outline";
 

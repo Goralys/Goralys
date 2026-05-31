@@ -4,7 +4,7 @@
 import { createContext, useContext, useState, ReactNode, useCallback, useMemo, ReactElement } from "react";
 import DraftModalElement from "@/app/ui/modals/drafts/draft-modal-element";
 import { createPortal } from "react-dom";
-import { DraftModalResult } from "@/app/lib/types";
+import { DraftModalResult } from "@/app/src/lib/types";
 
 export type DraftModalContext = {
     showDraftModal: () => Promise<DraftModalResult>;

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { UserEvent } from "@/app/lib/types";
+import { UserEvent } from "@/app/src/lib/types";
 
 const listeners = new Set<(event: UserEvent) => void>();
 

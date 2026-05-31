@@ -3,15 +3,10 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { cacheUserDataClient } from "@/app/lib/user/user.client";
-import { emitUserEvent } from "@/app/lib/auth/user-event";
+import { cacheUserDataClient } from "@/app/src/lib/user/user.client";
+import { emitUserEvent } from "@/app/src/lib/auth/user-event";
 
 export class GoralysActionHandler {
-    private onLogin = async (): Promise<void> => {
-        await cacheUserDataClient();
-        emitUserEvent("login");
-        return;
-    };
     public handle = async (r: Response): Promise<void> => {
         const data = await r.clone().json();
 
@@ -24,6 +19,12 @@ export class GoralysActionHandler {
             await this.onLogin();
         }
 
+        return;
+    };
+
+    private onLogin = async (): Promise<void> => {
+        await cacheUserDataClient();
+        emitUserEvent("login");
         return;
     };
 }

@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { ReactElement, useState } from "react";
-import { goralysFetchClient, handleToastRequest } from "@/app/lib/fetch/fetch.client";
+import { goralysFetchClient, handleToastRequest } from "@/app/src/lib/fetch/fetch.client";
 import { Button } from "@/app/ui/button";
 import { useToast } from "@/app/ui/toast/toast-provider";
-import { isFoolsDay } from "@/app/lib/fools";
+import { isFoolsDay } from "@/app/src/lib/fools";
 
 const flavours = [
     { value: "chocolate", label: "Chocolat" },

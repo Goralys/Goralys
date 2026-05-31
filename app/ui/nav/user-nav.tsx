@@ -4,7 +4,7 @@ import Link from "next/link";
 import Cookies from "universal-cookie";
 import { ReactElement, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { onUserEvent } from "@/app/lib/auth/user-event";
+import { onUserEvent } from "@/app/src/lib/auth/user-event";
 import { UserCircleIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 

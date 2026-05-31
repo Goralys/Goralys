@@ -4,7 +4,7 @@
  */
 
 import Cookies from "universal-cookie";
-import { CookieValue } from "@/app/lib/types";
+import { CookieValue } from "@/app/src/lib/types";
 
 export function setCookiesExpire(duration: number): void {
     localStorage.setItem("goralys-cookies-expire", String(Date.now() + duration * 1000));

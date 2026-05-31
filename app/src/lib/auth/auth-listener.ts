@@ -8,8 +8,8 @@
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/app/ui/toast/toast-provider";
-import { onAuthEvent } from "@/app/lib/auth/auth-event";
-import { emitUserEvent } from "@/app/lib/auth/user-event";
+import { onAuthEvent } from "@/app/src/lib/auth/auth-event";
+import { emitUserEvent } from "@/app/src/lib/auth/user-event";
 
 export function AuthListener(): null {
     const router = useRouter();

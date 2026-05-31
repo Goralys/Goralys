@@ -1,7 +1,7 @@
 import { FloatingInput } from "@/app/ui/inputs/floating-input";
 import React, { FormEvent, ReactElement, useEffect, useState } from "react";
-import { searchFields, Subject, SubjectsSearchField } from "@/app/lib/types";
-import { getLongFromShort } from "@/app/lib/subjects/subjects-utils";
+import { searchFields, Subject, SubjectsSearchField } from "@/app/src/lib/types";
+import { getLongFromShort } from "@/app/src/lib/subjects/subjects-utils";
 
 interface SubjectsSearchBarProps {
     subjects: Subject[] | null;

@@ -2,7 +2,7 @@
 
 import { createContext, ReactElement, ReactNode, useCallback, useContext, useMemo, useState } from "react";
 import ToastElement from "@/app/ui/toast/toast-element";
-import { Toast } from "@/app/lib/types";
+import { Toast } from "@/app/src/lib/types";
 import { createPortal } from "react-dom";
 
 export type ToastContext = {

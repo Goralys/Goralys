@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { AuthEvent } from "@/app/lib/types";
+import { AuthEvent } from "@/app/src/lib/types";
 
 const listeners = new Set<(event: AuthEvent) => void>();
 

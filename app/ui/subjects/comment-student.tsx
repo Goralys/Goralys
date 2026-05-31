@@ -1,4 +1,4 @@
-import { Subject } from "@/app/lib/types";
+import { Subject } from "@/app/src/lib/types";
 import { TextArea } from "@/app/ui/inputs/text-area";
 import { ChangeEventHandler, ReactElement } from "react";
 import { SubjectTextArea } from "@/app/ui/inputs/subject-text-area";

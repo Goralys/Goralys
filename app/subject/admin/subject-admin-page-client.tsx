@@ -1,12 +1,12 @@
 "use client";
 
 import { useImportTopicsModal } from "@/app/ui/modals/import-topics/import-topics-modal-provider";
-import { buildApiUrl, fetchCsrfClient, goralysFetchClient, handleToastRequest } from "@/app/lib/fetch/fetch.client";
+import { buildApiUrl, fetchCsrfClient, goralysFetchClient, handleToastRequest } from "@/app/src/lib/fetch/fetch.client";
 import { useToast } from "@/app/ui/toast/toast-provider";
 import { Button } from "@/app/ui/button";
 import { useSubjects } from "@/app/src/hooks/useSubjects";
 import AdminCard from "@/app/ui/subjects/admin-card";
-import { Subject } from "@/app/lib/types";
+import { Subject } from "@/app/src/lib/types";
 import { SubjectsSearchBar } from "@/app/ui/subjects/subjects-search-bar";
 import { ReactElement, Suspense, useState } from "react";
 import AdminSubjectCardSkeleton from "@/app/ui/skeletons/subjects/admin-card";

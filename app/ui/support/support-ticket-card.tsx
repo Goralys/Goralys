@@ -1,9 +1,9 @@
 "use client";
 
-import { reasonsConfig, SupportTicket } from "@/app/lib/types";
+import { reasonsConfig, SupportTicket } from "@/app/src/lib/types";
 import React, { ReactElement } from "react";
 import { TextArea } from "@/app/ui/inputs/text-area";
-import { buildApiUrl } from "@/app/lib/fetch/fetch.client";
+import { buildApiUrl } from "@/app/src/lib/fetch/fetch.client";
 import { Button } from "@/app/ui/button";
 
 interface SupportTicketCardProps {

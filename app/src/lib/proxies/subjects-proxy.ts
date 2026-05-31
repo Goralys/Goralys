@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { roleGuard } from "@/app/lib/proxies/guard/role-guard";
+import { roleGuard } from "@/app/src/lib/proxies/guard/role-guard";
 
 export async function SubjectsProxy(request: NextRequest): Promise<NextResponse> {
     const { pathname } = request.nextUrl;

@@ -1,6 +1,6 @@
 import { FloatingInput } from "@/app/ui/inputs/floating-input";
 import React, { FormEvent, ReactElement, useEffect, useState } from "react";
-import { User } from "@/app/lib/types";
+import { User } from "@/app/src/lib/types";
 
 type UserRoleFilter = "all" | "student" | "teacher";
 

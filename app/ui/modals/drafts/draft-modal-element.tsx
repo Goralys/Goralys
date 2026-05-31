@@ -5,7 +5,7 @@ import { Button } from "@/app/ui/button";
 import InputTextFile from "@/app/ui/inputs/input-text-file";
 import { ReactElement, useRef, useState } from "react";
 import { QuestionMarkCircleIcon } from "@heroicons/react/24/outline";
-import { useModalClose } from "@/app/lib/modals";
+import { useModalClose } from "@/app/src/lib/modals";
 
 interface DraftModalProps {
     visible: boolean;

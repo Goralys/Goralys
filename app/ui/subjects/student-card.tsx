@@ -1,11 +1,11 @@
 "use client";
 
-import { Subject } from "@/app/lib/types";
+import { Subject } from "@/app/src/lib/types";
 import { SubjectInputStudent } from "@/app/ui/inputs/subject-input-student";
 import { Button } from "@/app/ui/button";
 import { ReactElement, useState } from "react";
 import CommentStudent from "@/app/ui/subjects/comment-student";
-import { fetchCsrfClient, goralysFetchClient, handleToastRequest } from "@/app/lib/fetch/fetch.client";
+import { fetchCsrfClient, goralysFetchClient, handleToastRequest } from "@/app/src/lib/fetch/fetch.client";
 import { useToast } from "@/app/ui/toast/toast-provider";
 import Cookies from "universal-cookie";
 import { useDraftModal } from "@/app/ui/modals/drafts/draft-modal-provider";
