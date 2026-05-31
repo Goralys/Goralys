@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import GoralysLogoLoader from "@/app/ui/basic/goralys-logo-loader";
+import GoralysLogoLoader from "@/app/src/ui/basic/goralys-logo-loader";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useToast } from "@/app/ui/toast/toast-provider";
+import { useToast } from "@/app/src/ui/toast/toast-provider";
 import { ReactElement, useEffect } from "react";
 export default function TeapotPageClient(): ReactElement {
     const router = useRouter();

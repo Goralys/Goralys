@@ -7,7 +7,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SupportTicket } from "@/app/src/lib/types";
-import { useToast } from "@/app/ui/toast/toast-provider";
+import { useToast } from "@/app/src/ui/toast/toast-provider";
 import Cookies from "universal-cookie";
 import { buildApiUrl, fetchCsrfClient, goralysFetchClient, handleToastRequest } from "@/app/src/lib/fetch/fetch.client";
 

@@ -2,8 +2,8 @@
 
 import { ReactElement, Suspense } from "react";
 import { useSupportTickets } from "@/app/src/hooks/useSupportTickets";
-import SupportTicketCard from "@/app/ui/support/support-ticket-card";
-import SupportTicketCardSkeleton from "@/app/ui/skeletons/support/support-ticket-card";
+import SupportTicketCard from "@/app/src/ui/support/support-ticket-card";
+import SupportTicketCardSkeleton from "@/app/src/ui/skeletons/support/support-ticket-card";
 
 export default function SupportPageClient(): ReactElement {
     const { supportTickets: tickets } = useSupportTickets();

@@ -1,16 +1,16 @@
 "use client";
 
-import { useImportTopicsModal } from "@/app/ui/modals/import-topics/import-topics-modal-provider";
+import { useImportTopicsModal } from "@/app/src/ui/modals/import-topics/import-topics-modal-provider";
 import { buildApiUrl, fetchCsrfClient, goralysFetchClient, handleToastRequest } from "@/app/src/lib/fetch/fetch.client";
-import { useToast } from "@/app/ui/toast/toast-provider";
-import { Button } from "@/app/ui/button";
+import { useToast } from "@/app/src/ui/toast/toast-provider";
+import { Button } from "@/app/src/ui/button";
 import { useSubjects } from "@/app/src/hooks/useSubjects";
-import AdminCard from "@/app/ui/subjects/admin-card";
+import AdminCard from "@/app/src/ui/subjects/admin-card";
 import { Subject } from "@/app/src/lib/types";
-import { SubjectsSearchBar } from "@/app/ui/subjects/subjects-search-bar";
+import { SubjectsSearchBar } from "@/app/src/ui/subjects/subjects-search-bar";
 import { ReactElement, Suspense, useState } from "react";
-import AdminSubjectCardSkeleton from "@/app/ui/skeletons/subjects/admin-card";
-import { useConfirm } from "@/app/ui/modals/confirm/confirm-provider";
+import AdminSubjectCardSkeleton from "@/app/src/ui/skeletons/subjects/admin-card";
+import { useConfirm } from "@/app/src/ui/modals/confirm/confirm-provider";
 import Cookies from "universal-cookie";
 
 export default function SubjectAdminPageClient(): ReactElement {
@@ -69,7 +69,7 @@ export default function SubjectAdminPageClient(): ReactElement {
 
         if (!confirmResult) return;
 
-        const res = await goralysFetchClient("GET", buildApiUrl("topics", { "csrf-token": await fetchCsrfClient("delete-topics") }));
+        const res = await goralysFetchClient("DELETE", buildApiUrl("topics", { "csrf-token": await fetchCsrfClient("delete-topics") }));
 
         await handleToastRequest(res, toast.showToast, false);
 
@@ -117,7 +117,7 @@ export default function SubjectAdminPageClient(): ReactElement {
                 </div>
             </div>
             <div className="h-auto w-fit p-2 mt-4">
-                <p className="underline text-2xl self-start mb-3">Les questions de l&apos;établissement :</p>
+                <p className="underline w-200 text-2xl self-start mb-3">Les questions de l&apos;établissement :</p>
                 <Suspense fallback={<div className="flex flex-col gap-2 items-center w-full">{skeletons}</div>}>
                     {subjects === null ? (
                         <div className="flex flex-col gap-2">{skeletons}</div>

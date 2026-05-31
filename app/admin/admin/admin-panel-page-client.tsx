@@ -1,12 +1,12 @@
 "use client";
 
 import { useAdmins, useVirtualAdmins } from "@/app/src/hooks/useUsers";
-import { useEffect, useState, Suspense, ReactElement } from "react";
+import { ReactElement, Suspense, useEffect, useState } from "react";
 import { User } from "@/app/src/lib/types";
-import { AdminsSearchBar } from "../../ui/admin-panel/admins-search-bar";
-import AdminCard from "../../ui/admin-panel/admin-card";
-import CreateAdminElement from "../../ui/admin-panel/create-admin-element";
-import AdminPanelCardSkeleton from "../../ui/skeletons/admin-panel/admin-card";
+import { AdminsSearchBar } from "@/app/src/ui/admin-panel/admins-search-bar";
+import AdminCard from "@/app/src/ui/admin-panel/admin-card";
+import CreateAdminElement from "@/app/src/ui/admin-panel/create-admin-element";
+import AdminPanelCardSkeleton from "@/app/src/ui/skeletons/admin-panel/admin-card";
 
 export default function AdminPanelPageClient(): ReactElement {
     const { users: admins, refetch, syncKey } = useAdmins();

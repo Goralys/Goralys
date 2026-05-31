@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { SideNav } from "@/app/ui/nav/side-nav";
+import { SideNav } from "@/app/src/ui/nav/side-nav";
 import { Lusitania } from "@/app/src/lib/fonts";
 import React, { ReactElement } from "react";
 import { AuthListener } from "@/app/src/lib/auth/auth-listener";
-import FlashToastListener from "@/app/ui/toast/flash-toast-listener";
+import FlashToastListener from "@/app/src/ui/toast/flash-toast-listener";
 import { UserListener } from "@/app/src/lib/auth/user-listerner";
-import { Providers } from "@/app/ui/modals/providers";
-import CookieBanner from "@/app/ui/basic/cookies-banner";
+import { Providers } from "@/app/src/ui/modals/providers";
+import CookieBanner from "@/app/src/ui/basic/cookies-banner";
 
 export const metadata: Metadata = {
     title: "Goralys",

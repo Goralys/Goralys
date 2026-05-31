@@ -1,15 +1,15 @@
 "use client";
 
-import { Button } from "@/app/ui/button";
+import { Button } from "@/app/src/ui/button";
 import { buildApiUrl, fetchCsrfClient, goralysFetchClient, handleToastRequest } from "@/app/src/lib/fetch/fetch.client";
-import { useToast } from "@/app/ui/toast/toast-provider";
+import { useToast } from "@/app/src/ui/toast/toast-provider";
 import { emitUserEvent } from "@/app/src/lib/auth/user-event";
-import { Card } from "@/app/ui/card";
-import { FloatingInput } from "@/app/ui/inputs/floating-input";
+import { Card } from "@/app/src/ui/card";
+import { FloatingInput } from "@/app/src/ui/inputs/floating-input";
 import Cookies from "universal-cookie";
 import { ReactElement, useState } from "react";
 import { cacheUserDataClient } from "@/app/src/lib/user/user.client";
-import { useEmailModal } from "../../ui/modals/email/email-modal-provider";
+import { useEmailModal } from "@/app/src/ui/modals/email/email-modal-provider";
 
 export default function MePageClient(): ReactElement {
     const { showToast } = useToast();

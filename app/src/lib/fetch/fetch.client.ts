@@ -9,7 +9,7 @@
 
 import { emitAuthEvent } from "@/app/src/lib/auth/auth-event";
 import { GoralysActionHandler } from "@/app/src/lib/fetch/goralys-action-handler";
-import { ToastContext } from "@/app/ui/toast/toast-provider";
+import { ToastContext } from "@/app/src/ui/toast/toast-provider";
 import { HttpMethod } from "@/app/src/lib/types";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_DOMAIN;
