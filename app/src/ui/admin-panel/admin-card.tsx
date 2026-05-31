@@ -9,6 +9,7 @@ import { useToast } from "@/app/src/ui/toast/toast-provider";
 import { buildApiUrl, fetchCsrfClient, goralysFetchClient, handleToastRequest } from "@/app/src/lib/fetch/fetch.client";
 import Cookies from "universal-cookie";
 import { ReactElement } from "react";
+import { PUB_ID_KEY, USER_SYNCS } from "@/app/src/lib/config";
 
 interface AdminCardProps {
     admin: User;
@@ -50,6 +51,10 @@ export default function AdminCard({ admin, onUpdateAction, syncKey }: AdminCardP
 
         if (data.toastType === "info" && res.ok) {
             cookies.set(syncKey, "0", { path: "/" });
+
+            // Invalidate caches
+            cookies.set(USER_SYNCS["admins-real"], "0", { path: "/" });
+            cookies.set(USER_SYNCS["admins-virtual"], "0", { path: "/" });
             onUpdateAction();
         }
     };
@@ -66,7 +71,7 @@ export default function AdminCard({ admin, onUpdateAction, syncKey }: AdminCardP
                     </strong>
                 </div>
                 <div className="flex flex-row w-100 gap-1 justify-end">
-                    {cookies.get("public-id") === admin.publicId ? (
+                    {cookies.get(PUB_ID_KEY) === admin.publicId ? (
                         <p className="ml-auto">(vous)</p>
                     ) : (
                         <Button color="red" className="w-50!" type="button" text="Révoquer l'accès" onClick={revokeAccess} />

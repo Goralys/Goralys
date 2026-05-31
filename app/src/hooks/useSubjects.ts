@@ -11,6 +11,7 @@ import { useToast } from "@/app/src/ui/toast/toast-provider";
 import Cookies from "universal-cookie";
 import { fetchSubjectsForRoleClient } from "@/app/src/lib/subjects/subjects.client";
 import { handleToastRequest } from "@/app/src/lib/fetch/fetch.client";
+import { SUBJECT_CACHES, SUBJECT_SYNCS, USERNAME_KEY } from "@/app/src/lib/config";
 
 export function useSubjects(role: UserRole["role"]): {
     subjects: Subject[] | null;
@@ -30,12 +31,12 @@ export function useSubjects(role: UserRole["role"]): {
 
     const fetchSubjects = useCallback(async () => {
         const cookies = cookiesRef.current;
-        const cacheKey = `subjects-cache-${role}`;
-        const syncKey = `subjects-synced-${role}`;
+        const cacheKey = SUBJECT_CACHES[role];
+        const syncKey = SUBJECT_SYNCS[role];
 
         console.log("[useSubjects] fetchSubjects called", { role });
 
-        if (!cookies.get("username")) {
+        if (!cookies.get(USERNAME_KEY)) {
             console.log("[useSubjects] no username cookie, aborting");
             return;
         }
@@ -94,7 +95,7 @@ export function useSubjects(role: UserRole["role"]): {
         const cookies = new Cookies();
         const onChange = (): void => {
             if (inFlightRef.current) return;
-            const syncKey = `subjects-synced-${role}`;
+            const syncKey = SUBJECT_SYNCS[role];
             if (cookies.get(syncKey) != "1") {
                 void fetchSubjects();
             }
@@ -112,7 +113,7 @@ export function useSubjects(role: UserRole["role"]): {
         () => ({
             subjects,
             refetch: fetchSubjects,
-            syncKey: `subjects-synced-${role}`,
+            syncKey: SUBJECT_SYNCS[role],
         }),
         [subjects, fetchSubjects, role],
     );

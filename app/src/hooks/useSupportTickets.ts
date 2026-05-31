@@ -10,6 +10,7 @@ import { SupportTicket } from "@/app/src/lib/types";
 import { useToast } from "@/app/src/ui/toast/toast-provider";
 import Cookies from "universal-cookie";
 import { buildApiUrl, fetchCsrfClient, goralysFetchClient, handleToastRequest } from "@/app/src/lib/fetch/fetch.client";
+import { SUPPORT_TICKET_CACHE, SUPPORT_TICKET_SYNC, USERNAME_KEY } from "@/app/src/lib/config";
 
 export function useSupportTickets(): {
     supportTickets: SupportTicket[] | null;
@@ -29,10 +30,10 @@ export function useSupportTickets(): {
 
     const fetchSupportTickets = useCallback(async () => {
         const cookies = cookiesRef.current;
-        const cacheKey = `support-tickets-cache`;
-        const syncKey = `support-tickets-synced`;
+        const syncKey = SUPPORT_TICKET_SYNC;
+        const cacheKey = SUPPORT_TICKET_CACHE;
 
-        if (!cookies.get("username")) {
+        if (!cookies.get(USERNAME_KEY)) {
             console.log("[useSupportTickets] no username cookie, aborting");
             return;
         }

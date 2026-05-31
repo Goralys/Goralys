@@ -5,7 +5,8 @@ import { fetchCsrfClient } from "@/app/src/lib/fetch/fetch.client";
 import { TextArea } from "@/app/src/ui/inputs/text-area";
 import { FloatingInput } from "@/app/src/ui/inputs/floating-input";
 import Cookies from "universal-cookie";
-import { SupportReasons, reasonsConfig } from "@/app/src/lib/types";
+import { reasonsConfig, SupportReasons } from "@/app/src/lib/types";
+import { EMAIL_KEY } from "@/app/src/lib/config";
 
 export default function SupportForm(): ReactElement {
     const [csrfToken, setCsrfToken] = useState<string | null>(null);
@@ -29,7 +30,7 @@ export default function SupportForm(): ReactElement {
                     id="user-email"
                     label="Votre email"
                     helper="Votre email sera simplement utilisé pour vous répondre."
-                    defaultValue={cookie.get("email") ?? ""}
+                    defaultValue={cookie.get(EMAIL_KEY) ?? ""}
                     required
                     email
                 />

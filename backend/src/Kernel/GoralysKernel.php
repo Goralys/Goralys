@@ -698,19 +698,19 @@ class GoralysKernel
         }
 
         $currentRole = UserRole::fromString($_SESSION[GoralysConfig::SESSION::ROLE]);
+        $pass = !($strict ? $currentRole !== $role : !$currentRole->isAtLeast($role));
 
-        if ($strict && $currentRole !== $role) {
+        if (!$pass) {
+            $this->logger->warning(
+                LoggerInitiator::KERNEL,
+                "Tried to perform forbidden action with role " . $currentRole->toString(
+                ) . "(required " . ($strict ? "==" : "=<") . " " . $role->toString() . ")"
+            );
             $this->deferredResponse(403)->error( // Forbidden
                 "Il semblerait que vous n'ayez pas les permissions nécéssaires . ",
             )
-                ->send();
-        }
-
-        if (!$currentRole->isAtLeast($role)) {
-            $this->deferredResponse(403)->error( // Forbidden
-                "Il semblerait que vous n'ayez pas les permissions nécéssaires.",
-            )
-                ->send();
+                    ->redirect("/user/login")
+                    ->send();
         }
     }
 

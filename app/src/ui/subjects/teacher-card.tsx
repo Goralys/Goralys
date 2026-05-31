@@ -9,6 +9,7 @@ import { useConfirm } from "@/app/src/ui/modals/confirm/confirm-provider";
 import Cookies from "universal-cookie";
 import { SubjectInputTeacher } from "@/app/src/ui/inputs/subject-input-teacher";
 import CommentTeacher from "@/app/src/ui/subjects/comment-teacher";
+import { SUBJECT_SYNCS } from "@/app/src/lib/config";
 
 interface TeacherCardProps {
     subjectData: Subject;
@@ -72,7 +73,7 @@ export default function TeacherCard({ subjectData, onUpdateAction }: TeacherCard
         if (await handleToastRequest(res, toast.showToast, false)) {
             const data = await res.json();
             if (data.toastType === "info" && res.ok) {
-                cookies.set("subjects-synced-teacher", false, { path: "/" });
+                cookies.set(SUBJECT_SYNCS["teacher"], false, { path: "/" });
                 onUpdateAction();
             }
         }
@@ -104,7 +105,7 @@ export default function TeacherCard({ subjectData, onUpdateAction }: TeacherCard
         if (await handleToastRequest(res, toast.showToast, false)) {
             const data = await res.json();
             if (data.toastType === "info" && res.ok) {
-                cookies.set("subjects-synced-teacher", false, { path: "/" });
+                cookies.set(SUBJECT_SYNCS["teacher"], false, { path: "/" });
                 onUpdateAction();
             }
         }

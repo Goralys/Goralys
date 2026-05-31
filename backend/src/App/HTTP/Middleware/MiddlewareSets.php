@@ -72,12 +72,15 @@ final class MiddlewareSets
     /**
      * Middlewares for general support routes
      * @param string $action The action to perform.
+     * @param array{0: UserRole, 1: boolean} $roleConfig The {@see RoleMiddleware} configuration
+     * in the form of a [role, strict] array where role is the required role and strict is whether to require this role
+     * strictly (exact match) or lightly (at least).
      * @return list<Middleware> The pre-composed middlewares list.
      */
-    public static function supportRoute(string $action): array
+    public static function supportRoute(string $action, array $roleConfig = [UserRole::ADMIN, true]): array
     {
         return [
-            new Middleware(...RoleMiddleware::require(UserRole::ADMIN, true)),
+            new Middleware(...RoleMiddleware::require(...$roleConfig)),
             new Middleware(...RateLimitMiddleware::for($action, "/")),
             new Middleware(...CSRFMiddleware::form($action, "/")),
             new Middleware(...AuthMiddleware::require()),

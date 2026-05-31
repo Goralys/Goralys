@@ -10,6 +10,7 @@ import { useToast } from "@/app/src/ui/toast/toast-provider";
 import Cookies from "universal-cookie";
 import { useDraftModal } from "@/app/src/ui/modals/drafts/draft-modal-provider";
 import { useConfirm } from "@/app/src/ui/modals/confirm/confirm-provider";
+import { SUBJECT_SYNCS } from "@/app/src/lib/config";
 
 interface StudentCardProps {
     subjectData: Subject;
@@ -49,7 +50,7 @@ export default function StudentCard({ subjectData, onUpdateAction }: StudentCard
         const data = await res.json();
 
         if (data.toastType === "info" && res.ok) {
-            cookies.set("subjects-synced-student", "0", { path: "/" });
+            cookies.set(SUBJECT_SYNCS["student"], "0", { path: "/" });
             onUpdateAction();
         }
     };
@@ -112,7 +113,7 @@ export default function StudentCard({ subjectData, onUpdateAction }: StudentCard
         if (await handleToastRequest(res, toast.showToast, false)) {
             const data = await res.json();
             if (data.toastType === "info" && res.ok) {
-                cookies.set("subjects-synced-student", "0", { path: "/" });
+                cookies.set(SUBJECT_SYNCS["student"], "0", { path: "/" });
                 onUpdateAction();
             }
         }

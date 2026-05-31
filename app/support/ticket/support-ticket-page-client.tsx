@@ -1,9 +1,8 @@
 "use client";
 
-import { ReactElement, useEffect, useState } from "react";
+import { ReactElement, useState } from "react";
 import { buildApiUrl, fetchCsrfClient, goralysFetchClient, handleToastRequest } from "@/app/src/lib/fetch/fetch.client";
 import { parsePhpDateTime, SupportTicket } from "@/app/src/lib/types";
-import { useSearchParams } from "next/navigation";
 import { Card } from "@/app/src/ui/card";
 import { Button } from "@/app/src/ui/button";
 import { TextArea } from "@/app/src/ui/inputs/text-area";
@@ -12,37 +11,14 @@ import { setCookie } from "@/app/src/lib/cookies";
 import Cookies from "universal-cookie";
 import { useToast } from "@/app/src/ui/toast/toast-provider";
 
-export default function SupportTicketPageClient(): ReactElement {
-    const searchParams = useSearchParams();
+interface SupportTicketPageClientProps {
+    ticket: SupportTicket;
+}
+
+export default function SupportTicketPageClient({ ticket }: SupportTicketPageClientProps): ReactElement {
     const toast = useToast();
     const cookies = new Cookies();
     const [message, setMessage] = useState("");
-    const [ticket, setTicket] = useState<SupportTicket>({
-        id: -1,
-        opener: "",
-        openerToken: "",
-        message: "",
-        reason: "other",
-        createdAt: { timezone: "", date: "", timezone_type: -1 },
-    });
-
-    useEffect(() => {
-        const id = searchParams.get("t") ?? -1;
-
-        const run = async (): Promise<void> => {
-            const res = await goralysFetchClient(
-                "GET",
-                buildApiUrl("support/ticket", { "csrf-token": await fetchCsrfClient("get-ticket"), t: id.toString() }),
-            );
-
-            if (res.ok) {
-                const data = await res.json();
-                if (data) setTicket(data);
-            }
-        };
-
-        run().then();
-    }, [searchParams]);
 
     const resolve = async (): Promise<void> => {
         const res = await goralysFetchClient(

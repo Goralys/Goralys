@@ -50,10 +50,20 @@ function bootstrapAPI(GoralysKernel $kernel): void
     // Check if the user agent from the client is valid
     error_log("BOOTSTRAP - 3: UA check, current_id=" . ($_SESSION[GoralysConfig::SESSION::ID] ?? 'none')
             . ", UA=" . ($_SERVER['HTTP_USER_AGENT'] ?? 'none'));
+    $whiteListUA = ["node"];
     if (isset($_SESSION[GoralysConfig::SESSION::ID])) {
         $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? null;
+        $shouldCheck = true;
 
-        if ($userAgent !== null) {
+        foreach ($whiteListUA as $uaPattern) {
+            if (str_starts_with($userAgent, $uaPattern)) {
+                $shouldCheck = false;
+                error_log("Skipping check for UA: " . $userAgent);
+                break;
+            }
+        }
+
+        if ($userAgent !== null && $shouldCheck) {
             $ua = $_SESSION['ua'] ?? null;
             $uaHash = hash("sha256", $userAgent);
 

@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { onUserEvent } from "@/app/src/lib/auth/user-event";
 import { UserCircleIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
+import { FULL_NAME_KEY, ROLE_KEY, USERNAME_KEY } from "@/app/src/lib/config";
 
 export function UserNav(): ReactElement {
     const [text, setText] = useState<string | null>(null);
@@ -20,10 +21,10 @@ export function UserNav(): ReactElement {
         const cookies = new Cookies();
 
         const run = (): void => {
-            const isLoggedIn = !!cookies.get("username");
+            const isLoggedIn = !!cookies.get(USERNAME_KEY);
             setLoggedIn(isLoggedIn);
 
-            let name = isLoggedIn ? (cookies.get("full-name") ?? "") : "Se connecter";
+            let name = isLoggedIn ? (cookies.get(FULL_NAME_KEY) ?? "") : "Se connecter";
             if (name.length > 20) name = name.substring(0, 19) + "...";
             setText(name);
         };
@@ -37,14 +38,14 @@ export function UserNav(): ReactElement {
             const isLoggedIn = event === "login";
 
             if (!isLoggedIn) {
-                cookies.remove("full-name");
-                cookies.remove("user-role");
-                cookies.remove("username");
+                cookies.remove(FULL_NAME_KEY);
+                cookies.remove(ROLE_KEY);
+                cookies.remove(USERNAME_KEY);
             }
 
             setLoggedIn(isLoggedIn);
 
-            let name = isLoggedIn ? (cookies.get("full-name") ?? "") : "Se connecter";
+            let name = isLoggedIn ? (cookies.get(FULL_NAME_KEY) ?? "") : "Se connecter";
             if (name.length > 25) name = name.substring(0, 22) + "...";
             setText(name);
         });

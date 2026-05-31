@@ -313,7 +313,7 @@ function createUserRoutes(GoralysRouter $router): void
                     ->send();
         }
 
-        $message = "Le compte a bien été réinitialisé, l'utilisateur peut maintenant recréer son compte.";
+        $message = "Le compte a bien été réinitialisé, l'utilisateur peut maintenant le recréer.";
 
         if ($email) {
             $registerLink = $kernel->env->getByKey("ORIGIN_DOMAIN")

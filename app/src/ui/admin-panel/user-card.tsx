@@ -10,6 +10,8 @@ import { buildApiUrl, fetchCsrfClient, goralysFetchClient, handleToastRequest } 
 import Cookies from "universal-cookie";
 import ReplaceTeacherElement from "./replace-teacher-element";
 import { ReactElement } from "react";
+import { useConfirm } from "@/app/src/ui/modals/confirm/confirm-provider";
+import { USER_SYNCS } from "@/app/src/lib/config";
 
 interface UserCardProps {
     user: User;
@@ -21,6 +23,7 @@ interface UserCardProps {
 
 export default function UserCard({ user, type, onUpdateAction, syncKey, virtualSyncKey }: UserCardProps): ReactElement {
     const password = usePasswordModal();
+    const confirmCtx = useConfirm();
     const toast = useToast();
     const cookies = new Cookies();
 
@@ -28,12 +31,17 @@ export default function UserCard({ user, type, onUpdateAction, syncKey, virtualS
         route: string,
         method: HttpMethod,
         action: string,
-        confirm?: string,
+        confirm: string,
         extraPayload: Record<string, string> = {},
         toastDuration: number = 5000,
+        confirmModal: boolean = false,
     ): Promise<void> => {
-        const pwd = await password.showPasswordModal(confirm);
+        if (confirmModal) {
+            const conf = await confirmCtx.showConfirm({ message: "Veuillez confirmer " + confirm, title: "Confirmation requise" });
+            if (!conf) return;
+        }
 
+        const pwd = await password.showPasswordModal(confirm);
         if (!pwd) return;
 
         if (pwd.trim() === "") {
@@ -61,6 +69,10 @@ export default function UserCard({ user, type, onUpdateAction, syncKey, virtualS
         if (data.toastType === "info" && res.ok) {
             cookies.set(syncKey, "0", { path: "/" });
             cookies.set(virtualSyncKey, "0", { path: "/" });
+
+            // Invalidate caches
+            cookies.set(USER_SYNCS["users-real"], "0", { path: "/" });
+            cookies.set(USER_SYNCS["users-virtual"], "0", { path: "/" });
             onUpdateAction();
         }
     };
@@ -68,7 +80,8 @@ export default function UserCard({ user, type, onUpdateAction, syncKey, virtualS
     const resetAccount = async (): Promise<void> =>
         await fetchAdmin("users/reset", "PATCH", "reset-account", "la réinitialisation du compte");
 
-    const deleteUser = async (): Promise<void> => await fetchAdmin("users", "DELETE", "delete-user", "la suppression de l'utilisateur");
+    const deleteUser = async (): Promise<void> =>
+        await fetchAdmin("users", "DELETE", "delete-user", "la suppression de l'utilisateur", undefined, 500, true);
 
     const replaceTeacher = async (firstName: string, lastName: string): Promise<void> =>
         await fetchAdmin("users/teacher/replace", "PUT", "replace-teacher", "le remplacement du professeur", {

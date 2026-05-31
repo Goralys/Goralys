@@ -6,16 +6,18 @@ import { useToast } from "@/app/src/ui/toast/toast-provider";
 import Cookies from "universal-cookie";
 import { fetchAdminsClient, fetchUsersClient, fetchVirtualAdminsClient, fetchVirtualUsersClient } from "@/app/src/lib/user/user.client";
 import { handleToastRequest } from "@/app/src/lib/fetch/fetch.client";
+import { USER_CACHES, USER_SYNCS, USERNAME_KEY, UserType } from "@/app/src/lib/config";
 
 function useUserCollection(
     fetchFn: () => Promise<Response | undefined>,
-    cacheKey: string,
-    syncKey: string,
+    type: UserType["type"],
 ): {
     users: User[] | null;
     refetch: () => Promise<undefined | void>;
     syncKey: string;
 } {
+    const syncKey = USER_SYNCS[type];
+    const cacheKey = USER_CACHES[type];
     const [users, setUsers] = useState<User[] | null>(null);
     const { showToast } = useToast();
     const showToastRef = useRef(showToast);
@@ -29,7 +31,7 @@ function useUserCollection(
     const fetchUsers = useCallback(async () => {
         const cookies = cookiesRef.current;
 
-        if (!cookies.get("username")) return;
+        if (!cookies.get(USERNAME_KEY)) return;
         if (inFlightRef.current) return inFlightRef.current;
 
         let resolve: () => void;
@@ -86,15 +88,15 @@ function useUserCollection(
 }
 
 export function useUsers(): { users: User[] | null; refetch: () => Promise<void | undefined>; syncKey: string } {
-    return useUserCollection(fetchUsersClient, "users-cache", "users-synced");
+    return useUserCollection(fetchUsersClient, "users-real");
 }
 
 export function useVirtualUsers(): { users: User[] | null; refetch: () => Promise<void | undefined>; syncKey: string } {
-    return useUserCollection(fetchVirtualUsersClient, "virtual-users-cache", "virtual-users-synced");
+    return useUserCollection(fetchVirtualUsersClient, "users-virtual");
 }
 
 export function useAdmins(): { users: User[] | null; refetch: () => Promise<void | undefined>; syncKey: string } {
-    return useUserCollection(fetchAdminsClient, "admins-cache", "admins-synced");
+    return useUserCollection(fetchAdminsClient, "admins-real");
 }
 
 export function useVirtualAdmins(): {
@@ -102,5 +104,5 @@ export function useVirtualAdmins(): {
     refetch: () => Promise<void | undefined>;
     syncKey: string;
 } {
-    return useUserCollection(fetchVirtualAdminsClient, "virtual-admins-cache", "virtual-admins-synced");
+    return useUserCollection(fetchVirtualAdminsClient, "admins-virtual");
 }

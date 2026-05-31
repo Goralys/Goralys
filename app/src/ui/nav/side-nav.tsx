@@ -4,8 +4,9 @@ import { NavLink } from "@/app/src/ui/nav/nav-link";
 import { UserNav } from "@/app/src/ui/nav/user-nav";
 import Cookies from "universal-cookie";
 import { ReactElement, useEffect, useState } from "react";
-import { UserRole, USER_ROLES, buildArray } from "@/app/src/lib/types";
+import { buildArray, USER_ROLES, UserRole } from "@/app/src/lib/types";
 import Image from "next/image";
+import { ROLE_KEY } from "@/app/src/lib/config";
 
 export function SideNav(): ReactElement {
     const [role, setRole] = useState<UserRole["role"]>("none");
@@ -14,12 +15,12 @@ export function SideNav(): ReactElement {
         const cookies = new Cookies();
 
         const run = (): void => {
-            const current: string = cookies.get("user-role") ?? "none";
+            const current: string = cookies.get(ROLE_KEY) ?? "none";
             setRole(USER_ROLES.includes(current as UserRole["role"]) ? (current as UserRole["role"]) : "none");
         };
 
         const onChange = (): void => {
-            const role: string = cookies.get("user-role") ?? "none";
+            const role: string = cookies.get(ROLE_KEY) ?? "none";
             setRole(USER_ROLES.includes(role as UserRole["role"]) ? (role as UserRole["role"]) : "none");
         };
 

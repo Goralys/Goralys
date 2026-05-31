@@ -12,6 +12,7 @@ import { ReactElement, Suspense, useState } from "react";
 import AdminSubjectCardSkeleton from "@/app/src/ui/skeletons/subjects/admin-card";
 import { useConfirm } from "@/app/src/ui/modals/confirm/confirm-provider";
 import Cookies from "universal-cookie";
+import { SUBJECT_SYNCS, USER_SYNCS } from "@/app/src/lib/config";
 
 export default function SubjectAdminPageClient(): ReactElement {
     const modal = useImportTopicsModal();
@@ -51,8 +52,8 @@ export default function SubjectAdminPageClient(): ReactElement {
             a.click();
             URL.revokeObjectURL(url);
             cookies.set(syncKey, "0", { path: "/" });
-            cookies.set("users-synced", "0", { path: "/" });
-            cookies.set("virtual-users-synced", "0", { path: "/" });
+            cookies.set(USER_SYNCS["users-real"], "0", { path: "/" });
+            cookies.set(USER_SYNCS["users-virtual"], "0", { path: "/" });
             await refetch();
             setCurrentSubjects(subjects || []);
             return;
@@ -129,7 +130,7 @@ export default function SubjectAdminPageClient(): ReactElement {
                                     <AdminCard
                                         key={s.studentToken + s.teacherToken}
                                         subjectData={s}
-                                        syncKey="subjects-synced-admin"
+                                        syncKey={SUBJECT_SYNCS["admin"]}
                                         onUpdateAction={refetch}
                                     />
                                 ))}

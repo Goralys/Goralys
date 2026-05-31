@@ -10,19 +10,20 @@ import Cookies from "universal-cookie";
 import { ReactElement, useState } from "react";
 import { cacheUserDataClient } from "@/app/src/lib/user/user.client";
 import { useEmailModal } from "@/app/src/ui/modals/email/email-modal-provider";
+import { EMAIL_KEY, FULL_NAME_KEY, USERNAME_KEY } from "@/app/src/lib/config";
 
 export default function MePageClient(): ReactElement {
     const { showToast } = useToast();
     const { showEmailModal } = useEmailModal();
     const cookies = new Cookies();
-    const [email, setEmail] = useState<string>(cookies.get("email") ?? "");
-    const [username, setUsername] = useState<string>(cookies.get("username") ?? "");
-    const [fullName, setFullName] = useState<string>(cookies.get("full-name") ?? " ");
+    const [email, setEmail] = useState<string>(cookies.get(EMAIL_KEY) ?? "");
+    const [username, setUsername] = useState<string>(cookies.get(USERNAME_KEY) ?? "");
+    const [fullName, setFullName] = useState<string>(cookies.get(FULL_NAME_KEY) ?? " ");
     const updateUserData = async (): Promise<void> => {
         await cacheUserDataClient();
-        setUsername(new Cookies().get("username") ?? "");
-        setFullName(new Cookies().get("full-name") ?? " ");
-        setEmail(new Cookies().get("email") ?? "");
+        setUsername(new Cookies().get(USERNAME_KEY) ?? "");
+        setFullName(new Cookies().get(FULL_NAME_KEY) ?? " ");
+        setEmail(new Cookies().get(EMAIL_KEY) ?? "");
     };
     const logout = async (): Promise<void> => {
         const payload = { "csrf-token": await fetchCsrfClient("logout") };

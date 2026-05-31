@@ -59,7 +59,7 @@ function createSupportRoutes(GoralysRouter $router): void
                 ->redirect("/")
                 ->send();
     }, RouterOptions::$INPUT::require("reason", "message", "user-email"))
-            ->middlewares(...MiddlewareSets::supportRoute("support-ticket"))
+            ->middlewares(...MiddlewareSets::supportRoute("support-ticket", [UserRole::STUDENT, false]))
             ->middleware(...ToastMiddleware::flash());
 
     $router->get("support/tickets", function (GoralysKernel $kernel) {

@@ -9,7 +9,7 @@ import { removeCookie, setCookie } from "@/app/src/lib/cookies";
 import Cookies from "universal-cookie";
 import { buildApiUrl, fetchCsrfClient, goralysFetchClient } from "@/app/src/lib/fetch/fetch.client";
 import { UserData } from "@/app/src/lib/types";
-import { PERSISTANT_COOKIES } from "@/app/src/lib/config";
+import { EMAIL_KEY, FULL_NAME_KEY, PERSISTANT_COOKIES, PERSISTANT_LOCALS, PUB_ID_KEY, ROLE_KEY, USERNAME_KEY } from "@/app/src/lib/config";
 
 export async function cacheUserDataClient(): Promise<void> {
     const res = await goralysFetchClient("GET", "user/profile");
@@ -22,17 +22,23 @@ export async function cacheUserDataClient(): Promise<void> {
 
     const cookie = new Cookies();
 
-    setCookie(cookie, "username", data.username, 1.5 * 60 * 60);
-    setCookie(cookie, "full-name", data.full_name, 1.5 * 60 * 60);
-    setCookie(cookie, "user-role", data.role, 1.5 * 60 * 60);
-    setCookie(cookie, "public-id", data.public_id, 1.5 * 60 * 60);
-    if (data?.email) setCookie(cookie, "email", data.email, 1.5 * 60 * 60);
-    else removeCookie(cookie, "email", 1.5 * 60 * 60);
+    setCookie(cookie, USERNAME_KEY, data.username, 1.5 * 60 * 60);
+    setCookie(cookie, FULL_NAME_KEY, data.full_name, 1.5 * 60 * 60);
+    setCookie(cookie, ROLE_KEY, data.role, 1.5 * 60 * 60);
+    setCookie(cookie, PUB_ID_KEY, data.public_id, 1.5 * 60 * 60);
+    if (data?.email) setCookie(cookie, EMAIL_KEY, data.email, 1.5 * 60 * 60);
+    else removeCookie(cookie, EMAIL_KEY, 1.5 * 60 * 60);
 
     cookie.update();
 }
 
 export function emptyUserCacheClient(): void {
+    // Invalidate old local cache
+    for (let i: number = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i)!; // 'i' must be a valid index (see loop above)
+        if (!PERSISTANT_LOCALS.includes(key)) localStorage.removeItem(key);
+    }
+
     const cookies = new Cookies();
 
     Object.keys(cookies.getAll()).forEach((name) => {

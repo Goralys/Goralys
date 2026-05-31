@@ -3,7 +3,59 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+import { UserRole } from "@/app/src/lib/types";
+
 export const PERSISTANT_COOKIES: string[] = ["cookie-banner-dismissed"];
+export const PERSISTANT_LOCALS: string[] = ["goralys-cookies-expire", "flash_toast"];
+
+/* Caches cookies config */
+
+export const USERNAME_KEY = "username";
+export const ROLE_KEY = "user-role";
+export const FULL_NAME_KEY = "full-name";
+export const EMAIL_KEY = "email";
+export const PUB_ID_KEY = "public-id";
+
+export const SUBJECT_SYNC_RADIX = "subjects-synced-";
+export const SUBJECT_CACHE_RADIX = "subjects-cache-";
+export const USER_CACHE_RADIX = "users-cache-";
+export const USER_SYNC_RADIX = "users-synced-";
+export const ADMIN_CACHE_RADIX = "admins-cache-";
+export const ADMIN_SYNC_RADIX = "admins-synced-";
+export const SUPPORT_TICKET_CACHE = "support-tickets-cache";
+export const SUPPORT_TICKET_SYNC = "support-tickets-synced";
+
+export const SUBJECT_SYNCS: Record<UserRole["role"], string> = {
+    student: SUBJECT_SYNC_RADIX + "student",
+    teacher: SUBJECT_SYNC_RADIX + "teacher",
+    admin: SUBJECT_SYNC_RADIX + "admin",
+    none: SUBJECT_SYNC_RADIX + "unknown",
+};
+
+export const SUBJECT_CACHES: Record<UserRole["role"], string> = {
+    student: SUBJECT_CACHE_RADIX + "student",
+    teacher: SUBJECT_CACHE_RADIX + "teacher",
+    admin: SUBJECT_CACHE_RADIX + "admin",
+    none: SUBJECT_CACHE_RADIX + "unknown",
+};
+
+export type UserType = {
+    type: "users-virtual" | "users-real" | "admins-virtual" | "admins-real";
+};
+
+export const USER_SYNCS: Record<UserType["type"], string> = {
+    "users-real": USER_SYNC_RADIX + "users",
+    "users-virtual": USER_SYNC_RADIX + "users-virtual",
+    "admins-real": ADMIN_SYNC_RADIX + "admins",
+    "admins-virtual": ADMIN_SYNC_RADIX + "admins-virtual",
+};
+
+export const USER_CACHES: Record<UserType["type"], string> = {
+    "users-real": USER_CACHE_RADIX + "users",
+    "users-virtual": USER_CACHE_RADIX + "users-virtual",
+    "admins-real": ADMIN_CACHE_RADIX + "admins",
+    "admins-virtual": ADMIN_CACHE_RADIX + "admins-virtual",
+};
 
 /* Help Center config */
 
