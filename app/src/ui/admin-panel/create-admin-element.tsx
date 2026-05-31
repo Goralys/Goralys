@@ -23,7 +23,7 @@ export default function CreateAdminElement({ onUpdateAction, syncKey, virtualSyn
     const cookies = new Cookies();
 
     const createAdmin = async (): Promise<void> => {
-        const pwd = await password.showPasswordModal();
+        const pwd = await password.showPasswordModal("la création du nouvel administrateur");
 
         if (!pwd) return;
 

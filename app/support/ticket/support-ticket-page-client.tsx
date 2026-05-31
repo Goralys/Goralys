@@ -2,7 +2,7 @@
 
 import { ReactElement, useState } from "react";
 import { buildApiUrl, fetchCsrfClient, goralysFetchClient, handleToastRequest } from "@/app/src/lib/fetch/fetch.client";
-import { parsePhpDateTime, SupportTicket } from "@/app/src/lib/types";
+import { parsePhpDateTime, reasonsConfig, SupportTicket } from "@/app/src/lib/types";
 import { Card } from "@/app/src/ui/card";
 import { Button } from "@/app/src/ui/button";
 import { TextArea } from "@/app/src/ui/inputs/text-area";
@@ -18,13 +18,22 @@ interface SupportTicketPageClientProps {
 export default function SupportTicketPageClient({ ticket }: SupportTicketPageClientProps): ReactElement {
     const toast = useToast();
     const cookies = new Cookies();
-    const [message, setMessage] = useState("");
+    const [message, setMessage] = useState<string>("");
 
     const resolve = async (): Promise<void> => {
+        if (!message || message.trim() === "") {
+            toast.showToast({
+                type: "warning",
+                title: "Message",
+                message: "Veuillez fournir un message pour résoudre ce ticket.",
+            });
+            return;
+        }
+
         const res = await goralysFetchClient(
             "PATCH",
             buildApiUrl("ticket/resolve", { "csrf-token": await fetchCsrfClient("resolve-ticket"), t: ticket.id.toString() }),
-            { message: message ?? "" },
+            { message: message },
         );
 
         if (res.ok) setCookie(cookies, "support-tickets-synced", "0");
@@ -41,7 +50,7 @@ export default function SupportTicketPageClient({ ticket }: SupportTicketPageCli
                 <div className="flex flex-col gap-y-1">
                     <FloatingInput id="utilisateur" label="Utilisateur" value={ticket.opener} disabled />
 
-                    <FloatingInput id="raison" label="Raison" value={ticket.reason} disabled />
+                    <FloatingInput id="raison" label="Raison" value={reasonsConfig[ticket.reason].label} disabled />
 
                     <TextArea id="message" label="Message" defaultValue={ticket.message} disabled />
 

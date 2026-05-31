@@ -1,7 +1,7 @@
 import { ReactElement } from "react";
 import SupportTicketPageClient from "./support-ticket-page-client";
 import { cookies } from "next/headers";
-import { notFound, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 
 interface PageParams {
     t: string;
@@ -10,7 +10,7 @@ interface PageParams {
 export default async function Page({ searchParams }: { searchParams: Promise<PageParams> }): Promise<ReactElement> {
     const id = (await searchParams).t;
 
-    if (!id) notFound();
+    if (!id) redirect("/support");
 
     const cookieStore = await cookies();
     const sessionCookie = cookieStore.get("GORALYSSESSID")?.value;
@@ -37,9 +37,16 @@ export default async function Page({ searchParams }: { searchParams: Promise<Pag
         },
     });
 
+    const text = await res.text();
+
     if (res.status === 401) redirect("/user/login?reason=unauthenticated");
-    if (!res.ok) notFound();
-    const ticket = await res.json();
+    if (res.status !== 200) redirect("/support");
+    if (text.startsWith("<")) {
+        console.error("Backend returned HTML instead of JSON!");
+        redirect("/support");
+    }
+
+    const ticket = JSON.parse(text);
 
     return <SupportTicketPageClient ticket={ticket} />;
 }

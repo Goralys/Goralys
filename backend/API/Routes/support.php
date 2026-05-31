@@ -72,9 +72,9 @@ function createSupportRoutes(GoralysRouter $router): void
             $kernel->deferredResponse(400)->toast( // Bad Request
                 ToastType::ERROR,
                 "Ticket de support",
-                "Aucun ticket de support ne correspond à l'id donné."
+                "Aucun ticket de support ne correspond à l'identifiant donné."
             )
-                    ->redirect("/support/tickets")
+                    ->redirect("/support")
                     ->send();
         }
         $kernel->response()->json($ticket); // OK
@@ -87,9 +87,9 @@ function createSupportRoutes(GoralysRouter $router): void
             $kernel->deferredResponse(400)->toast( // Bad Request
                 ToastType::ERROR,
                 "Ticket de support",
-                "Aucun ticket de support ne correspond à l'id donné."
+                "Aucun ticket de support ne correspond à l'identifiant donné."
             )
-                    ->redirect("/support/tickets")
+                    ->redirect("/support")
                     ->send();
         }
 
