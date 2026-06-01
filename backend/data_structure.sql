@@ -32,7 +32,6 @@ create table users
 -- emails table
 -- -----------------------------------------------------
 
-
 create table emails
 (
     username varchar(32)  not null unique, -- fk -> users.username
