@@ -1,9 +1,8 @@
-import { clsx } from "clsx";
 import { getStatusHelper, Subject } from "@/app/src/lib/types";
 import { ArrowDownTrayIcon } from "@heroicons/react/24/outline";
 import { SubjectTextArea } from "@/app/src/ui/inputs/subject-text-area";
 import Checkbox from "@/app/src/ui/inputs/checkbox";
-import React, { ChangeEventHandler, ReactElement, useState } from "react";
+import React, { ChangeEventHandler, ReactElement } from "react";
 import { buildApiUrl } from "@/app/src/lib/fetch/fetch.client";
 
 interface SubjectInputMultilineProps {
@@ -19,14 +18,9 @@ export function SubjectInputTeacher({ id, label, helper, subjectData, onChangeAc
     helper = getStatusHelper(subjectData.status, "teacher");
 
     const initialValue = subjectData.status == "rejected" ? (subjectData.lastRejected ?? "") : (subjectData.subject ?? "");
-    const [currentValue, setCurrentValue] = useState(initialValue);
     const MAX_CHARS = 250;
 
     const handleOnChange = (e: React.ChangeEvent<HTMLTextAreaElement>): void => {
-        if (e.target.value.length > MAX_CHARS) {
-            return;
-        }
-        setCurrentValue(e.target.value);
         if (onChangeAction) {
             onChangeAction(e);
         }
@@ -46,12 +40,7 @@ export function SubjectInputTeacher({ id, label, helper, subjectData, onChangeAc
     };
 
     return (
-        <div
-            className={clsx("relative mt-3 group min-w-50", {
-                "mb-5": helper !== undefined,
-                "mb-1": helper === undefined,
-            })}
-        >
+        <div className="relative mt-2 group min-w-50 mb-0">
             <div className="flex flex-row">
                 <SubjectTextArea
                     id={id}
@@ -62,6 +51,7 @@ export function SubjectInputTeacher({ id, label, helper, subjectData, onChangeAc
                     label={label}
                     subjectData={subjectData}
                     animate={false}
+                    helper={helper}
                 />
                 {subjectData.hasDraft && (
                     <button
@@ -77,14 +67,9 @@ export function SubjectInputTeacher({ id, label, helper, subjectData, onChangeAc
             </div>
 
             <div className="flex flex-row content-between w-full">
-                <div className="flex flex-col">
-                    <p className="mt-0 mb-0 p-0 relative text-[11px] italic text-gray-600">{currentValue.length}/250 caractères</p>
-                    {helper.length !== 0 && <p className="mt-0 self-center relative text-[13px] italic text-gray-600">*{helper}</p>}
-                </div>
-
                 <Checkbox
                     id={`interdisciplinary-teacher-${subjectData.studentToken}-${subjectData.teacherToken}`}
-                    className="ml-auto self-center"
+                    className="ml-auto -mt-7.5 mb-2.5 self-center"
                     label="Question transversale"
                     setValueAction={() => {}}
                     defaultValue={subjectData.interdisciplinary}

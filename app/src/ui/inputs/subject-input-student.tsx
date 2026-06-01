@@ -24,22 +24,18 @@ export function SubjectInputStudent({
 }: SubjectInputMultilineProps): ReactElement {
     const initialValue = subjectData.status == "rejected" ? (subjectData.lastRejected ?? "") : (subjectData.subject ?? "");
     const MAX_CHARS = 250;
-
     helper = getStatusHelper(subjectData.status, "student");
 
     const editable = subjectData.status != "approved" && subjectData.status != "submitted";
 
     const handleOnChange = (e: React.ChangeEvent<HTMLTextAreaElement>): void => {
-        if (e.target.value.length > MAX_CHARS) {
-            return;
-        }
         if (onChangeAction) {
             onChangeAction(e);
         }
     };
 
     return (
-        <div className={"relative mt-3 group min-w-50 mb-0"}>
+        <div className="relative mt-2 group min-w-50 mb-0">
             <SubjectTextArea
                 id={id}
                 disabled={!editable}
@@ -54,7 +50,7 @@ export function SubjectInputStudent({
 
             <div className="flex flex-row content-between w-full">
                 <Checkbox
-                    className="m-0 -mt-15 ml-auto self-center"
+                    className="m-0 -mt-7.5 ml-auto self-center"
                     label="Question transversale"
                     setValueAction={setIsInterdisciplinaryAction}
                     defaultValue={subjectData.interdisciplinary}

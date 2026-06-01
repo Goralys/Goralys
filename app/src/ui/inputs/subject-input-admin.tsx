@@ -1,4 +1,3 @@
-import { clsx } from "clsx";
 import { getStatusHelper, Subject } from "@/app/src/lib/types";
 import { SubjectTextArea } from "@/app/src/ui/inputs/subject-text-area";
 import { ChangeEventHandler, ReactElement } from "react";
@@ -16,12 +15,7 @@ export function SubjectInputAdmin({ id, label, helper, subjectData, onChangeActi
     helper = getStatusHelper(subjectData.status, "admin");
 
     return (
-        <div
-            className={clsx("relative mt-3 group min-w-50", {
-                "mb-5": helper !== undefined,
-                "mb-1": helper === undefined,
-            })}
-        >
+        <div className="relative mt-2 group min-w-50">
             <SubjectTextArea
                 id={id}
                 disabled={true}
@@ -30,9 +24,8 @@ export function SubjectInputAdmin({ id, label, helper, subjectData, onChangeActi
                 animate={false}
                 subjectData={subjectData}
                 defaultValue={subjectData.subject}
+                helper={helper}
             />
-
-            {helper.length !== 0 && <p className="mt-0 absolute text-[13px] italic text-gray-600">*{helper}</p>}
         </div>
     );
 }

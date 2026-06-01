@@ -34,19 +34,18 @@ export function SubjectTextArea({
     const [currentValue, setCurrentValue] = useState<string>(defaultValue ?? "");
 
     const update: ChangeEventHandler<HTMLTextAreaElement> = (e) => {
+        if (maxLength && e.target.value.length > maxLength) {
+            return;
+        }
         setCurrentValue(e.currentTarget.value);
         if (onChangeAction) onChangeAction(e);
     };
 
     return (
-        <div
-            className={clsx("relative mt-0 mb-0 group min-w-50 w-full", {
-                "mb-5!": !!helper,
-            })}
-        >
+        <div className="relative mt-0 mb-0 group min-w-50 w-full">
             <div className="relative">
                 <textarea
-                    ref={setRef} // ← merged ref: forwards + sets up resize
+                    ref={setRef} // <- merged ref: forwards + sets up resize
                     id={id}
                     name={id}
                     rows={1}
@@ -102,7 +101,7 @@ export function SubjectTextArea({
                 <div className="flex flex-col">
                     {maxLength && (
                         <p
-                            className={clsx("mt-0 mb-0 p-0 relative text-[11px] italic", {
+                            className={clsx("mt-1 mb-0 p-0 relative text-[11px] italic", {
                                 "text-gray-600": currentValue.length < maxLength * 0.9,
                                 "text-amber-600": currentValue.length >= maxLength * 0.9 && maxLength > currentValue.length,
                                 "text-red-600": currentValue.length >= maxLength,
@@ -112,7 +111,13 @@ export function SubjectTextArea({
                         </p>
                     )}
                     {helper && helper.length !== 0 && (
-                        <p className="mt-0 self-center relative text-[13px] italic text-gray-600">*{helper}</p>
+                        <p
+                            className={clsx("self-center relative text-[13px] italic text-gray-600", {
+                                "mt-1": maxLength === undefined,
+                            })}
+                        >
+                            *{helper}
+                        </p>
                     )}
                 </div>
             </div>
