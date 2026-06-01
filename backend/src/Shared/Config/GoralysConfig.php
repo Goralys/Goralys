@@ -8,4 +8,5 @@ namespace Goralys\Shared\Config;
 final readonly class GoralysConfig
 {
     public const string SESSION = SessionConfig::class;
+    public const string COOKIES = CookiesConfig::class;
 }

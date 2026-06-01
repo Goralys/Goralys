@@ -12,6 +12,7 @@ use Goralys\App\Config\Data\RateLimitTimeMethod;
 use Goralys\App\Config\RateLimiterConfig;
 use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
 use Goralys\Platform\Logger\Interfaces\LoggerInterface;
+use Goralys\Shared\Config\GoralysConfig;
 use Random\RandomException;
 
 /**
@@ -29,53 +30,6 @@ final class RateLimiter
     public function __construct(LoggerInterface $logger)
     {
         $this->logger = $logger;
-    }
-
-    /**
-     * Atomically writes `$data` to the file, truncating any previous content, then releases the lock.
-     * @param resource $f The locked file handle.
-     * @param string $data The serialized data to persist.
-     * @return void
-     */
-    private function finalWrite($f, string $data): void
-    {
-        rewind($f);
-        ftruncate($f, 0);
-        fwrite($f, $data);
-        flock($f, LOCK_UN);
-        fclose($f);
-    }
-
-    /**
-     * Resolves a unique token for rate limiting. This includes the generation of a unique rate limiting token,
-     * if the random generation fails, the system falls back to ip only.
-     * @return ?string The token that identifies the current client.
-     */
-    private function resolveToken(): ?string
-    {
-        try {
-            $ip = $_SERVER['REMOTE_ADDR'];
-            if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_IPV6)) {
-                $this->logger->warning(LoggerInitiator::APP, "Invalid IP address encountered: $ip");
-                return null;
-            }
-
-            $token = $_COOKIE['rate_limit_token'] ?? null;
-
-            if (!$token) {
-                $token = bin2hex(random_bytes(16));
-                setcookie('rate_limit_token', $token, [
-                    'expires' => time() + 86400 * 30,
-                    'httponly' => true,
-                    'secure' => true,
-                    'samesite' => 'Strict',
-                ]);
-            }
-
-            return "$ip:$token";
-        } catch (RandomException) {
-            return $_SERVER['REMOTE_ADDR'] ?? null;
-        }
     }
 
     /**
@@ -172,5 +126,52 @@ final class RateLimiter
 
         $this->finalWrite($fp, json_encode($data));
         return true;
+    }
+
+    /**
+     * Resolves a unique token for rate limiting. This includes the generation of a unique rate limiting token,
+     * if the random generation fails, the system falls back to ip only.
+     * @return ?string The token that identifies the current client.
+     */
+    private function resolveToken(): ?string
+    {
+        try {
+            $ip = $_SERVER['REMOTE_ADDR'];
+            if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_IPV6)) {
+                $this->logger->warning(LoggerInitiator::APP, "Invalid IP address encountered: $ip");
+                return null;
+            }
+
+            $token = $_COOKIE[GoralysConfig::COOKIES::RATE_LIMITER_TOKEN] ?? null;
+
+            if (!$token) {
+                $token = bin2hex(random_bytes(16));
+                setcookie(GoralysConfig::COOKIES::RATE_LIMITER_TOKEN, $token, [
+                    'expires' => time() + 86400 * 30,
+                    'httponly' => true,
+                    'secure' => true,
+                    'samesite' => 'Strict',
+                ]);
+            }
+
+            return "$ip:$token";
+        } catch (RandomException) {
+            return $_SERVER['REMOTE_ADDR'] ?? null;
+        }
+    }
+
+    /**
+     * Atomically writes `$data` to the file, truncating any previous content, then releases the lock.
+     * @param resource $f The locked file handle.
+     * @param string $data The serialized data to persist.
+     * @return void
+     */
+    private function finalWrite($f, string $data): void
+    {
+        rewind($f);
+        ftruncate($f, 0);
+        fwrite($f, $data);
+        flock($f, LOCK_UN);
+        fclose($f);
     }
 }
