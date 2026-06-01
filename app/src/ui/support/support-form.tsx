@@ -55,12 +55,12 @@ export default function SupportForm(): ReactElement {
                      peer-focus:w-full subjects-search-underline"
                     />
                 </div>
-                <TextArea id="message" label="Message" helper="Veuillez décrire précisément votre problème." required />
+                <TextArea maxLength={250} id="message" label="Message" helper="Veuillez décrire précisément votre problème." required />
 
                 <input type="hidden" name="csrf-token" value={(csrfToken ? csrfToken : "no-token").trim()} />
                 <input type="hidden" name="reason" value={reason} />
 
-                <Button type="submit" text="Envoyer mon message" className="bottom-0 mt-13" />
+                <Button type="submit" text="Envoyer mon message" className="bottom-0 mt-2.5" />
             </form>
         </Card>
     );
