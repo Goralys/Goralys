@@ -29,7 +29,7 @@ export default function StudentCard({ subjectData, onUpdateAction }: StudentCard
         if (!subject || subject.trim() == "") {
             toast.showToast({
                 type: "warning",
-                title: "Envoi",
+                title: "Brouillon",
                 message: "Veuillez saisir une question.",
             });
             return;

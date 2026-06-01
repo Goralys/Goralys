@@ -81,7 +81,11 @@ function createSubjectsRoutes(GoralysRouter $router): void
 
         $kernel->response()->download($path, "sujets-go.zip", after: fn() => $kernel->subjects->cleanExports());
     })
-            ->middlewares(...MiddlewareSets::subjectsRoute('export-subjects', UserRole::ADMIN));
+            ->middlewares(...MiddlewareSets::subjectsRoute(
+                'export-subjects',
+                UserRole::ADMIN,
+                rateLimit: "export-subjects"
+            ));
 
     $router->patch(
         'subjects/status',
@@ -114,7 +118,7 @@ function createSubjectsRoutes(GoralysRouter $router): void
         },
         ...RouterOptions::$INPUT::require("status", "topic", "teacher", "student", "admin-password")
     )
-        ->middlewares(...MiddlewareSets::subjectsRoute('update-subject-status', UserRole::ADMIN));
+        ->middlewares(...MiddlewareSets::subjectsRoute('update-subject-status', UserRole::ADMIN, update: true));
 
     // --------------------------------------------------
     // [SUB SECTION] Student
@@ -155,7 +159,7 @@ function createSubjectsRoutes(GoralysRouter $router): void
             "/subject/",
         ),
     )
-            ->middlewares(...MiddlewareSets::subjectsRoute('save-draft', UserRole::STUDENT));
+            ->middlewares(...MiddlewareSets::subjectsRoute('save-draft', UserRole::STUDENT, update: true));
 
     $router->post(
         'subjects/submit',
@@ -249,7 +253,12 @@ function createSubjectsRoutes(GoralysRouter $router): void
             "/subject/",
         ),
     )
-            ->middlewares(...MiddlewareSets::subjectsRoute('submit-subject', UserRole::STUDENT, transaction: true));
+            ->middlewares(...MiddlewareSets::subjectsRoute(
+                'submit-subject',
+                UserRole::STUDENT,
+                transaction: true,
+                update: true
+            ));
 
     // --------------------------------------------------
     // [SUB SECTION] Teacher
@@ -315,7 +324,12 @@ function createSubjectsRoutes(GoralysRouter $router): void
             "/subject/",
         ),
     )
-            ->middlewares(...MiddlewareSets::subjectsRoute('reject-subject', UserRole::TEACHER, transaction: true));
+            ->middlewares(...MiddlewareSets::subjectsRoute(
+                'reject-subject',
+                UserRole::TEACHER,
+                transaction: true,
+                update: true
+            ));
 
     $router->post(
         'subjects/approve',
@@ -352,5 +366,5 @@ function createSubjectsRoutes(GoralysRouter $router): void
             "/subject/",
         ),
     )
-    ->middlewares(...MiddlewareSets::subjectsRoute('approve-subject', UserRole::TEACHER));
+    ->middlewares(...MiddlewareSets::subjectsRoute('approve-subject', UserRole::TEACHER, update: true));
 }

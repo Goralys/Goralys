@@ -23,7 +23,6 @@ export default function SubjectAdminPageClient(): ReactElement {
     const cookies = new Cookies();
 
     const sendTopics = async (): Promise<void> => {
-        const csrfToken = await fetchCsrfClient("import-topics");
         const file = await modal.showImportTopicsModal();
 
         if (file === "modalClosed") return;
@@ -37,6 +36,7 @@ export default function SubjectAdminPageClient(): ReactElement {
             return;
         }
 
+        const csrfToken = await fetchCsrfClient("import-topics");
         const formData = new FormData();
         formData.append("csrf-token", csrfToken ?? "");
         formData.append("topics-file", file);
@@ -63,12 +63,13 @@ export default function SubjectAdminPageClient(): ReactElement {
     };
 
     const deleteTopics = async (): Promise<void> => {
-        const confirmResult = await confirm.showConfirm({
-            title: "Suppression des sujets",
-            message: "Ête-vous sûr de vouloir supprimer les sujets et les utilisateurs (sauf administrateurs) ?",
-        });
-
-        if (!confirmResult) return;
+        if (
+            !(await confirm.showConfirm({
+                title: "Suppression des sujets",
+                message: "Ête-vous sûr de vouloir supprimer les sujets et les utilisateurs (sauf administrateurs) ?",
+            }))
+        )
+            return;
 
         const res = await goralysFetchClient("DELETE", buildApiUrl("topics", { "csrf-token": await fetchCsrfClient("delete-topics") }));
 
@@ -82,6 +83,14 @@ export default function SubjectAdminPageClient(): ReactElement {
     };
 
     const exportSubjects = async (): Promise<void> => {
+        if (
+            !(await confirm.showConfirm({
+                title: "Export des sujets",
+                message: "Ête-vous sûr de vouloir exporter les sujets ? Cette opération peut prendre quelques minutes.",
+            }))
+        )
+            return;
+
         const csrfToken = await fetchCsrfClient("export-subjects");
         const payload = {
             "csrf-token": csrfToken,

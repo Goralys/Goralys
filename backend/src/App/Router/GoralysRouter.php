@@ -58,6 +58,18 @@ final class GoralysRouter
     }
 
     /**
+     * Registers a POST route.
+     * @param string $route The route path.
+     * @param Closure $handler The route handler.
+     * @param array ...$options Optional middleware and input option arrays.
+     * @return Route The registered route.
+     */
+    public function post(string $route, Closure $handler, array ...$options): Route
+    {
+        return $this->add('POST', $route, $handler, ...$options);
+    }
+
+    /**
      * Registers a route for the given HTTP method.
      * @param string $method The HTTP method (e.g., 'POST', 'GET').
      * @param string $route The route path.
@@ -73,18 +85,6 @@ final class GoralysRouter
             $handler,
             empty($options) ? [] : array_merge_recursive(...array_values($options)),
         );
-    }
-
-    /**
-     * Registers a POST route.
-     * @param string $route The route path.
-     * @param Closure $handler The route handler.
-     * @param array ...$options Optional middleware and input option arrays.
-     * @return Route The registered route.
-     */
-    public function post(string $route, Closure $handler, array ...$options): Route
-    {
-        return $this->add('POST', $route, $handler, ...$options);
     }
 
     /**
@@ -148,22 +148,6 @@ final class GoralysRouter
     }
 
     /**
-     * @param list<MiddlewareInterface> $middlewares
-     * @param callable $destination
-     * @return mixed
-     */
-    private function pipeline(array $middlewares, callable $destination): mixed
-    {
-        $p = array_reduce($middlewares, function ($next, $mw) {
-            return function () use ($mw, $next) {
-                return $mw->handle($this->kernel, $next);
-            };
-        }, $destination);
-
-        return $p();
-    }
-
-    /**
      * Dispatches the request to the matching route, running its middleware pipeline first.
      * Responds with 404 if no route matches or 400 if input validation fails.
      * @param string $method The HTTP method of the incoming request.
@@ -178,7 +162,7 @@ final class GoralysRouter
         if (!array_key_exists($method, $this->routes) || !array_key_exists($path, $this->routes[$method])) {
             $this->kernel->logger->error(
                 LoggerInitiator::APP,
-                "Unknow route $path, known:\n" . print_r($this->routes, true),
+                "Unknow route $path, known:\n" . $this->formatKnownRoutes(),
             );
             $this->kernel->response(404)->http();
         }
@@ -219,5 +203,37 @@ final class GoralysRouter
         };
 
         return $this->pipeline($resolved, $dest);
+    }
+
+    /**
+     * Formates all the router's route into a readable Rest-like format.
+     * @return string
+     */
+    private function formatKnownRoutes(): string
+    {
+        $formatted = [];
+        foreach ($this->routes as $method => $routes) {
+            $routeNames = array_keys($routes);
+            if (!empty($routeNames)) {
+                $formatted[] = "$method: " . implode(", ", $routeNames);
+            }
+        }
+        return implode("\n", $formatted);
+    }
+
+    /**
+     * @param list<MiddlewareInterface> $middlewares
+     * @param callable $destination
+     * @return mixed
+     */
+    private function pipeline(array $middlewares, callable $destination): mixed
+    {
+        $p = array_reduce($middlewares, function ($next, $mw) {
+            return function () use ($mw, $next) {
+                return $mw->handle($this->kernel, $next);
+            };
+        }, $destination);
+
+        return $p();
     }
 }

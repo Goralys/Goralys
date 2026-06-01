@@ -111,6 +111,7 @@ final class RateLimiter
                 $data[$token]['failures'] + 1,
                 $rate?->maxLevels ?? 1,
             );
+            $data[$token]['reset_time'] = $now + $penalty;
             $this->finalWrite($fp, json_encode($data));
             return false;
         }

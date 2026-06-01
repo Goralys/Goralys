@@ -371,7 +371,7 @@ function createUserRoutes(GoralysRouter $router): void
                 ->redirect("/admin/user")
                 ->send();
     }, ...RouterOptions::$INPUT::require("target", "admin-password"))
-            ->middlewares(...MiddlewareSets::adminPanelRoute('delete-user'))
+            ->middlewares(...MiddlewareSets::adminPanelRoute('delete-users', rateLimit: "delete-users"))
             ->middleware(...DbMiddleware::transaction());
 
     // --------------------------------------------------
