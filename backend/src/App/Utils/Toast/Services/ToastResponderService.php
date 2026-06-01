@@ -39,6 +39,10 @@ final class ToastResponderService
         if (!headers_sent()) {
             header('Content-Type: application/json; charset=utf-8');
         }
-        echo json_encode($toastData->toastInfo, JSON_UNESCAPED_UNICODE);
+
+        echo json_encode(
+            array_merge($toastData->toastInfo, ["redirect" => $toastData->redirect]),
+            JSON_UNESCAPED_UNICODE
+        );
     }
 }

@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Card } from "@/app/ui/card";
-import RegisterForm from "@/app/ui/user/forms/register-form";
+import { Card } from "@/app/src/ui/card";
+import RegisterForm from "@/app/src/ui/user/forms/register-form";
 import { ReactElement } from "react";
 
 export default function RegisterPageClient(): ReactElement {

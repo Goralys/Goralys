@@ -108,4 +108,16 @@ interface SubjectsRepositoryInterface
         string $topic,
         string $newPath,
     ): bool;
+
+    /**
+     * @param string $teacherUsername The teacher's username.
+     * @param string $studentUsername The student's username.
+     * @param string $topic The topic name.
+     * @return bool If the update was successful or not.
+     */
+    public function flushDraftPath(
+        string $teacherUsername,
+        string $studentUsername,
+        string $topic,
+    ): bool;
 }

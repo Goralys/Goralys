@@ -1,12 +1,12 @@
 "use client";
 
-import { useSubjects } from "@/app/hooks/useSubjects";
-import TeacherCard from "@/app/ui/subjects/teacher-card";
-import { SubjectsSearchBar } from "@/app/ui/subjects/subjects-search-bar";
+import { useSubjects } from "@/app/src/hooks/useSubjects";
+import TeacherCard from "@/app/src/ui/subjects/teacher-card";
+import { SubjectsSearchBar } from "@/app/src/ui/subjects/subjects-search-bar";
 import { useState, Suspense, ReactElement } from "react";
-import { Subject } from "@/app/lib/types";
+import { Subject } from "@/app/src/lib/types";
 import Cookies from "universal-cookie";
-import TeacherCardSkeleton from "@/app/ui/skeletons/subjects/teacher-card";
+import TeacherCardSkeleton from "@/app/src/ui/skeletons/subjects/teacher-card";
 
 export default function SubjectTeacherPageClient(): ReactElement {
     const { subjects, refetch, syncKey } = useSubjects("teacher");

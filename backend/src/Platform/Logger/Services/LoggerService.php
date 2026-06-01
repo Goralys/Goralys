@@ -7,9 +7,9 @@
 
 namespace Goralys\Platform\Logger\Services;
 
-use Goralys\Platform\Logger\LoggerConfigLoader;
 use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
 use Goralys\Platform\Logger\Data\Enums\LoggerType;
+use Goralys\Platform\Logger\LoggerConfigLoader;
 
 /**
  * Main logging service.
@@ -28,34 +28,6 @@ final class LoggerService
         string $logDirectory,
     ): void {
         LoggerService::$logDirectory = $logDirectory;
-    }
-
-    /**
-     * Writes a log entry to the specified file.
-     * @param mixed $file The file to write the log into.
-     * @param LoggerInitiator $initiator The inititor of the log.
-     * @param LoggerType $type The log type.
-     * @param string $time The time of the log.
-     * @param string $message The log's message.
-     * @return void
-     */
-    private static function writeLog(
-        mixed $file,
-        LoggerInitiator $initiator,
-        LoggerType $type,
-        string $time,
-        string $message,
-    ): void {
-        flock($file, LOCK_EX);
-
-        fwrite(
-            $file,
-            "($initiator->value)[$type->name]{session:" . session_id() . "} at $time : $message" . PHP_EOL,
-        );
-
-        fflush($file);
-        flock($file, LOCK_UN);
-        fclose($file);
     }
 
     /**
@@ -91,5 +63,57 @@ final class LoggerService
         if ($file = fopen(LoggerService::$logDirectory . LoggerConfigLoader::getGlobalFile() . ".log", "a")) {
             self::writeLog($file, $initiator, $type, $time, $message);
         }
+    }
+
+    /**
+     * Writes a log entry to the specified file.
+     * @param mixed $file The file to write the log into.
+     * @param LoggerInitiator $initiator The initiator of the log.
+     * @param LoggerType $type The log type.
+     * @param string $time The time of the log.
+     * @param string $message The log's message.
+     * @return void
+     */
+    private static function writeLog(
+        mixed $file,
+        LoggerInitiator $initiator,
+        LoggerType $type,
+        string $time,
+        string $message,
+    ): void {
+        flock($file, LOCK_EX);
+
+        fwrite(
+            $file,
+            "($initiator->value)[$type->name:" . self::getCallingClass() . "]{session:" . (session_id() ?? "none")
+            . "} at $time : "
+            . "$message" . PHP_EOL,
+        );
+
+        fflush($file);
+        flock($file, LOCK_UN);
+        fclose($file);
+    }
+
+    /**
+     * Gets the class name that called the logger.
+     * @return string The calling class name, or 'Unknown' if unable to determine.
+     */
+    private static function getCallingClass(): string
+    {
+        $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 5);
+        // Trace[0] = getCallingClass()
+        // Trace[1] = write_log()
+        // Trace[2] = log() [from the logger]
+        // Trace[3] = info/debug/warning/error/fatal()
+        // Trace[4] = actual caller
+        if (!isset($trace[4]['class'])) {
+            return 'Unknown';
+        }
+        if (!$class = $trace[4]['class']) {
+            return 'Unknown';
+        }
+        $parts = explode("\\", $class);
+        return $parts[count($parts) - 1];
     }
 }

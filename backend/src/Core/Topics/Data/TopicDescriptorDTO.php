@@ -19,5 +19,6 @@ final readonly class TopicDescriptorDTO
     public function __construct(
         public string $name,
         public string $code,
-    ) {}
+    ) {
+    }
 }

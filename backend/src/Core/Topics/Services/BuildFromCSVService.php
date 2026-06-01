@@ -33,40 +33,6 @@ final class BuildFromCSVService
     }
 
     /**
-     * Ensures the provided path is a valid CSV file and returns a SplFileObject.
-     * @param string $path The full path to the CSV file.
-     * @return SplFileObject
-     * @throws GoralysRuntimeException If the file is not a valid CSV or cannot be opened.
-     */
-    private function ensureCSV(string $path): SplFileObject
-    {
-        if (!is_file($path) || strtolower(pathinfo($path, PATHINFO_EXTENSION)) !== 'csv') {
-            throw new GoralysRuntimeException(
-                "The provided file ($path) is not a valid CSV file.",
-            );
-        }
-
-        try {
-            $file = new SplFileObject($path, 'r');
-
-            $file->setFlags(
-                SplFileObject::READ_CSV
-                | SplFileObject::SKIP_EMPTY
-                | SplFileObject::DROP_NEW_LINE,
-            );
-
-            $file->setCsvControl(escape: '');
-
-            return $file;
-        } catch (RuntimeException $e) {
-            throw new GoralysRuntimeException(
-                "Could not open CSV file ($path).",
-                previous: $e,
-            );
-        }
-    }
-
-    /**
      * Parses a CSV file to build a mapping of group codes to teacher usernames.
      * @param string $from The full path to the groups CSV file.
      * @return array<string, list<string>> A mapping of group code => array of teacher usernames.
@@ -102,6 +68,40 @@ final class BuildFromCSVService
         }
 
         return $result;
+    }
+
+    /**
+     * Ensures the provided path is a valid CSV file and returns a SplFileObject.
+     * @param string $path The full path to the CSV file.
+     * @return SplFileObject
+     * @throws GoralysRuntimeException If the file is not a valid CSV or cannot be opened.
+     */
+    private function ensureCSV(string $path): SplFileObject
+    {
+        if (!is_file($path) || strtolower(pathinfo($path, PATHINFO_EXTENSION)) !== 'csv') {
+            throw new GoralysRuntimeException(
+                "The provided file ($path) is not a valid CSV file.",
+            );
+        }
+
+        try {
+            $file = new SplFileObject($path, 'r');
+
+            $file->setFlags(
+                SplFileObject::READ_CSV
+                | SplFileObject::SKIP_EMPTY
+                | SplFileObject::DROP_NEW_LINE,
+            );
+
+            $file->setCsvControl(escape: '');
+
+            return $file;
+        } catch (RuntimeException $e) {
+            throw new GoralysRuntimeException(
+                "Could not open CSV file ($path).",
+                previous: $e,
+            );
+        }
     }
 
     /**

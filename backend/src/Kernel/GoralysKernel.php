@@ -1,6 +1,16 @@
 <?php
 
 /*
+ *  ______   ______   ______   ______   __       __  __   ______
+ * /\  ___\ /\  __ \ /\  == \ /\  __ \ /\ \     /\ \_\ \ /\  ___\
+ * \ \ \__ \\ \ \/\ \\ \  __< \ \  __ \\ \ \____\ \____ \\ \___  \
+ *  \ \_____\\ \_____\\ \_\ \_\\ \_\ \_\\ \_____\\/\_____\\/\_____\
+ *   \/_____/ \/_____/ \/_/ /_/ \/_/\/_/ \/_____/ \/_____/ \/_____/
+
+ *                         Goralys 2.2.3
+ */
+
+/*
  * Goralys — application de gestion des sujets du Grand oral
     Copyright (C) 2025-2026 Sami Saubion
 
@@ -42,16 +52,17 @@ use Goralys\App\HTTP\Response\Interfaces\ImmediateResponseInterface;
 use Goralys\App\RateLimiter\RateLimiter;
 use Goralys\App\Security\CSRF\Services\CSRFService;
 use Goralys\App\Subjects\Controllers\SubjectsController;
+use Goralys\App\Support\Controllers\SupportController;
 use Goralys\App\Topics\Controllers\TopicsController;
 use Goralys\App\User\Controllers\AuthController;
 use Goralys\App\User\Controllers\UserController;
 use Goralys\App\User\Data\Enums\UserAuthStatus;
 use Goralys\App\User\Data\UsernameTable;
-use Goralys\App\User\Services\UsernameManager;
 use Goralys\App\Utils\Toast\Controllers\ToastController;
 use Goralys\App\Utils\Toast\Data\Enums\ToastType;
 use Goralys\Core\User\Data\Enums\UserRole;
 use Goralys\Core\User\Repository\UserRepository;
+use Goralys\Core\User\Services\UsernameManager;
 use Goralys\Kernel\Data\ErrorMessageConfig;
 use Goralys\Platform\DB\Facade\DbContainer;
 use Goralys\Platform\DB\Interfaces\DbContainerInterface;
@@ -60,6 +71,9 @@ use Goralys\Platform\Loader\Services\EnvService;
 use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
 use Goralys\Platform\Logger\GoralysLogger;
 use Goralys\Platform\Logger\Interfaces\LoggerInterface;
+use Goralys\Platform\Mail\Facade\MailContainer;
+use Goralys\Platform\Mail\Interfaces\MailContainerInterface;
+use Goralys\Shared\Config\GoralysConfig;
 use Goralys\Shared\Exception\DB\GoralysConnectException;
 use Goralys\Shared\Exception\GoralysException;
 use Goralys\Shared\Exception\GoralysRuntimeException;
@@ -72,10 +86,10 @@ use Throwable;
  */
 class GoralysKernel
 {
-    private string $rootPath;
     public EnvService $env;
     public UtilitiesManager $utils;
     public DbContainerInterface $db;
+    public MailContainerInterface $mailer;
     public LoggerInterface $logger;
     public AuthController $auth;
     public UserController $users;
@@ -83,15 +97,17 @@ class GoralysKernel
     public SubjectsController $subjects;
     public TopicsController $topics;
     public ToastController $toast;
+    public SupportController $support;
     public GuardInterface $guard;
     public CSRFService $csrf;
+    public UsernameManager $usernames;
+    private string $rootPath;
     private RateLimiter $rateLimiter;
     /**
      * This variable is used to determine the context of the app.
      * @var AppContext
      */
     private AppContext $context;
-    public UsernameManager $usernameManager;
     private RequestInterface $request;
     private DomPdfExporter $exporter;
     private int $sessionLifetime;
@@ -145,66 +161,18 @@ class GoralysKernel
         $this->context = new AppContext(ToastMode::DEFAULT, trim($this->env->getByKey("ORIGIN_DOMAIN")));
 
         $this->initDb();
+        $this->initMailer();
         $this->initAuth();
         $this->initUser();
+        $this->initUsernameManager();
+        $this->initSupport();
         $this->bootFileSubsystem($mover);
         $this->initExporter();
         $this->initSubjects();
         $this->initTopics();
         $this->initCSRF();
-        $this->initUsernameManager();
         $this->initGuard();
         $this->initRateLimiter();
-    }
-
-    /**
-     * Sets the exceptions and errors handlers to be the ones from the `GoralysKernel`.
-     * @return void
-     */
-    public function setHandlers(): void
-    {
-        set_exception_handler([$this, 'exceptionHandler']);
-        set_error_handler([$this, 'errorHandler']);
-    }
-
-    /**
-     * Starts the PHP session if it is not already started.
-     * @return void
-     */
-    private function startSession(): void
-    {
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            ini_set('session.gc_maxlifetime', $this->sessionLifetime);
-            ini_set('session.cookie_lifetime', $this->sessionLifetime);
-
-            session_set_cookie_params([
-                // Ensure the session expiration logic works as intended. Refer to variable docs for more info.
-                'lifetime' => $this->sessionLifetime * $this->sessionLifetimeMultiplier,
-                'path' => '/',
-                'domain' => $this->env->getByKey("COOKIES_DOMAIN"),
-                'secure' => true,
-                'httponly' => true,
-                'samesite' => 'Lax',
-            ]);
-
-            session_name("GORALYSSESSID");
-
-            session_start();
-
-            $this->sinceLastActivity = isset($_SESSION['LAST_ACTIVITY'])
-                    ? time() - $_SESSION['LAST_ACTIVITY']
-                    : -1;
-
-            $_SESSION['LAST_ACTIVITY'] = time();
-        }
-    }
-
-    private function destroySession(): void
-    {
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            session_unset();
-            session_destroy();
-        }
     }
 
     /**
@@ -239,6 +207,47 @@ class GoralysKernel
     }
 
     /**
+     * Starts the PHP session if it is not already started.
+     * @return void
+     */
+    private function startSession(): void
+    {
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            ini_set('session.gc_maxlifetime', $this->sessionLifetime);
+            ini_set('session.cookie_lifetime', $this->sessionLifetime);
+
+            session_set_cookie_params([
+                // Ensure the session expiration logic works as intended. Refer to variable docs for more info.
+                'lifetime' => $this->sessionLifetime * $this->sessionLifetimeMultiplier,
+                'path' => '/',
+                'domain' => $this->env->getByKey("COOKIES_DOMAIN"),
+                'secure' => true,
+                'httponly' => true,
+                'samesite' => 'Lax',
+            ]);
+
+            session_name("GORALYSSESSID");
+
+            session_start();
+
+            $this->sinceLastActivity = isset($_SESSION['LAST_ACTIVITY'])
+                ? time() - $_SESSION['LAST_ACTIVITY']
+                : -1;
+
+            $_SESSION['LAST_ACTIVITY'] = time();
+        }
+    }
+
+    /**
+     * Initializes the toast controller used by the kernel.
+     * @return void
+     */
+    private function initToast(): void
+    {
+        $this->toast = new ToastController();
+    }
+
+    /**
      * Initializes the database container of the kernel.
      * Note that the database connection won't be established until the `connect` method of the kernel is called.
      * @return void
@@ -246,6 +255,15 @@ class GoralysKernel
     private function initDb(): void
     {
         $this->db = new DbContainer($this->logger);
+    }
+
+    /**
+     * Initializes the mail container of the kernel.
+     * @return void
+     */
+    private function initMailer(): void
+    {
+        $this->mailer = new MailContainer($this->env, $this->logger);
     }
 
     /**
@@ -275,6 +293,28 @@ class GoralysKernel
     }
 
     /**
+     * Initializes the kernel's username manager.
+     * @return void
+     */
+    private function initUsernameManager(): void
+    {
+        $this->usernames = new UsernameManager(new UserRepository($this->logger, $this->db));
+    }
+
+    /**
+     * Initializes the support controller of the kernel.
+     * @return void
+     */
+    private function initSupport(): void
+    {
+        $this->support = new SupportController(
+            $this->logger,
+            $this->db,
+            $this->usernames,
+        );
+    }
+
+    /**
      * Initializes the files-related subservices for the kernel.
      * @param FileMover|null $mover The file mover for the kernel.
      * @return void
@@ -286,7 +326,7 @@ class GoralysKernel
         $extractor = new HttpFileExtractor();
 
         try {
-            $this->initFileManager($resolvedMover, $extractor, $resolvedMover->files);
+            $this->initFileManager($resolvedMover, $extractor, $resolvedMover->getFiles());
         } catch (GoralysRuntimeException $e) {
             $this->logger->fatal(
                 LoggerInitiator::KERNEL,
@@ -314,7 +354,7 @@ class GoralysKernel
      */
     private function initExporter(): void
     {
-        $this->exporter = new DomPdfExporter();
+        $this->exporter = new DomPdfExporter($this->logger);
     }
 
     /**
@@ -341,24 +381,6 @@ class GoralysKernel
     }
 
     /**
-     * Initializes the toast controller used by the kernel.
-     * @return void
-     */
-    private function initToast(): void
-    {
-        $this->toast = new ToastController();
-    }
-
-    /**
-     * Initializes the guard used by the kernel.
-     * @return void
-     */
-    private function initGuard(): void
-    {
-        $this->guard = new HttpGuard($this->usernameManager, $this->context);
-    }
-
-    /**
      * Initializes the CSRF service used by the kernel
      * @return void
      */
@@ -368,12 +390,12 @@ class GoralysKernel
     }
 
     /**
-     * Initializes the kernel's username manager.
+     * Initializes the guard used by the kernel.
      * @return void
      */
-    private function initUsernameManager(): void
+    private function initGuard(): void
     {
-        $this->usernameManager = new UsernameManager(new UserRepository($this->logger, $this->db));
+        $this->guard = new HttpGuard($this->usernames, $this->context);
     }
 
     /**
@@ -386,15 +408,13 @@ class GoralysKernel
     }
 
     /**
-     * Connects the kernel to the database.
-     * @throws GoralysConnectException Throws an exception if the connection with the database could not be established.
+     * Sets the exceptions and errors handlers to be the ones from the `GoralysKernel`.
+     * @return void
      */
-    private function connect(): bool
+    public function setHandlers(): void
     {
-        if (!isset($this->db)) {
-            $this->db = new DbContainer($this->logger);
-        }
-        return $this->db->connect();
+        set_exception_handler([$this, 'exceptionHandler']);
+        set_error_handler([$this, 'errorHandler']);
     }
 
     /**
@@ -409,6 +429,54 @@ class GoralysKernel
     public function setExceptionMessage(string $eClass, string $msg, int $code = 500, string $redirect = "/"): void
     {
         $this->errorMessages[$eClass] = new ErrorMessageConfig($msg, $redirect, $code);
+    }
+
+    /**
+     * The custom error handler for the kernel.
+     * It ignores errors considered "non-fatal":
+     * - `E_ERROR`
+     * - `E_USER_ERROR`
+     * - `E_CORE_ERROR`
+     * - `E_COMPILE_ERROR`
+     * - `E_RECOVERABLE_ERROR`
+     * @param int $severity The severity of the error.
+     * @param string $message The error's message.
+     * @param string $file The file where the error occurred.
+     * @param int $line The line that caused the error.
+     * @return void
+     * @throws ErrorException Only thrown when the exception is considered fatal.
+     */
+    public function errorHandler(int $severity, string $message, string $file, int $line): void
+    {
+        $this->logger->warning(
+            LoggerInitiator::APP,
+            "PHP Error (severity $severity) : $message — $file:$line",
+        );
+
+        // Ignore non-fatal errors
+        if (!in_array($severity, [E_ERROR, E_USER_ERROR, E_CORE_ERROR, E_COMPILE_ERROR, E_RECOVERABLE_ERROR])) {
+            return;
+        }
+
+        throw new ErrorException($message, 0, $severity, $file, $line);
+    }
+
+    /**
+     * Runs the provided function and catches any exception to handle it.
+     * @param callable $callback The function to execute.
+     * @return void
+     */
+    public function run(callable $callback): void
+    {
+        try {
+            $callback($this, $this->request);
+
+            if (session_status() == PHP_SESSION_ACTIVE) {
+                session_write_close();
+            }
+        } catch (Throwable $e) {
+            $this->exceptionHandler($e);
+        }
     }
 
     /**
@@ -458,84 +526,10 @@ class GoralysKernel
         }
     }
 
-    /**
-     * The custom error handler for the kernel.
-     * It ignores errors considered "non-fatal":
-     * - `E_ERROR`
-     * - `E_USER_ERROR`
-     * - `E_CORE_ERROR`
-     * - `E_COMPILE_ERROR`
-     * - `E_RECOVERABLE_ERROR`
-     * @param int $severity The severity of the error.
-     * @param string $message The error's message.
-     * @param string $file The file where the error occurred.
-     * @param int $line The line that caused the error.
-     * @return void
-     * @throws ErrorException Only thrown when the exception is considered fatal.
-     */
-    public function errorHandler(int $severity, string $message, string $file, int $line): void
-    {
-        $this->logger->warning(
-            LoggerInitiator::APP,
-            "PHP Error (severity $severity) : $message — $file:$line",
-        );
-
-        // Ignore non-fatal errors
-        if (!in_array($severity, [E_ERROR, E_USER_ERROR, E_CORE_ERROR, E_COMPILE_ERROR, E_RECOVERABLE_ERROR])) {
-            return;
-        }
-
-        throw new ErrorException($message, 0, $severity, $file, $line);
-    }
-
-    /**
-     * Gets the kernel's current HTTP request
-     * @return RequestInterface The request.
-     */
-    public function request(): RequestInterface
-    {
-        if (!isset($this->request)) {
-            $this->request = new GoralysRequest();
-        }
-
-        return $this->request;
-    }
-
-    /**
-     * Generate a new HTTP response.
-     * @param int $code The response's code (default = 200).
-     * @return ImmediateResponseInterface The response.
-     */
-    public function response(int $code = 200): ImmediateResponseInterface
-    {
-        $files = new HttpFileResponder();
-        $json = new HttpJsonResponder();
-        return new ImmediateResponse($code, $this->logger, $files, $json);
-    }
-
     public function deferredResponse(int $code = 200): DeferredResponseInterface
     {
         return new DeferredResponse($this->context, $code);
     }
-
-    /**
-     * Runs the provided function and catches any exception to handle it.
-     * @param callable $callback The function to execute.
-     * @return void
-     */
-    public function run(callable $callback): void
-    {
-        try {
-            $callback($this, $this->request);
-
-            if (session_status() == PHP_SESSION_ACTIVE) {
-                session_write_close();
-            }
-        } catch (Throwable $e) {
-            $this->exceptionHandler($e);
-        }
-    }
-
 
     /**
      * Helper used to centralize db connection logic and failure behavior.
@@ -561,11 +555,23 @@ class GoralysKernel
     }
 
     /**
+     * Connects the kernel to the database.
+     * @throws GoralysConnectException Throws an exception if the connection with the database could not be established.
+     */
+    private function connect(): bool
+    {
+        if (!isset($this->db)) {
+            $this->db = new DbContainer($this->logger);
+        }
+        return $this->db->connect();
+    }
+
+    /**
      * Helper to require a rate limit for a given endpoint/action.
-     * @param string $endpoint The endpoint to require rate limiting on (refer to {@see RateLimiterConfig} for endpoint
-     * specific rates).
+     * @param string $endpoint The endpoint to require rate limiting on
+     * (refer to {@see RateLimiterConfig} for endpoint-specific rates).
      * @param string $redirect The url to redirect the user to on failure.
-     * @param string $message The message to display on failure (vie toast notificaation).
+     * @param string $message The message to display on failure (vie toast notification).
      * @return void
      */
     public function requireRateLimit(
@@ -592,11 +598,11 @@ class GoralysKernel
 
         switch ($this->auth->getAuthStatus($this->sinceLastActivity)) {
             case UserAuthStatus::SESSION_EXPIRED:
+                $this->destroySession();
                 $this->logger->warning(
                     LoggerInitiator::CORE,
                     "Tried to perform action: $endpoint without authentification",
                 );
-                $this->destroySession();
 
                 $this->response(401)->json(["authEvent" => "expired"]); // Unauthorized
                 // no break
@@ -614,6 +620,26 @@ class GoralysKernel
         }
     }
 
+    private function destroySession(): void
+    {
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_unset();
+            session_destroy();
+        }
+    }
+
+    /**
+     * Generate a new HTTP response.
+     * @param int $code The response's code (default = 200).
+     * @return ImmediateResponseInterface The response.
+     */
+    public function response(int $code = 200): ImmediateResponseInterface
+    {
+        $files = new HttpFileResponder();
+        $json = new HttpJsonResponder();
+        return new ImmediateResponse($code, $this->logger, $files, $json);
+    }
+
     /**
      * Helper to check if the user is authenticated
      * @return bool If the user is authenticated
@@ -627,13 +653,13 @@ class GoralysKernel
      * Helper to use CSRF in an API endpoint.
      * It should always be called after you already called getRequest on the kernel.
      * @param string $formId The id of the current form.
-     * @param string|null $redirect The page to redirect the user to.
+     * @param ?string $redirect The page to redirect the user to.
      * @return void
      */
     public function requireCSRF(string $formId, ?string $redirect = null): void
     {
 
-        if (!$this->csrf->validate($formId, $this->request)) {
+        if (!$this->csrf->validate($formId, $this->request())) {
             $this->deferredResponse(403)->toast( // Forbidden
                 ToastType::WARNING,
                 "Lien externe",
@@ -645,6 +671,19 @@ class GoralysKernel
     }
 
     /**
+     * Gets the kernel's current HTTP request
+     * @return RequestInterface The request.
+     */
+    public function request(): RequestInterface
+    {
+        if (!isset($this->request)) {
+            $this->request = new GoralysRequest();
+        }
+
+        return $this->request;
+    }
+
+    /**
      * Helper to check if the user has a certain role.
      * @param UserRole $role The minimum role the user must have.
      * @param bool $strict If set to true, the user must be exactly the provided role.
@@ -652,26 +691,26 @@ class GoralysKernel
      */
     public function requireRole(UserRole $role, bool $strict = false): void
     {
-        if (!isset($_SESSION['current_role'])) {
+        if (!isset($_SESSION[GoralysConfig::SESSION::ROLE])) {
             $this->destroySession();
 
             $this->response(401)->json(["authEvent" => "expired"]); // Unauthorized
         }
 
-        $currentRole = UserRole::fromString($_SESSION['current_role']);
+        $currentRole = UserRole::fromString($_SESSION[GoralysConfig::SESSION::ROLE]);
+        $pass = !($strict ? $currentRole !== $role : !$currentRole->isAtLeast($role));
 
-        if ($strict && $currentRole !== $role) {
+        if (!$pass) {
+            $this->logger->warning(
+                LoggerInitiator::KERNEL,
+                "Tried to perform forbidden action with role " . $currentRole->toString(
+                ) . "(required " . ($strict ? "==" : "=<") . " " . $role->toString() . ")"
+            );
             $this->deferredResponse(403)->error( // Forbidden
-                "Il semblerait que vous n'ayez pas les permissions nécéssaires.",
+                "Il semblerait que vous n'ayez pas les permissions nécéssaires . ",
             )
-                ->send();
-        }
-
-        if (!$currentRole->isAtLeast($role)) {
-            $this->deferredResponse(403)->error( // Forbidden
-                "Il semblerait que vous n'ayez pas les permissions nécéssaires.",
-            )
-                ->send();
+                    ->redirect("/user/login")
+                    ->send();
         }
     }
 

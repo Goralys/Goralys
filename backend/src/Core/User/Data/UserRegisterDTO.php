@@ -21,5 +21,6 @@ final readonly class UserRegisterDTO
         public string $username,
         public string $fullName,
         public string $password,
-    ) {}
+    ) {
+    }
 }

@@ -14,7 +14,7 @@ final class FakeGoralysRequest implements RequestInterface
         $this->input = $input;
     }
 
-    public function get(string $key): int|float|string|bool|null
+    public function param(string $key): int|float|string|bool|null
     {
         $v = $this->input[$key] ?? null;
         if (is_string($v)) {

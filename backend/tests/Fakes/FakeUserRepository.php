@@ -6,7 +6,6 @@ use Goralys\Core\User\Data\Enums\UserRole;
 use Goralys\Core\User\Data\UserCreateDTO;
 use Goralys\Core\User\Data\UserFullDTO;
 use Goralys\Core\User\Data\UserLoginDTO;
-use Goralys\Core\User\Data\VirtualUserDTO;
 use Goralys\Core\User\Repository\Interfaces\UserRepositoryInterface;
 
 class FakeUserRepository implements UserRepositoryInterface
@@ -167,5 +166,29 @@ class FakeUserRepository implements UserRepositoryInterface
     public function hardDelete(string $username): bool
     {
         return (bool) $this->updateResult;
+    }
+
+    /**
+     * @param string $username
+     * @param string $email
+     * @return bool
+     */
+    public function setEmail(string $username, string $email): bool
+    {
+        return $this->updateResult;
+    }
+
+    /**
+     * @param string $username
+     * @return bool
+     */
+    public function removeEmail(string $username): bool
+    {
+        return $this->updateResult;
+    }
+
+    public function getEmail(string $username): ?string
+    {
+        return $this->getResult;
     }
 }

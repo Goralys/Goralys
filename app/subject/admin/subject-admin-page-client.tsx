@@ -1,17 +1,18 @@
 "use client";
 
-import { useImportTopicsModal } from "@/app/ui/modals/import-topics/import-topics-modal-provider";
-import { fetchCsrfClient, goralysFetchClient } from "@/app/lib/fetch/fetch.client";
-import { useToast } from "@/app/ui/toast/toast-provider";
-import { Button } from "@/app/ui/button";
-import { useSubjects } from "@/app/hooks/useSubjects";
-import AdminCard from "@/app/ui/subjects/admin-card";
-import { Subject } from "@/app/lib/types";
-import { SubjectsSearchBar } from "@/app/ui/subjects/subjects-search-bar";
-import { useState, Suspense, ReactElement } from "react";
-import AdminSubjectCardSkeleton from "@/app/ui/skeletons/subjects/admin-card";
-import { useConfirm } from "@/app/ui/modals/confirm/confirm-provider";
+import { useImportTopicsModal } from "@/app/src/ui/modals/import-topics/import-topics-modal-provider";
+import { buildApiUrl, fetchCsrfClient, goralysFetchClient, handleToastRequest } from "@/app/src/lib/fetch/fetch.client";
+import { useToast } from "@/app/src/ui/toast/toast-provider";
+import { Button } from "@/app/src/ui/button";
+import { useSubjects } from "@/app/src/hooks/useSubjects";
+import AdminCard from "@/app/src/ui/subjects/admin-card";
+import { Subject } from "@/app/src/lib/types";
+import { SubjectsSearchBar } from "@/app/src/ui/subjects/subjects-search-bar";
+import { ReactElement, Suspense, useState } from "react";
+import AdminSubjectCardSkeleton from "@/app/src/ui/skeletons/subjects/admin-card";
+import { useConfirm } from "@/app/src/ui/modals/confirm/confirm-provider";
 import Cookies from "universal-cookie";
+import { SUBJECT_SYNCS, USER_SYNCS } from "@/app/src/lib/config";
 
 export default function SubjectAdminPageClient(): ReactElement {
     const modal = useImportTopicsModal();
@@ -22,7 +23,6 @@ export default function SubjectAdminPageClient(): ReactElement {
     const cookies = new Cookies();
 
     const sendTopics = async (): Promise<void> => {
-        const csrfToken = await fetchCsrfClient("import-topics");
         const file = await modal.showImportTopicsModal();
 
         if (file === "modalClosed") return;
@@ -36,15 +36,12 @@ export default function SubjectAdminPageClient(): ReactElement {
             return;
         }
 
+        const csrfToken = await fetchCsrfClient("import-topics");
         const formData = new FormData();
         formData.append("csrf-token", csrfToken ?? "");
         formData.append("topics-file", file);
 
-        const res = await goralysFetchClient("topics/import", {
-            method: "POST",
-            credentials: "include",
-            body: formData,
-        });
+        const res = await goralysFetchClient("POST", "topics/import", formData);
 
         if (res.ok) {
             const blob = await res.blob();
@@ -55,51 +52,28 @@ export default function SubjectAdminPageClient(): ReactElement {
             a.click();
             URL.revokeObjectURL(url);
             cookies.set(syncKey, "0", { path: "/" });
-            cookies.set("users-synced", "0", { path: "/" });
-            cookies.set("virtual-users-synced", "0", { path: "/" });
+            cookies.set(USER_SYNCS["users-real"], "0", { path: "/" });
+            cookies.set(USER_SYNCS["users-virtual"], "0", { path: "/" });
             await refetch();
             setCurrentSubjects(subjects || []);
             return;
         }
 
-        const data = await res.json();
-
-        if (data?.toast) {
-            toast.showToast({
-                type: data.toastType,
-                title: data.toastTitle,
-                message: data.toastMessage,
-            });
-        }
+        await handleToastRequest(res, toast.showToast, false);
     };
 
     const deleteTopics = async (): Promise<void> => {
-        const confirmResult = await confirm.showConfirm({
-            title: "Suppression des sujets",
-            message: "Ête-vous sûr de vouloir supprimer les sujets et les utilisateurs (sauf administrateurs) ?",
-        });
+        if (
+            !(await confirm.showConfirm({
+                title: "Suppression des sujets",
+                message: "Ête-vous sûr de vouloir supprimer les sujets et les utilisateurs (sauf administrateurs) ?",
+            }))
+        )
+            return;
 
-        if (!confirmResult) return;
+        const res = await goralysFetchClient("DELETE", buildApiUrl("topics", { "csrf-token": await fetchCsrfClient("delete-topics") }));
 
-        const csrfToken = await fetchCsrfClient("delete-topics");
-        const payload = {
-            "csrf-token": csrfToken,
-        };
-
-        const res = await goralysFetchClient("topics/delete", {
-            method: "POST",
-            body: JSON.stringify(payload),
-        });
-
-        const data = await res.json();
-
-        if (data?.toast) {
-            toast.showToast({
-                type: data.toastType,
-                title: data.toastTitle,
-                message: data.toastMessage,
-            });
-        }
+        await handleToastRequest(res, toast.showToast, false);
 
         if (res.ok) {
             cookies.set(syncKey, "0", { path: "/" });
@@ -109,15 +83,20 @@ export default function SubjectAdminPageClient(): ReactElement {
     };
 
     const exportSubjects = async (): Promise<void> => {
+        if (
+            !(await confirm.showConfirm({
+                title: "Export des sujets",
+                message: "Ête-vous sûr de vouloir exporter les sujets ? Cette opération peut prendre quelques minutes.",
+            }))
+        )
+            return;
+
         const csrfToken = await fetchCsrfClient("export-subjects");
         const payload = {
             "csrf-token": csrfToken,
         };
 
-        const res = await goralysFetchClient("subjects/export", {
-            method: "POST",
-            body: JSON.stringify(payload),
-        });
+        const res = await goralysFetchClient("POST", "subjects/export", payload);
 
         if (res.ok) {
             const blob = await res.blob();
@@ -132,15 +111,7 @@ export default function SubjectAdminPageClient(): ReactElement {
             return;
         }
 
-        const data = await res.json();
-
-        if (data?.toast) {
-            toast.showToast({
-                type: data.toastType,
-                title: data.toastTitle,
-                message: data.toastMessage,
-            });
-        }
+        await handleToastRequest(res, toast.showToast, false);
     };
 
     const skeletons = Array.from({ length: 3 }, (_, i) => <AdminSubjectCardSkeleton key={i} />);
@@ -156,7 +127,7 @@ export default function SubjectAdminPageClient(): ReactElement {
                 </div>
             </div>
             <div className="h-auto w-fit p-2 mt-4">
-                <p className="underline text-2xl self-start mb-3">Les questions de l&apos;établissement :</p>
+                <p className="underline w-200 text-2xl self-start mb-3">Les questions de l&apos;établissement :</p>
                 <Suspense fallback={<div className="flex flex-col gap-2 items-center w-full">{skeletons}</div>}>
                     {subjects === null ? (
                         <div className="flex flex-col gap-2">{skeletons}</div>
@@ -168,7 +139,7 @@ export default function SubjectAdminPageClient(): ReactElement {
                                     <AdminCard
                                         key={s.studentToken + s.teacherToken}
                                         subjectData={s}
-                                        syncKey="subjects-synced-admin"
+                                        syncKey={SUBJECT_SYNCS["admin"]}
                                         onUpdateAction={refetch}
                                     />
                                 ))}

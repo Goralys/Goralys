@@ -97,4 +97,9 @@ class FakeSubjectsRepository implements SubjectsRepositoryInterface
     ): bool {
         return $this->updateResult;
     }
+
+    public function flushDraftPath(string $teacherUsername, string $studentUsername, string $topic): bool
+    {
+        return $this->updateResult;
+    }
 }

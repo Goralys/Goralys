@@ -70,19 +70,19 @@ interface UserRepositoryInterface
 
     /**
      * @param string $username The user's username.
-     * @return string|null The user's full name, or null if the user does not exist.
+     * @return ?string The user's full name, or null if the user does not exist.
      */
     public function getFullNameForUsername(string $username): ?string;
 
     /**
      * @param string $username The user's username.
-     * @return string|null The user's public UUID, or null if the user does not exist.
+     * @return ?string The user's public UUID, or null if the user does not exist.
      */
     public function getPublicIdForUsername(string $username): ?string;
 
     /**
      * @param string $publicId The user's public id.
-     * @return string|null The user's username, or null if the user does not exist.
+     * @return ?string The user's username, or null if the user does not exist.
      */
     public function getUsernameForPublicId(string $publicId): ?string;
 
@@ -107,14 +107,14 @@ interface UserRepositoryInterface
     /**
      * Creates a new potential admin in the database.
      * @param string $username The new admin's username.
-     * @return bool Wether the creation was successful.
+     * @return bool Whether the creation was successful.
      */
     public function addAdmin(string $username): bool;
 
     /**
      * Deletes an admin in the database.
      * @param string $username The new admin's username.
-     * @return bool Wether the deletion was successful.
+     * @return bool Whether the deletion was successful.
      */
     public function revokeAdmin(string $username): bool;
 
@@ -136,14 +136,14 @@ interface UserRepositoryInterface
      * will remain linked correctly to that new teacher.
      * @param string $old The old teacher's username.
      * @param string $new The new teacher's username.
-     * @return bool Wether the replacement is successful.
+     * @return bool Whether the replacement is successful.
      */
     public function replaceTeacher(string $old, string $new): bool;
 
     /**
      * Deletes a user only from the `users` table. This is used to reset the user's password.
      * @param string $username The user's username.
-     * @return bool Wether the deletion was successful.
+     * @return bool Whether the deletion was successful.
      */
     public function softDelete(string $username): bool;
 
@@ -151,7 +151,7 @@ interface UserRepositoryInterface
      * Deletes a user from all the database's tables. This is used to completely remove a user and its associated
      * subjects and topics (teachers only).
      * @param string $username The user's username.
-     * @return bool Wether the deletion was successful.
+     * @return bool Whether the deletion was successful.
      */
     public function hardDelete(string $username): bool;
 
@@ -160,4 +160,26 @@ interface UserRepositoryInterface
      * @return bool If the deletion was successful or not.
      */
     public function clearAll(): bool;
+
+    /**
+     * Gets a user's email from the database.
+     * @param string $username The username of the user.
+     * @return ?string The email of the user (or `null` if it has no email).
+     */
+    public function getEmail(string $username): ?string;
+
+    /**
+     * Sets a user's email address inside the database.
+     * @param string $username The username of the user.
+     * @param string $email The new email for this user.
+     * @return bool Whether the update was successful.
+     */
+    public function setEmail(string $username, string $email): bool;
+
+    /**
+     * Deletes a user's email address inside the database.
+     * @param string $username The username of the user.
+     * @return bool Whether the deletion was successful.
+     */
+    public function removeEmail(string $username): bool;
 }

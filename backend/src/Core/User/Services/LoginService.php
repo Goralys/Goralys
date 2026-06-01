@@ -35,28 +35,6 @@ final class LoginService
     }
 
     /**
-     * Checks if a given password is correct for a specific user.
-     * @param UserLoginDTO $userData The necessary credentials to log the user in.
-     * @return bool Wether the password is correct.
-     * @throws UserNotFoundException If the user is invalid (does not exist).
-     */
-    public function checkPassword(UserLoginDTO $userData): bool
-    {
-        $login = $this->repo->getLoginDTO($userData->username);
-
-        if ($login === null) {
-            throw new UserNotFoundException("No such user : " . $userData->username);
-        }
-
-        $passwordHash = $login->password;
-
-        if (!password_verify($userData->password, $passwordHash)) {
-            return false;
-        }
-        return true;
-    }
-
-    /**
      * Logs in a user by using its password and username.
      * @param UserLoginDTO $userData The necessary credentials to log the user in.
      * @return bool If the login was successful or not.
@@ -76,6 +54,28 @@ final class LoginService
             LoggerInitiator::CORE,
             "New user logged in : " . $userData->username,
         );
+        return true;
+    }
+
+    /**
+     * Checks if a given password is correct for a specific user.
+     * @param UserLoginDTO $userData The necessary credentials to log the user in.
+     * @return bool Whether the password is correct.
+     * @throws UserNotFoundException If the user is invalid (does not exist).
+     */
+    public function checkPassword(UserLoginDTO $userData): bool
+    {
+        $login = $this->repo->getLoginDTO($userData->username);
+
+        if ($login === null) {
+            throw new UserNotFoundException("No such user : " . $userData->username);
+        }
+
+        $passwordHash = $login->password;
+
+        if (!password_verify($userData->password, $passwordHash)) {
+            return false;
+        }
         return true;
     }
 }

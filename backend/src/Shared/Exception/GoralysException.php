@@ -9,4 +9,6 @@ namespace Goralys\Shared\Exception;
 
 use Exception;
 
-class GoralysException extends Exception {}
+class GoralysException extends Exception
+{
+}

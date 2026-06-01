@@ -19,7 +19,7 @@ interface RequestInterface
      * @param string $key The name of the input.
      * @return int|float|string|bool|null The value of the input.
      */
-    public function get(string $key): int|float|string|bool|null;
+    public function param(string $key): int|float|string|bool|null;
 
     /**
      * Validates a given input from the request.

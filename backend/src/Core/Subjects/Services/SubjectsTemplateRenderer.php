@@ -7,7 +7,7 @@
 
 namespace Goralys\Core\Subjects\Services;
 
-use Goralys\Core\Subjects\Config\SubjectsExportConfig;
+use Goralys\Core\Subjects\Config\SubjectsExportConfig as Config;
 use Goralys\Core\Subjects\Data\StudentSubjectsDTO;
 use Goralys\Platform\Doc\PDF\Data\PdfSourceDTO;
 use InvalidArgumentException;
@@ -18,39 +18,6 @@ use InvalidArgumentException;
  */
 final class SubjectsTemplateRenderer
 {
-    private SubjectsExportConfig $config;
-
-    /**
-     * @param SubjectsExportConfig $config The export configuration (template paths, pathways, etc.).
-     */
-    public function __construct(SubjectsExportConfig $config)
-    {
-        $this->config = $config;
-    }
-
-    /**
-     * Resolves inline ternary conditionals of the form `{{ [not ]varName ? 'ifTrue' : 'ifFalse' }}` in an HTML string.
-     * @param string $html The HTML template content.
-     * @param array $vars The variable map used to evaluate conditions.
-     * @return string The HTML with all conditionals replaced by their resolved values.
-     */
-    private function resolveConditionals(string $html, array $vars): string
-    {
-        // Ternary operator match
-        return preg_replace_callback(
-            '/\{\{\s*(not\s+|!)?(\w+)\s*\?\s*["\']([^"\']*)["\']?\s*:\s*["\']([^"\']*)["\']?\s*}}/',
-            function (array $matches) use ($vars): string {
-                [, $negation, $varName, $ifTrue, $ifFalse] = $matches;
-                $value = $vars[$varName] ?? null;
-                if ($negation !== '') {
-                    $value = !$value;
-                }
-                return $value ? $ifTrue : $ifFalse;
-            },
-            $html,
-        );
-    }
-
     /**
      * Renders the PDF source (HTML + CSS) for a given student's subjects.
      * Resolves column widths, pathway detection, and all template variables before returning the source DTO.
@@ -67,8 +34,8 @@ final class SubjectsTemplateRenderer
             );
         }
 
-        $html = file_get_contents($this->config::TEMPLATE_SOURCE_PATH);
-        $css = file_get_contents($this->config::TEMPLATE_STYLES_PATH);
+        $html = file_get_contents(Config::TEMPLATE_SOURCE_PATH);
+        $css = file_get_contents(Config::TEMPLATE_STYLES_PATH);
 
         $pos = strpos($student->studentName, " ");
         $firstname = $pos !== false ? substr($student->studentName, 0, $pos) : $student->studentName;
@@ -98,7 +65,7 @@ final class SubjectsTemplateRenderer
 
         $pathway = "générale";
 
-        foreach ($this->config::getTechnologicalPathways() as $p) {
+        foreach (Config::getTechnologicalPathways() as $p) {
             foreach ($student->subjects as $subject) {
                 if ($subject->topicCode && str_contains($subject->topicCode, $p->detectPattern)) {
                     $pathway = "technologique - " . $p->full;
@@ -142,5 +109,28 @@ final class SubjectsTemplateRenderer
         $html = strtr($html, $replacements);
 
         return new PdfSourceDTO($html, $css);
+    }
+
+    /**
+     * Resolves inline ternary conditionals of the form `{{ [not ]varName ? 'ifTrue' : 'ifFalse' }}` in an HTML string.
+     * @param string $html The HTML template content.
+     * @param array $vars The variable map used to evaluate conditions.
+     * @return string The HTML with all conditionals replaced by their resolved values.
+     */
+    private function resolveConditionals(string $html, array $vars): string
+    {
+        // Ternary operator match
+        return preg_replace_callback(
+            '/\{\{\s*(not\s+|!)?(\w+)\s*\?\s*["\']([^"\']*)["\']?\s*:\s*["\']([^"\']*)["\']?\s*}}/',
+            function (array $matches) use ($vars): string {
+                [, $negation, $varName, $ifTrue, $ifFalse] = $matches;
+                $value = $vars[$varName] ?? null;
+                if ($negation !== '') {
+                    $value = !$value;
+                }
+                return $value ? $ifTrue : $ifFalse;
+            },
+            $html,
+        );
     }
 }

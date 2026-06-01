@@ -18,5 +18,6 @@ final readonly class VirtualUserDTO
     public function __construct(
         public string $username,
         public UserRole $role,
-    ) {}
+    ) {
+    }
 }

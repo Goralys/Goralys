@@ -42,23 +42,22 @@ final class UserRepository implements UserRepositoryInterface
     }
 
     /**
-     * This helper is used to build a user DTO containing all the user's info (full) from a database row.
-     * It is in charge of the logging process.
-     * @param array $row The row from the database result.
-     * @return UserFullDTO All the user's info.
+     * Get a user's info with its username.
+     * @param string $username The user's username.
+     * @return UserFullDTO The user's info.
+     * @throws UserNotFoundException If the user is invalid.
      */
-    private function buildUserFromRow(array $row): UserFullDTO
+    public function getByUsername(string $username): UserFullDTO
     {
-        $this->logger->info(
-            LoggerInitiator::CORE,
-            "User's data were successfully fetched for user : " . $row['user_id'] . " - Data:\n" . print_r($row, true),
+        $result = $this->db->fetch(
+            "select id, u.username, role, full_name, email from users u
+                   left join emails e on u.username = e.username
+                   where u.username = ?",
+            "s",
+            $username,
         );
-        return new UserFullDTO(
-            (int) $row['id'],
-            $row['user_id'],
-            UserRole::fromString($row['role']),
-            $row['full_name'],
-        );
+
+        return $this->buildUserFromResult($result);
     }
 
     /**
@@ -82,67 +81,24 @@ final class UserRepository implements UserRepositoryInterface
     }
 
     /**
-     * This helper is used to build multiple users DTO containing all the users' info (full) from a database request's
-     * result, it is in charge of the logging process.
-     * @param mysqli_result $result The result from the database.
-     * @return UserFullDTO[] All the users' info.
-     */
-    private function buildUsersFromResult(mysqli_result $result): array
-    {
-        $users = [];
-        while ($row = $result->fetch_assoc()) {
-            $users[] = $this->buildUserFromRow($row);
-        }
-        return $users;
-    }
-
-    /**
-     * This helper is used to build a virtual user DTO from a database row.
+     * This helper is used to build a user DTO containing all the user's info (full) from a database row.
+     * It is in charge of the logging process.
      * @param array $row The row from the database result.
-     * @return VirtualUserDTO The virtual user's info.
+     * @return UserFullDTO All the user's info.
      */
-    private function buildVirtualUserFromRow(array $row): VirtualUserDTO
+    private function buildUserFromRow(array $row): UserFullDTO
     {
         $this->logger->info(
             LoggerInitiator::CORE,
-            "Virtual user's data were successfully fetched for user : " . $row['user_id'],
+            "User's data were successfully fetched for user : " . $row['username'] . " - Data:\n" . print_r($row, true),
         );
-        return new VirtualUserDTO(
-            $row['user_id'],
+        return new UserFullDTO(
+            (int) $row['id'],
+            $row['username'],
             UserRole::fromString($row['role']),
+            $row['full_name'],
+            $row['email'] ?? "",
         );
-    }
-
-    /**
-     * This helper is used to build multiple virtual user DTOs from a database request's result,
-     * it is in charge of the logging process.
-     * @param mysqli_result $result The result from the database.
-     * @return VirtualUserDTO[] All the virtual users' info.
-     */
-    private function buildVirtualUsersFromResult(mysqli_result $result): array
-    {
-        $users = [];
-        while ($row = $result->fetch_assoc()) {
-            $users[] = $this->buildVirtualUserFromRow($row);
-        }
-        return $users;
-    }
-
-    /**
-     * Get a user's info with its username.
-     * @param string $username The user's username.
-     * @return UserFullDTO The user's info.
-     * @throws UserNotFoundException If the user is invalid.
-     */
-    public function getByUsername(string $username): UserFullDTO
-    {
-        $result = $this->db->fetch(
-            "select id, user_id, role, full_name from users where user_id = ?",
-            "s",
-            $username,
-        );
-
-        return $this->buildUserFromResult($result);
     }
 
     /**
@@ -153,7 +109,7 @@ final class UserRepository implements UserRepositoryInterface
     public function save(UserCreateDTO $userData): bool
     {
         return $this->db->run(
-            "insert into users (user_id, full_name, password_hash, role) values (?, ?, ?, ?)",
+            "insert into users (username, full_name, password_hash, role) values (?, ?, ?, ?)",
             "ssss",
             $userData->username,
             $userData->fullName,
@@ -170,7 +126,7 @@ final class UserRepository implements UserRepositoryInterface
     public function exists(string $username): bool
     {
         return $this->db->fetch(
-            "select 1 from users where user_id = ? limit 1",
+            "select 1 from users where username = ? limit 1",
             "s",
             $username,
         )->num_rows != 0;
@@ -185,9 +141,9 @@ final class UserRepository implements UserRepositoryInterface
     {
         return $this->db->fetch(
             "select 1
-            where exists(select 1 from student_topics where student_id = ?)
-            or exists(select 1 from topic_teachers where teacher_id = ?)
-            or exists(select 1 from admins_list where user_id = ?)
+            where exists(select 1 from student_topics where student_username = ?)
+            or exists(select 1 from topic_teachers where teacher_username = ?)
+            or exists(select 1 from admins_list where username = ?)
             limit 1",
             "sss",
             $username,
@@ -205,7 +161,7 @@ final class UserRepository implements UserRepositoryInterface
     public function getLoginDTO(string $username): ?UserLoginDTO
     {
         $result = $this->db->fetch(
-            "select password_hash from users where user_id = ?",
+            "select password_hash from users where username = ?",
             "s",
             $username,
         );
@@ -231,17 +187,17 @@ final class UserRepository implements UserRepositoryInterface
     public function getRoleForUsername(string $username): ?UserRole
     {
         $result = $this->db->fetch(
-            "select user_id, role from (
-            select student_id as user_id, 'student' as role
+            "select username, role from (
+            select student_username as username, 'student' as role
             from student_topics
             union all
-            select teacher_id as user_id, 'teacher' as role
+            select teacher_username as username, 'teacher' as role
             from topic_teachers
             union all
-            select user_id as user_id, 'admin' as role
+            select username as username, 'admin' as role
             from admins_list
             ) as all_ids
-            where user_id = ?
+            where username = ?
             limit 1",
             "s",
             $username,
@@ -262,12 +218,12 @@ final class UserRepository implements UserRepositoryInterface
     /**
      * Gets the full name of a user.
      * @param string $username The user's username.
-     * @return ?string The user's full name.
+     * @return ?string The user's full name or null if the user does not exist.
      */
     public function getFullNameForUsername(string $username): ?string
     {
         $result = $this->db->fetch(
-            "select full_name from users where user_id = ?
+            "select full_name from users where username = ?
             limit 1",
             "s",
             $username,
@@ -293,15 +249,15 @@ final class UserRepository implements UserRepositoryInterface
         $this->db->beginTransaction();
         try {
             $this->db->runNoArgs(
-                "delete from public_ids where user_id not in (
-                       select user_id from users where role = 'admin'
+                "delete from public_ids where username not in (
+                       select username from users where role = 'admin'
                        union
-                       select user_id from admins_list)",
+                       select username from admins_list)",
             );
             $this->db->runNoArgs("delete from users where role <> 'admin'");
             $this->db->commit();
             return true;
-        } catch (Exception $e) {
+        } catch (Exception) {
             $this->db->rollback();
             return false;
         }
@@ -316,9 +272,10 @@ final class UserRepository implements UserRepositoryInterface
     public function getByPublicId(string $uuid): UserFullDTO
     {
         $result = $this->db->fetch(
-            "select u.id, u.user_id, u.role, u.full_name 
+            "select u.id, u.username, u.role, u.full_name, e.email 
                    from users u
-                   join public_ids pi on u.user_id = pi.user_id
+                   join public_ids pi on u.username = pi.username
+                   left join emails e on u.username = e.username
                    where pi.public_id = ?",
             "s",
             $uuid,
@@ -330,7 +287,7 @@ final class UserRepository implements UserRepositoryInterface
     /**
      * Get if a public id belongs to a valid user.
      * @param string $uuid The public id.
-     * @return bool If the pudlic id is valid or not.
+     * @return bool If the public id is valid or not.
      */
     public function isPublicIdValid(string $uuid): bool
     {
@@ -344,12 +301,12 @@ final class UserRepository implements UserRepositoryInterface
     /**
      * Retrieves the public id of a user from its username.
      * @param string $username The username of the user.
-     * @return string|null The public id on success, `null` on failure.
+     * @return ?string The public id on success, `null` on failure.
      */
     public function getPublicIdForUsername(string $username): ?string
     {
         return $this->db->fetch(
-            "select public_id from public_ids where user_id = ?",
+            "select public_id from public_ids where username = ?",
             "s",
             $username,
         )->fetch_assoc()['public_id'] ?? null;
@@ -357,15 +314,15 @@ final class UserRepository implements UserRepositoryInterface
 
     /**
      * @param string $publicId The user's public id.
-     * @return string|null The user's username, or null if the user does not exist.
+     * @return ?string The user's username, or null if the user does not exist.
      */
     public function getUsernameForPublicId(string $publicId): ?string
     {
         return $this->db->fetch(
-            "select user_id from public_ids where public_id = ?",
+            "select username from public_ids where public_id = ?",
             "s",
             $publicId,
-        )->fetch_assoc()['user_id'] ?? null;
+        )->fetch_assoc()['username'] ?? null;
     }
 
     /**
@@ -374,20 +331,35 @@ final class UserRepository implements UserRepositoryInterface
      */
     public function getAll(): array
     {
-        $result = $this->db->fetchNoArgs("select id, user_id, full_name, role from users where role <> 'admin'");
+        $result = $this->db->fetchNoArgs("select id, username, full_name, role from users where role <> 'admin'");
         return $this->buildUsersFromResult($result);
+    }
+
+    /**
+     * This helper is used to build multiple users DTO containing all the users' info (full) from a database request's
+     * result, it is in charge of the logging process.
+     * @param mysqli_result $result The result from the database.
+     * @return UserFullDTO[] All the users' info.
+     */
+    private function buildUsersFromResult(mysqli_result $result): array
+    {
+        $users = [];
+        while ($row = $result->fetch_assoc()) {
+            $users[] = $this->buildUserFromRow($row);
+        }
+        return $users;
     }
 
     /**
      * Unlike {@see UserRepository::hardDelete()}, this deletes a user only from the `users` table.
      * This is used to reset the user's password.
      * @param string $username The user's username.
-     * @return bool Wether the deletion was successful.
+     * @return bool Whether the deletion was successful.
      */
     public function softDelete(string $username): bool
     {
         return $this->db->run(
-            "delete from users where user_id = ?",
+            "delete from users where username = ?",
             "s",
             $username,
         );
@@ -397,18 +369,18 @@ final class UserRepository implements UserRepositoryInterface
      * Unlike {@see UserRepository::softDelete()}, this deletes a user from all the database's tables.
      * This is used to completely remove a user and its associated subjects and topics (teachers only).
      * @param string $username The user's username.
-     * @return bool Wether the deletion was successful.
+     * @return bool Whether the deletion was successful.
      */
     public function hardDelete(string $username): bool
     {
         $this->db->beginTransaction();
         try {
-            //cascades to student_topics and topics_teachers (see data_strutucre.sql for further info)
+            //cascades to student_topics and topics_teachers (see data_structure.sql for further info)
             $this->db->run(
                 "delete from topics where id in (
-                select topic_id from topic_teachers where teacher_id = ?
+                select topic_id from topic_teachers where teacher_username = ?
                 and topic_id not in (
-                    select topic_id from topic_teachers where teacher_id <> ?
+                    select topic_id from topic_teachers where teacher_username <> ?
                 )
             )",
                 "ss",
@@ -416,9 +388,9 @@ final class UserRepository implements UserRepositoryInterface
                 $username,
             );
 
-            $this->db->run("delete from student_topics where student_id = ?", "s", $username);
-            $this->db->run("delete from users where user_id = ?", "s", $username);
-            $this->db->run("delete from public_ids where user_id = ?", "s", $username);
+            $this->db->run("delete from student_topics where student_username = ?", "s", $username);
+            $this->db->run("delete from users where username = ?", "s", $username);
+            $this->db->run("delete from public_ids where username = ?", "s", $username);
 
             $this->db->commit();
             return true;
@@ -433,14 +405,24 @@ final class UserRepository implements UserRepositoryInterface
      * will remain linked correctly to that new teacher.
      * @param string $old The old teacher's username.
      * @param string $new The new teacher's username.
-     * @return bool Wether the replacement is successful.
+     * @return bool Whether the replacement is successful.
      */
     public function replaceTeacher(string $old, string $new): bool
     {
         $this->db->beginTransaction();
         try {
-            $this->db->run("update topic_teachers set teacher_id = ? where teacher_id = ?", "ss", $new, $old);
-            $this->db->run("update public_ids set user_id = ?, public_id = uuid() where user_id = ?", "ss", $new, $old);
+            $this->db->run(
+                "update topic_teachers set teacher_username = ? where teacher_username = ?",
+                "ss",
+                $new,
+                $old
+            );
+            $this->db->run(
+                "update public_ids set username = ?, public_id = uuid() where username = ?",
+                "ss",
+                $new,
+                $old
+            );
 
             $this->db->commit();
             return true;
@@ -457,14 +439,46 @@ final class UserRepository implements UserRepositoryInterface
     public function getVirtual(): array
     {
         $result = $this->db->fetchNoArgs(
-            "select distinct all_ids.user_id, all_ids.role from (
-                   select student_id as user_id, 'student' as role from student_topics
+            "select distinct all_ids.username, all_ids.role from (
+                   select student_username as username, 'student' as role from student_topics
                    union
-                   select teacher_id as user_id, 'teacher' as role from topic_teachers
-                   ) as all_ids where all_ids.user_id not in (select user_id from users)",
+                   select teacher_username as username, 'teacher' as role from topic_teachers
+                   ) as all_ids where all_ids.username not in (select username from users)",
         );
 
         return $this->buildVirtualUsersFromResult($result);
+    }
+
+    /**
+     * This helper is used to build multiple virtual user DTOs from a database request's result,
+     * it is in charge of the logging process.
+     * @param mysqli_result $result The result from the database.
+     * @return VirtualUserDTO[] All the virtual users' info.
+     */
+    private function buildVirtualUsersFromResult(mysqli_result $result): array
+    {
+        $users = [];
+        while ($row = $result->fetch_assoc()) {
+            $users[] = $this->buildVirtualUserFromRow($row);
+        }
+        return $users;
+    }
+
+    /**
+     * This helper is used to build a virtual user DTO from a database row.
+     * @param array $row The row from the database result.
+     * @return VirtualUserDTO The virtual user's info.
+     */
+    private function buildVirtualUserFromRow(array $row): VirtualUserDTO
+    {
+        $this->logger->info(
+            LoggerInitiator::CORE,
+            "Virtual user's data were successfully fetched for user : " . $row['username'],
+        );
+        return new VirtualUserDTO(
+            $row['username'],
+            UserRole::fromString($row['role']),
+        );
     }
 
     /**
@@ -473,10 +487,10 @@ final class UserRepository implements UserRepositoryInterface
      */
     public function getPublicIds(): array
     {
-        $result = $this->db->fetchNoArgs("select user_id, public_id from public_ids");
+        $result = $this->db->fetchNoArgs("select username, public_id from public_ids");
         $map = [];
         while ($row = $result->fetch_assoc()) {
-            $map[$row['user_id']] = $row['public_id'];
+            $map[$row['username']] = $row['public_id'];
         }
         return $map;
     }
@@ -487,7 +501,7 @@ final class UserRepository implements UserRepositoryInterface
      */
     public function getAdmins(): array
     {
-        $result = $this->db->fetchNoArgs("select id, user_id, full_name, role from users where role = 'admin'");
+        $result = $this->db->fetchNoArgs("select id, username, full_name, role from users where role = 'admin'");
         return $this->buildUsersFromResult($result);
     }
 
@@ -499,8 +513,8 @@ final class UserRepository implements UserRepositoryInterface
     public function getVirtualAdmins(): array
     {
         $result = $this->db->fetchNoArgs(
-            "select user_id, 'admin' as role from admins_list 
-                where user_id not in (select user_id from users)",
+            "select username, 'admin' as role from admins_list 
+                where username not in (select username from users)",
         );
         return $this->buildVirtualUsersFromResult($result);
     }
@@ -508,14 +522,14 @@ final class UserRepository implements UserRepositoryInterface
     /**
      * Creates a new potential admin in the database.
      * @param string $username The new admin's username.
-     * @return bool Wether the creation was successful.
+     * @return bool Whether the creation was successful.
      */
     public function addAdmin(string $username): bool
     {
         $this->db->beginTransaction();
         try {
-            $this->db->run("insert into admins_list (user_id) values (?)", "s", $username);
-            $this->db->run("insert into public_ids (user_id, public_id) values (?, uuid())", "s", $username);
+            $this->db->run("insert into admins_list (username) values (?)", "s", $username);
+            $this->db->run("insert into public_ids (username, public_id) values (?, uuid())", "s", $username);
 
             $this->db->commit();
             return true;
@@ -528,15 +542,15 @@ final class UserRepository implements UserRepositoryInterface
     /**
      * Deletes an admin in the database.
      * @param string $username The new admin's username.
-     * @return bool Wether the deletion was successful.
+     * @return bool Whether the deletion was successful.
      */
     public function revokeAdmin(string $username): bool
     {
         $this->db->beginTransaction();
         try {
-            $this->db->run("delete from public_ids where user_id = ?", "s", $username);
-            $this->db->run("delete from admins_list where user_id = ?", "s", $username);
-            $this->db->run("delete from users where user_id = ?", "s", $username);
+            $this->db->run("delete from public_ids where username = ?", "s", $username);
+            $this->db->run("delete from admins_list where username = ?", "s", $username);
+            $this->db->run("delete from users where username = ?", "s", $username);
 
             $this->db->commit();
             return true;
@@ -544,5 +558,51 @@ final class UserRepository implements UserRepositoryInterface
             $this->db->rollback();
             return false;
         }
+    }
+
+    /**
+     * Gets a user's email from the database.
+     * @param string $username The username of the user.
+     * @return ?string The email of the user (or `null` if it has no email).
+     */
+    public function getEmail(string $username): ?string
+    {
+        $result = $this->db->fetch(
+            "select email from emails where username = ?",
+            "s",
+            $username
+        );
+        return $result->fetch_assoc()['email'] ?? null;
+    }
+
+    /**
+     * Sets a user's email address inside the database.
+     * @param string $username The username of the user.
+     * @param string $email The new email for this user
+     * @return bool Whether the update was successful.
+     */
+    public function setEmail(string $username, string $email): bool
+    {
+        return $this->db->run(
+            "insert into emails (username, email) values (?, ?)
+                   on duplicate key update email = values(email)",
+            "ss",
+            $username,
+            $email,
+        );
+    }
+
+    /**
+     * Deletes a user's email address inside the database.
+     * @param string $username The username of the user.
+     * @return bool Whether the deletion was successful.
+     */
+    public function removeEmail(string $username): bool
+    {
+        return $this->db->run(
+            "delete from emails where username = ?",
+            "s",
+            $username,
+        );
     }
 }

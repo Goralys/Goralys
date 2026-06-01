@@ -31,6 +31,17 @@ final class RoleMiddleware implements MiddlewareInterface
     }
 
     /**
+     * Returns the middleware binding for the given minimum role.
+     * @param UserRole $role The minimum required role.
+     * @param bool $strict If true, the session role must match exactly.
+     * @return array The middleware descriptor array.
+     */
+    public static function require(UserRole $role, bool $strict = false): array
+    {
+        return ['role', [$role, $strict]];
+    }
+
+    /**
      * Verifies the session user meets the required role, aborting on failure.
      * @param GoralysKernel $kernel The application kernel.
      * @param callable $next The next handler in the pipeline.
@@ -40,16 +51,5 @@ final class RoleMiddleware implements MiddlewareInterface
     {
         $kernel->requireRole($this->role, $this->strict);
         return $next($kernel);
-    }
-
-    /**
-     * Returns the middleware binding for the given minimum role.
-     * @param UserRole $role The minimum required role.
-     * @param bool $strict If true, the session role must match exactly.
-     * @return array The middleware descriptor array.
-     */
-    public static function require(UserRole $role, bool $strict = false): array
-    {
-        return ['role', [$role, $strict]];
     }
 }

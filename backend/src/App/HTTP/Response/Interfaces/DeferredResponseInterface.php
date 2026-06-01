@@ -9,6 +9,7 @@ namespace Goralys\App\HTTP\Response\Interfaces;
 
 use Goralys\App\Context\AppContext;
 use Goralys\App\Utils\Toast\Data\Enums\ToastType;
+use JetBrains\PhpStorm\NoReturn;
 
 /**
  * A contract used to represent a deferred response.
@@ -55,5 +56,6 @@ interface DeferredResponseInterface
      * Sends the response and terminates.
      * @return never
      */
+    #[NoReturn]
     public function send(): never;
 }

@@ -1,29 +1,35 @@
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 
+type scripts\banner.txt
+
 echo ==================================================
 echo =====             Goralys setup              =====
 echo ==================================================
 
-echo Checking for pnpm...
+echo [1/6 ]Checking for pnpm...
 where pnpm >nul 2>&1
 if errorlevel 1 (
-    echo Fatal: pnpm not found in PATH.
-    echo Please install pnpm or add it to your system PATH.
+    echo [ERROR] Fatal: pnpm not found in PATH.
+    echo >> Please install pnpm or add it to your system PATH.
     pause
     exit /b 1
 )
 
-echo Checking for Composer...
+echo [OK] pnpm found.
+
+echo [2/6] Checking for Composer...
 where composer >nul 2>&1
 if errorlevel 1 (
-    echo Fatal: Composer not found in PATH.
-    echo Please install Composer or add it to your system PATH.
+    echo [ERROR] Fatal: Composer not found in PATH.
+    echo >> Please install Composer or add it to your system PATH.
     pause
     exit /b 1
 )
 
-echo Installing dependencies ...
+echo [OK] composer found.
+
+echo [3/6] Installing dependencies ...
 call composer install --working-dir=backend
 if errorlevel 1 (
     echo [ERROR] Composer install failed.
@@ -38,10 +44,10 @@ if errorlevel 1 (
     exit /b 1
 )
 
-echo Successfully installed dependencies.
+echo [OK] Successfully installed dependencies.
 echo.
 
-echo Creating .env file ...
+echo [4/6] Creating .env file ...
 
 if exist ".\backend\.env" (
     echo An existing .env file was found, do you want to overwrite it ? This will delete all previous configuration.
@@ -71,6 +77,8 @@ echo .env ready.
 echo.
 
 :after_env
+
+echo [5/6] Creating directories ...
 echo Creating Logs directory ...
 if not exist ".\backend\Logs" mkdir ".\backend\Logs" >nul 2>&1
 echo Creating Assets directory ...
@@ -78,9 +86,10 @@ if not exist ".\backend\Assets" mkdir ".\backend\Assets" >nul 2>&1
 if not exist ".\backend\Assets\Template" mkdir ".\backend\Assets\Template" >nul 2>&1
 if not exist ".\backend\Assets\Template\Exports" mkdir ".\backend\Assets\Template\Exports" >nul 2>&1
 if not exist ".\backend\Assets\StudentsDrafts" mkdir ".\backend\Assets\StudentsDrafts" >nul 2>&1
-echo Directories are ready.
+echo [OK] Directories are ready.
 echo.
 
+echo [6/6] Running checks
 echo Would you like the setup to run checks (eslint + phpcs)?
 set /p RUN_CHECKS="Run checks ? (Y/n) : "
 if /I not "!RUN_CHECKS!"=="Y" (

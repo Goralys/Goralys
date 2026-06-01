@@ -15,6 +15,18 @@ use Goralys\Platform\Doc\PDF\Data\PdfSourceDTO;
 interface PdfExporterInterface
 {
     /**
+     * Ensure all required directories are created (and creates them if they aren't).
+     * @return void
+     */
+    public function prepare(): void;
+
+    /**
+     * Deletes all exported files (PDFs and zips) from the exports directory.
+     * @return void
+     */
+    public function clean(): void;
+
+    /**
      * Renders a PDF document and writes it to disk.
      * @param PdfSourceDTO $pdf The source data describing the PDF to generate.
      * @param string $path The destination file path where the PDF will be written.

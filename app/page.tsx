@@ -11,6 +11,7 @@
 import Image from "next/image";
 import { ReactElement } from "react";
 import { Metadata } from "next";
+import Link from "next/link";
 
 export const metadata: Metadata = {
     title: "Goralys | Accueil",
@@ -26,7 +27,7 @@ export default function HomePage(): ReactElement {
                         alt="Affiche du Grand Oral"
                         width={600}
                         height={800}
-                        className="rounded-md shadow-md h-auto w-auto max-h-screen mt-5 landing-page:mt-0"
+                        className="rounded-md shadow-md h-auto max-h-screen mt-5 landing-page:mt-0"
                     />
                 </div>
 
@@ -34,6 +35,13 @@ export default function HomePage(): ReactElement {
                     <h1 className="font-bold text-5xl mb-5">Bienvenue sur Goralys,</h1>
                     <p className="mb-2.5">L&#39;application de gestion du Grand Oral au lycée Auguste et Jean Renoir.</p>
                     <p>Cette plateforme a été entièrement développée par Sami Saubion, élève du lycée.</p>
+                    <h2 className="font-bold text-2xl mb-3 mt-2">Vous avez un problème ?</h2>
+                    <p>
+                        Contactez le{" "}
+                        <Link className="text-sky-600 underline hover:text-sky-800 transition-colors duration-200" href="/support/contact">
+                            support
+                        </Link>
+                    </p>
                 </div>
             </div>
 

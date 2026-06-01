@@ -12,21 +12,6 @@ class RegisterValidatorServiceTest extends TestCase
     private FakeUserRepository $repo;
     private RegisterValidatorService $service;
 
-    protected function setUp(): void
-    {
-        $this->repo = new FakeUserRepository();
-
-        $this->service = new RegisterValidatorService(
-            $this->repo,
-        );
-    }
-
-    protected function tearDown(): void
-    {
-        unset($this->repo);
-        unset($this->service);
-    }
-
     public function testCanRegisterExistsAndInvalidUsername()
     {
         $this->repo->setUsernameValidResult(false);
@@ -53,5 +38,20 @@ class RegisterValidatorServiceTest extends TestCase
         $this->repo->setUsernameValidResult(true);
         $this->repo->setExistsResult(false);
         self::assertTrue($this->service->canRegister(new UserRegisterDTO("j.doe1", "John Doe", "foo")));
+    }
+
+    protected function setUp(): void
+    {
+        $this->repo = new FakeUserRepository();
+
+        $this->service = new RegisterValidatorService(
+            $this->repo,
+        );
+    }
+
+    protected function tearDown(): void
+    {
+        unset($this->repo);
+        unset($this->service);
     }
 }
