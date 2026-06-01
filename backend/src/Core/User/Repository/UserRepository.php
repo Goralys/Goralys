@@ -218,7 +218,7 @@ final class UserRepository implements UserRepositoryInterface
     /**
      * Gets the full name of a user.
      * @param string $username The user's username.
-     * @return ?string The user's full name.
+     * @return ?string The user's full name or null if the user does not exist.
      */
     public function getFullNameForUsername(string $username): ?string
     {
@@ -301,7 +301,7 @@ final class UserRepository implements UserRepositoryInterface
     /**
      * Retrieves the public id of a user from its username.
      * @param string $username The username of the user.
-     * @return string|null The public id on success, `null` on failure.
+     * @return ?string The public id on success, `null` on failure.
      */
     public function getPublicIdForUsername(string $username): ?string
     {
@@ -314,7 +314,7 @@ final class UserRepository implements UserRepositoryInterface
 
     /**
      * @param string $publicId The user's public id.
-     * @return string|null The user's username, or null if the user does not exist.
+     * @return ?string The user's username, or null if the user does not exist.
      */
     public function getUsernameForPublicId(string $publicId): ?string
     {

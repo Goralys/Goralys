@@ -74,8 +74,9 @@ function createSubjectsRoutes(GoralysRouter $router): void
     // ================================================
     $router->post('subjects/export', function (GoralysKernel $kernel) {
         $kernel->subjects->cleanExports(); // Cleans all previous exports
+        $kernel->subjects->prepareExports();
 
-        $subjects = $kernel->subjects->getForRole(UserRole::ADMIN);
+        $subjects = $kernel->subjects->getForRole(UserRole::ADMIN); // Get all subjects
         $path = $kernel->subjects->exportAll($subjects);
 
         $kernel->response()->download($path, "sujets-go.zip", after: fn() => $kernel->subjects->cleanExports());

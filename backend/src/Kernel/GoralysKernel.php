@@ -354,7 +354,7 @@ class GoralysKernel
      */
     private function initExporter(): void
     {
-        $this->exporter = new DomPdfExporter();
+        $this->exporter = new DomPdfExporter($this->logger);
     }
 
     /**
@@ -653,7 +653,7 @@ class GoralysKernel
      * Helper to use CSRF in an API endpoint.
      * It should always be called after you already called getRequest on the kernel.
      * @param string $formId The id of the current form.
-     * @param string|null $redirect The page to redirect the user to.
+     * @param ?string $redirect The page to redirect the user to.
      * @return void
      */
     public function requireCSRF(string $formId, ?string $redirect = null): void

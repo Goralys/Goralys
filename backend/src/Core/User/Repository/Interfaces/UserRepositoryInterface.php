@@ -70,19 +70,19 @@ interface UserRepositoryInterface
 
     /**
      * @param string $username The user's username.
-     * @return string|null The user's full name, or null if the user does not exist.
+     * @return ?string The user's full name, or null if the user does not exist.
      */
     public function getFullNameForUsername(string $username): ?string;
 
     /**
      * @param string $username The user's username.
-     * @return string|null The user's public UUID, or null if the user does not exist.
+     * @return ?string The user's public UUID, or null if the user does not exist.
      */
     public function getPublicIdForUsername(string $username): ?string;
 
     /**
      * @param string $publicId The user's public id.
-     * @return string|null The user's username, or null if the user does not exist.
+     * @return ?string The user's username, or null if the user does not exist.
      */
     public function getUsernameForPublicId(string $publicId): ?string;
 

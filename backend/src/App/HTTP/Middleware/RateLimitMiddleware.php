@@ -31,6 +31,18 @@ final class RateLimitMiddleware implements MiddlewareInterface
     }
 
     /**
+     * Returns the middleware binding for the given endpoint's rate limit.
+     * @param string $endpoint The named rate-limit rule to apply.
+     * @param ?string $redirect The page to redirect to on rate limit exceeded (defaults to "/").
+     * @param ?string $message A custom error message to display.
+     * @return array The middleware descriptor array.
+     */
+    public static function for(string $endpoint, ?string $redirect = null, ?string $message = null): array
+    {
+        return ['rate-limit', [$endpoint, $redirect, $message]];
+    }
+
+    /**
      * Checks the rate limit for the configured endpoint, aborting the request if exceeded.
      * @param GoralysKernel $kernel The application kernel.
      * @param callable $next The next handler in the pipeline.
@@ -45,17 +57,5 @@ final class RateLimitMiddleware implements MiddlewareInterface
         );
 
         return $next($kernel);
-    }
-
-    /**
-     * Returns the middleware binding for the given endpoint's rate limit.
-     * @param string $endpoint The named rate-limit rule to apply.
-     * @param string|null $redirect The page to redirect to on rate limit exceeded (defaults to "/").
-     * @param string|null $message A custom error message to display.
-     * @return array The middleware descriptor array.
-     */
-    public static function for(string $endpoint, ?string $redirect = null, ?string $message = null): array
-    {
-        return ['rate-limit', [$endpoint, $redirect, $message]];
     }
 }

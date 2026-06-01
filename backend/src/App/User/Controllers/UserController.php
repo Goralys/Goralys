@@ -124,7 +124,7 @@ final class UserController
     /**
      * Adds a new admin inside the database.
      * @param string $name The full name of the admin to add.
-     * @return string|null The admin's username on success, null otherwise.
+     * @return ?string The admin's username on success, null otherwise.
      * @throws GoralysUserException
      */
     public function addAdmin(string $name): ?string
@@ -174,7 +174,7 @@ final class UserController
      * Replaces a teacher inside the database.
      * @param string $publicId The current teacher's public id.
      * @param string $newName The full name of the new teacher.
-     * @return string|null Whether the operation was successful.
+     * @return ?string Whether the operation was successful.
      * @throws GoralysRuntimeException|GoralysUserException If the username of the user could not be retrieved.
      */
     public function replaceTeacher(string $publicId, string $newName): ?string
