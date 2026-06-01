@@ -31,6 +31,7 @@ export default function SupportForm(): ReactElement {
                     label="Votre email"
                     helper="Votre email sera simplement utilisé pour vous répondre."
                     defaultValue={cookie.get(EMAIL_KEY) ?? ""}
+                    autocomplete="email"
                     required
                     email
                 />
