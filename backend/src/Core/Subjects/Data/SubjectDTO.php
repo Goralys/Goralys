@@ -46,10 +46,11 @@ final readonly class SubjectDTO implements JsonSerializable
         public string $teacherUsernameToken,
         public bool $interdisciplinary,
         public bool $hasDraft = false,
-    ) {}
+    ) {
+    }
 
     /**
-     * Transforms the subject's data into a JSON array that is then sent to the frontend
+     * Transforms the subject's data into a JSON array that is then sent to the frontend.
      * @return array
      */
     public function jsonSerialize(): array

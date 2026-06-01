@@ -45,12 +45,12 @@ final class SubjectsRepository implements SubjectsRepositoryInterface
                 st.last_updated_at,
                 t.name as topic,
                 t.topic_code as topic_code,
-                GROUP_CONCAT(distinct tt.teacher_id order by tt.teacher_id separator ', ') as teachers
+                GROUP_CONCAT(distinct tt.teacher_username order by tt.teacher_username separator ', ') as teachers
             from student_topics st
             join topics t on t.id = st.topic_id
             join topic_teachers tt on t.id = tt.topic_id
-            where st.student_id = ?
-            group by st.student_id, st.topic_id",
+            where st.student_username = ?
+            group by st.student_username, st.topic_id",
             "s",
             $studentUsername,
         );
@@ -65,7 +65,7 @@ final class SubjectsRepository implements SubjectsRepositoryInterface
     {
         return $this->db->fetch(
             "select
-                st.student_id as student,
+                st.student_username as student,
                 st.subject,
                 st.subject_status,
                 st.teacher_comment as comment,
@@ -75,12 +75,12 @@ final class SubjectsRepository implements SubjectsRepositoryInterface
                 t.name as topic,
                 t.topic_code as topic_code,
                 st.draft_path as draftPath,
-                GROUP_CONCAT(distinct tt.teacher_id order by tt.teacher_id separator ', ') as teachers
+                GROUP_CONCAT(distinct tt.teacher_username order by tt.teacher_username separator ', ') as teachers
             from topics t
             join student_topics st on t.id = st.topic_id
             join topic_teachers tt on t.id = tt.topic_id
-            where tt.teacher_id = ?
-            group by st.student_id, st.topic_id",
+            where tt.teacher_username = ?
+            group by st.student_username, st.topic_id",
             "s",
             $teacherUsername,
         );
@@ -95,7 +95,7 @@ final class SubjectsRepository implements SubjectsRepositoryInterface
     {
         return $this->db->fetchNoArgs(
             "select
-                st.student_id as student,
+                st.student_username as student,
                 st.subject,
                 st.subject_status,
                 st.teacher_comment as comment,
@@ -104,11 +104,11 @@ final class SubjectsRepository implements SubjectsRepositoryInterface
                 st.last_updated_at,
                 t.name as topic,
                 t.topic_code as topic_code,
-                GROUP_CONCAT(distinct tt.teacher_id order by tt.teacher_id separator ', ') as teachers
+                GROUP_CONCAT(distinct tt.teacher_username order by tt.teacher_username separator ', ') as teachers
             from topics t
             join topic_teachers tt on t.id = tt.topic_id
             join student_topics st on t.id = st.topic_id
-            group by st.student_id, st.topic_id",
+            group by st.student_username, st.topic_id",
         );
     }
 
@@ -126,8 +126,8 @@ final class SubjectsRepository implements SubjectsRepositoryInterface
             from topics t
             join student_topics st on t.id = st.topic_id
             join topic_teachers tt on t.id = tt.topic_id
-            where tt.teacher_id = ?
-              and st.student_id = ?
+            where tt.teacher_username = ?
+              and st.student_username = ?
               and t.name = ?",
             "sss",
             $teacherUsername,
@@ -150,8 +150,8 @@ final class SubjectsRepository implements SubjectsRepositoryInterface
             from topics t
             join student_topics st on t.id = st.topic_id
             join topic_teachers tt on t.id = tt.topic_id
-            where tt.teacher_id = ?
-              and st.student_id = ?
+            where tt.teacher_username = ?
+              and st.student_username = ?
               and t.name = ?",
             "sss",
             $teacherUsername,
@@ -182,8 +182,8 @@ final class SubjectsRepository implements SubjectsRepositoryInterface
             join topics t on t.id = st.topic_id
             join topic_teachers tt on t.id = tt.topic_id
             set st.subject = ?, st.subject_status = 0, is_interdisciplinary = ?
-            where tt.teacher_id = ?
-            and st.student_id = ?
+            where tt.teacher_username = ?
+            and st.student_username = ?
             and t.name = ?
             and (st.subject_status = 0 or st.subject_status = 2)",
             "sisss",
@@ -216,8 +216,8 @@ final class SubjectsRepository implements SubjectsRepositoryInterface
             join topic_teachers tt on t.id = tt.topic_id
             set st.subject_status = ?,
                 st.last_rejected = IF(? = 2, st.subject, st.last_rejected)
-            where tt.teacher_id = ?
-            and st.student_id = ?
+            where tt.teacher_username = ?
+            and st.student_username = ?
             and t.name = ?",
             "iisss",
             $newStatus->value,
@@ -249,8 +249,8 @@ final class SubjectsRepository implements SubjectsRepositoryInterface
             join topics t on t.id = st.topic_id
             join topic_teachers tt on t.id = tt.topic_id
             set st.teacher_comment = ?
-            where tt.teacher_id = ?
-            and st.student_id = ?
+            where tt.teacher_username = ?
+            and st.student_username = ?
             and t.name = ?",
             "ssss",
             $newComment,
@@ -281,11 +281,28 @@ final class SubjectsRepository implements SubjectsRepositoryInterface
             join topics t on t.id = st.topic_id
             join topic_teachers tt on t.id = tt.topic_id
             set st.draft_path = ?
-            where tt.teacher_id = ?
-            and st.student_id = ?
+            where tt.teacher_username = ?
+            and st.student_username = ?
             and t.name = ?",
             "ssss",
             $newPath,
+            $teacherUsername,
+            $studentUsername,
+            $topic,
+        );
+    }
+
+    public function flushDraftPath(string $teacherUsername, string $studentUsername, string $topic): bool
+    {
+        return $this->db->run(
+            "update student_topics st
+            join topics t on t.id = st.topic_id
+            join topic_teachers tt on t.id = tt.topic_id
+            set st.draft_path = null
+            where tt.teacher_username = ?
+            and st.student_username = ?
+            and t.name = ?",
+            "sss",
             $teacherUsername,
             $studentUsername,
             $topic,

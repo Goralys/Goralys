@@ -19,5 +19,6 @@ final readonly class UserLoginDTO
     public function __construct(
         public string $username,
         public string $password,
-    ) {}
+    ) {
+    }
 }

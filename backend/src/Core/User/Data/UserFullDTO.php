@@ -19,11 +19,14 @@ final readonly class UserFullDTO
      * @param string $username The username of the user.
      * @param UserRole $role The role of the user.
      * @param string $fullName The full name of the user.
+     * @param string $email The email of the user.
      */
     public function __construct(
         public int $id,
         public string $username,
         public UserRole $role,
         public string $fullName,
-    ) {}
+        public string $email,
+    ) {
+    }
 }

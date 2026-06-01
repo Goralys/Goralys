@@ -2,25 +2,36 @@
 
 set -euo pipefail
 
+show_banner() {
+    cat "scripts/banner.txt"
+    echo
+}
+
+show_banner
+
 echo "=================================================="
 echo "=====             Goralys setup              ====="
 echo "=================================================="
 
-echo "Checking for pnpm..."
+echo "[1/6] Checking for pnpm..."
 if ! command -v pnpm >/dev/null 2>&1; then
-    echo "Fatal: pnpm not found in PATH."
-    echo "Please install pnpm or add it to your system PATH."
+    echo "[ERROR] Fatal: pnpm not found in PATH."
+    echo ">> Please install pnpm or add it to your system PATH."
     exit 1
 fi
 
-echo "Checking for Composer..."
+echo "[OK] pnpm found."
+
+echo "[2/6] Checking for Composer..."
 if ! command -v composer >/dev/null 2>&1; then
-    echo "Fatal: Composer not found in PATH."
-    echo "Please install Composer or add it to your system PATH."
+    echo "[ERROR] Fatal: Composer not found in PATH."
+    echo ">> Please install Composer or add it to your system PATH."
     exit 1
 fi
 
-echo "Installing dependencies ..."
+echo "[OK] composer found."
+
+echo "[3/6] Installing dependencies ..."
 composer install --working-dir=backend || {
     echo "[ERROR] Composer install failed."
     exit 1
@@ -31,10 +42,10 @@ pnpm install || {
     exit 1
 }
 
-echo "Successfully installed dependencies."
+echo "[OK] Successfully installed dependencies."
 echo
 
-echo "Creating .env file ..."
+echo "[4/6] Creating .env file ..."
 
 if [ -f "./backend/.env" ]; then
     echo "An existing .env file was found, do you want to overwrite it ?"
@@ -65,6 +76,7 @@ EOF
     echo
 fi
 
+echo "[5/6] Creating directories ..."
 echo "Creating Logs directory ..."
 mkdir -p ./backend/Logs
 echo "Creating Assets directory ..."
@@ -72,8 +84,10 @@ mkdir -p ./backend/Assets
 mkdir -p ./backend/Assets/Template
 mkdir -p ./backend/Assets/Template/Exports
 mkdir -p ./backend/Assets/StudentsDrafts
-echo "Directories are ready."
+echo "[OK] Directories are ready."
 echo
+
+echo "[6/6] Running checks"
 
 read -r -p "Would you like the setup to run checks (eslint + phpcs)? (Y/n) : " RUN_CHECKS
 if [[ "${RUN_CHECKS:-Y}" != "Y" ]]; then

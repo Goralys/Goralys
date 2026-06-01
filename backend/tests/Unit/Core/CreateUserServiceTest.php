@@ -13,21 +13,6 @@ class CreateUserServiceTest extends TestCase
     private FakeUserRepository $repo;
     private CreateUserService $service;
 
-    protected function setUp(): void
-    {
-        $this->repo = new FakeUserRepository();
-
-        $this->service = new CreateUserService(
-            $this->repo,
-        );
-    }
-
-    protected function tearDown(): void
-    {
-        unset($this->repo);
-        unset($this->service);
-    }
-
     public function testCreateUserInvalidRole()
     {
         self::assertFalse($this->service->createUser(new UserCreateDTO(
@@ -84,5 +69,20 @@ class CreateUserServiceTest extends TestCase
             "foo",
             UserRole::ADMIN,
         )));
+    }
+
+    protected function setUp(): void
+    {
+        $this->repo = new FakeUserRepository();
+
+        $this->service = new CreateUserService(
+            $this->repo,
+        );
+    }
+
+    protected function tearDown(): void
+    {
+        unset($this->repo);
+        unset($this->service);
     }
 }

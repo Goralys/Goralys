@@ -53,12 +53,12 @@ final class TopicsRepository implements TopicsRepositoryInterface
     public function insertTeacher(int $topicId, string $teacherUsername): bool
     {
         return $this->db->run(
-            "insert into topic_teachers (topic_id, teacher_id) values (?, ?)",
+            "insert into topic_teachers (topic_id, teacher_username) values (?, ?)",
             "is",
             $topicId,
             $teacherUsername,
         ) && $this->db->run(
-            "insert ignore into public_ids (user_id, public_id) values (?, uuid());",
+            "insert ignore into public_ids (username, public_id) values (?, uuid());",
             "s",
             $teacherUsername,
         );
@@ -74,13 +74,13 @@ final class TopicsRepository implements TopicsRepositoryInterface
     {
         return $this->db->run(
             "insert into student_topics 
-                   (student_id, topic_id, subject, last_rejected, teacher_comment, draft_path, subject_status)
+                   (student_username, topic_id, subject, last_rejected, teacher_comment, draft_path, subject_status)
                    values (?, ?, null, null, null, null, 0)",
             "si",
             $studentUsername,
             $topicId,
         ) && $this->db->run(
-            "insert ignore into public_ids (user_id, public_id) values (?, uuid());",
+            "insert ignore into public_ids (username, public_id) values (?, uuid());",
             "s",
             $studentUsername,
         );

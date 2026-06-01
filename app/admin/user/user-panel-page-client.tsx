@@ -1,11 +1,11 @@
 "use client";
 
-import { useUsers, useVirtualUsers } from "@/app/hooks/useUsers";
-import UserCard from "../../ui/admin-panel/user-card";
-import { useState, Suspense, ReactElement } from "react";
-import { User } from "@/app/lib/types";
-import { UsersSearchBar } from "../../ui/admin-panel/users-search-bar";
-import UserCardSkeleton from "../../ui/skeletons/admin-panel/user-card";
+import { useUsers, useVirtualUsers } from "@/app/src/hooks/useUsers";
+import UserCard from "@/app/src/ui/admin-panel/user-card";
+import { ReactElement, Suspense, useState } from "react";
+import { User } from "@/app/src/lib/types";
+import { UsersSearchBar } from "@/app/src/ui/admin-panel/users-search-bar";
+import UserCardSkeleton from "@/app/src/ui/skeletons/admin-panel/user-card";
 
 export default function UserPanelPageClient(): ReactElement {
     const { users, refetch, syncKey } = useUsers();
@@ -32,7 +32,14 @@ export default function UserPanelPageClient(): ReactElement {
                                 <UsersSearchBar type="real" users={users} setCurrentUsers={setCurrentUsers} />
                                 <div className="flex flex-col gap-2">
                                     {currentUsers?.map((u) => (
-                                        <UserCard key={u.role + u.publicId} user={u} onUpdateAction={refetch} syncKey={syncKey} />
+                                        <UserCard
+                                            type="real"
+                                            key={u.role + u.publicId}
+                                            user={u}
+                                            onUpdateAction={refetch}
+                                            syncKey={syncKey}
+                                            virtualSyncKey={virtualSyncKey}
+                                        />
                                     ))}
                                 </div>
                             </>
@@ -50,10 +57,12 @@ export default function UserPanelPageClient(): ReactElement {
                                 <div className="flex flex-col gap-2">
                                     {currentVirtualUsers?.map((u) => (
                                         <UserCard
+                                            type="virtual"
                                             key={u.role + u.publicId + "-virtual"}
                                             user={u}
                                             onUpdateAction={virtualRefetch}
-                                            syncKey={virtualSyncKey}
+                                            syncKey={syncKey}
+                                            virtualSyncKey={virtualSyncKey}
                                         />
                                     ))}
                                 </div>

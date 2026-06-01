@@ -29,6 +29,17 @@ final class CSRFMiddleware implements MiddlewareInterface
     }
 
     /**
+     * Returns the middleware binding for CSRF validation on a specific form.
+     * @param string $formId The form identifier to validate the token against.
+     * @param ?string $redirect The page to redirect to on failure (defaults to "/").
+     * @return array The middleware descriptor array.
+     */
+    public static function form(string $formId, ?string $redirect = null): array
+    {
+        return ['csrf', [$formId, $redirect]];
+    }
+
+    /**
      * Validates the CSRF token for the configured form, aborting the request on failure.
      * @param GoralysKernel $kernel The application kernel.
      * @param callable $next The next handler in the pipeline.
@@ -38,16 +49,5 @@ final class CSRFMiddleware implements MiddlewareInterface
     {
         $kernel->requireCSRF($this->formId, $this->redirect);
         return $next($kernel);
-    }
-
-    /**
-     * Returns the middleware binding for CSRF validation on a specific form.
-     * @param string $formId The form identifier to validate the token against.
-     * @param string|null $redirect The page to redirect to on failure (defaults to "/").
-     * @return array The middleware descriptor array.
-     */
-    public static function form(string $formId, ?string $redirect = null): array
-    {
-        return ['csrf', [$formId, $redirect]];
     }
 }

@@ -44,4 +44,12 @@ interface ImmediateResponseInterface
      */
     #[NoReturn]
     public function json(array|JsonSerializable $data, ?callable $after = null): never;
+
+    /**
+     * Sends a redirect to the client.
+     * @param string $dest The url to redirect the user to.
+     * @return never
+     */
+    #[NoReturn]
+    public function redirect(string $dest): never;
 }

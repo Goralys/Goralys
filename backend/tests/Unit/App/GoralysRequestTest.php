@@ -19,37 +19,37 @@ final class GoralysRequestTest extends TestCase
 
     public function testGetReturnsNullForMissingKey(): void
     {
-        $this->assertNull($this->request->get('missing'));
+        $this->assertNull($this->request->param('missing'));
     }
 
     public function testGetTrimsStringValues(): void
     {
         $this->request->setInput(['name' => '  John  ']);
-        $this->assertSame('John', $this->request->get('name'));
+        $this->assertSame('John', $this->request->param('name'));
     }
 
     public function testGetReturnsInt(): void
     {
         $this->request->setInput(['age' => 42]);
-        $this->assertSame(42, $this->request->get('age'));
+        $this->assertSame(42, $this->request->param('age'));
     }
 
     public function testGetReturnsFloat(): void
     {
         $this->request->setInput(['score' => 3.14]);
-        $this->assertSame(3.14, $this->request->get('score'));
+        $this->assertSame(3.14, $this->request->param('score'));
     }
 
     public function testGetReturnsBoolTrue(): void
     {
         $this->request->setInput(['active' => true]);
-        $this->assertSame(true, $this->request->get('active'));
+        $this->assertSame(true, $this->request->param('active'));
     }
 
     public function testGetReturnsBoolFalse(): void
     {
         $this->request->setInput(['active' => false]);
-        $this->assertSame(false, $this->request->get('active'));
+        $this->assertSame(false, $this->request->param('active'));
     }
 
     // validate() — happy path

@@ -28,7 +28,7 @@ final class EnvService
         try {
             $env = Dotenv::createImmutable($path); // Load the .env file inside the project root
             $env->load();
-        } catch (InvalidPathException|InvalidFileException|InvalidEncodingException|ValidationException) {
+        } catch (InvalidPathException | InvalidFileException | InvalidEncodingException | ValidationException) {
             return false;
         }
         return true;

@@ -17,5 +17,6 @@ final readonly class RateLimit
         public int $timeWindowSeconds,
         public RateLimitTimeMethod $timeMethod = RateLimitTimeMethod::CONSTANT,
         public int $maxLevels = 1,
-    ) {}
+    ) {
+    }
 }

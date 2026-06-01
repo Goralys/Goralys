@@ -10,7 +10,6 @@ namespace Goralys\App\User\Controllers;
 use Goralys\App\User\Data\UserCollection;
 use Goralys\App\User\Data\UserGetDTO;
 use Goralys\App\User\Data\UsernameTable;
-use Goralys\App\User\Services\UsernameManager;
 use Goralys\Core\User\Data\Enums\UserRole;
 use Goralys\Core\User\Data\UserFullDTO;
 use Goralys\Core\User\Data\UserLoginDTO;
@@ -18,8 +17,11 @@ use Goralys\Core\User\Data\VirtualUserDTO;
 use Goralys\Core\User\Repository\Interfaces\UserRepositoryInterface;
 use Goralys\Core\User\Repository\UserRepository;
 use Goralys\Core\User\Services\LoginService;
+use Goralys\Core\User\Services\UsernameManager;
 use Goralys\Platform\DB\Interfaces\DbContainerInterface;
+use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
 use Goralys\Platform\Logger\Interfaces\LoggerInterface;
+use Goralys\Shared\Config\GoralysConfig;
 use Goralys\Shared\Exception\GoralysRuntimeException;
 use Goralys\Shared\Exception\User\GoralysUserException;
 use Goralys\Shared\Exception\User\UserNotFoundException;
@@ -64,6 +66,15 @@ final class UserController
     }
 
     /**
+     * Returns all non-admin users from the database.
+     * @return UserCollection The users (teachers and students).
+     */
+    public function getAll(): UserCollection
+    {
+        return $this->buildCollection($this->repo->getAll(), UserGetDTO::fromFull(...));
+    }
+
+    /**
      * Builds a {@see UserCollection} from an array of user DTOs using the provided mapping callable.
      * @param VirtualUserDTO[]|UserFullDTO[] $users The users to build the collection from.
      * @param callable $fromDTO The callable used to map each user to a {@see UserGetDTO}.
@@ -81,15 +92,6 @@ final class UserController
             )]));
         }
         return $collection;
-    }
-
-    /**
-     * Returns all non-admin users from the database.
-     * @return UserCollection The users (teachers and students).
-     */
-    public function getAll(): UserCollection
-    {
-        return $this->buildCollection($this->repo->getAll(), UserGetDTO::fromFull(...));
     }
 
     /**
@@ -122,7 +124,7 @@ final class UserController
     /**
      * Adds a new admin inside the database.
      * @param string $name The full name of the admin to add.
-     * @return string|null The admin's username on success, null otherwise.
+     * @return ?string The admin's username on success, null otherwise.
      * @throws GoralysUserException
      */
     public function addAdmin(string $name): ?string
@@ -136,7 +138,7 @@ final class UserController
     /**
      * Revokes a new admin inside the database.
      * @param string $publicId The public id of the admin to revoke.
-     * @return bool Wether the creation was successful.
+     * @return bool Whether the creation was successful.
      * @throws GoralysRuntimeException If the admin's username could not be retrieved.
      */
     public function revokeAdmin(string $publicId): bool
@@ -147,23 +149,23 @@ final class UserController
     /**
      * Checks if a password is correct for the current user.
      * @param string $password The password to check.
-     * @return bool Wether the password is correct.
-     * @throws UserNotFoundException If the user does not exists.
+     * @return bool Whether the password is correct.
+     * @throws UserNotFoundException If the user does not exist.
      */
     public function validatePassword(string $password): bool
     {
         $service = new LoginService($this->logger, $this->repo);
-        return $service->checkPassword(new UserLoginDTO($_SESSION['current_username'], $password));
+        return $service->checkPassword(new UserLoginDTO($_SESSION[GoralysConfig::SESSION::USERNAME], $password));
     }
 
     /**
      * Deletes a user partially (consult {@see UserRepositoryInterface::softDelete()} for more information) to allow it
      * to recreate his account and thus choose a new password.
      * @param string $publicId The user's public id.
-     * @return bool Wether the operation was successful.
+     * @return bool Whether the operation was successful.
      * @throws GoralysRuntimeException If the username of the user could not be retrieved.
      */
-    public function resetPassword(string $publicId): bool
+    public function reset(string $publicId): bool
     {
         return $this->repo->softDelete($this->usernames->get($publicId));
     }
@@ -172,7 +174,7 @@ final class UserController
      * Replaces a teacher inside the database.
      * @param string $publicId The current teacher's public id.
      * @param string $newName The full name of the new teacher.
-     * @return string|null Wether the operation was successful.
+     * @return ?string Whether the operation was successful.
      * @throws GoralysRuntimeException|GoralysUserException If the username of the user could not be retrieved.
      */
     public function replaceTeacher(string $publicId, string $newName): ?string
@@ -187,11 +189,58 @@ final class UserController
     /**
      * Deletes a user completely (consult {@see UserRepositoryInterface::hardDelete()} for more information).
      * @param string $publicId The user's public id.
-     * @return bool Wether the operation was successful.
+     * @return bool Whether the operation was successful.
      * @throws GoralysRuntimeException If the username of the user could not be retrieved.
      */
     public function delete(string $publicId): bool
     {
-        return $this->repo->hardDelete($this->usernames->get($publicId));
+        $target = $this->usernames->get($publicId);
+        $this->logger->info(
+            LoggerInitiator::CORE,
+            "Attempting to delete user " . $target . " (initiator: " . $_SESSION[GoralysConfig::SESSION::USERNAME]
+        );
+        return $this->repo->hardDelete($target);
+    }
+
+    /**
+     * Gets the email for the current user or the provided one.
+     * @param $publicId ?string The public id of the target user, if `null` (default),
+     * the controller will query the email for the current user.
+     * @return ?string The email of the user (or `null` if it has no email).
+     * @throws GoralysRuntimeException If the username of the user cannot be retrieved.
+     */
+    public function getEmail(?string $publicId = null): ?string
+    {
+        return $this->repo->getEmail(
+            $publicId ? $this->usernames->get($publicId)
+            : $_SESSION[GoralysConfig::SESSION::USERNAME]
+        );
+    }
+
+    /**
+     * Sets the email for the current user.
+     * @param string $email The new email.
+     * @return bool Whether the update was successful.
+     */
+    public function setEmail(string $email): bool
+    {
+        if (!$this->repo->setEmail($_SESSION[GoralysConfig::SESSION::USERNAME], $email)) {
+            return false;
+        }
+        $_SESSION[GoralysConfig::SESSION::EMAIL] = $email;
+        return true;
+    }
+
+    /**
+     * Deletes the email for the current user.
+     * @return bool Whether the deletion was successful.
+     */
+    public function removeEmail(): bool
+    {
+        if (!$this->repo->removeEmail($_SESSION[GoralysConfig::SESSION::USERNAME])) {
+            return false;
+        }
+        unset($_SESSION[GoralysConfig::SESSION::EMAIL]);
+        return true;
     }
 }

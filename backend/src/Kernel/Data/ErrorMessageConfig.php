@@ -16,5 +16,6 @@ final readonly class ErrorMessageConfig
         public string $message,
         public string $redirect = "/",
         public int $code = 500,
-    ) {}
+    ) {
+    }
 }

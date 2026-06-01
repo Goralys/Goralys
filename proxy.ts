@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { SubjectsProxy } from "./app/lib/proxies/subjects-proxy";
-import { AdminsProxy } from "./app/lib/proxies/admins-proxy";
-import { FoolsProxy } from "@/app/lib/proxies/fools-proxy";
+import { NextResponse } from "next/server";
+import { SubjectsProxy } from "@/app/src/lib/proxies/subjects-proxy";
+import { AdminsProxy } from "@/app/src/lib/proxies/admins-proxy";
+import { FoolsProxy } from "@/app/src/lib/proxies/fools-proxy";
 
 const routes: Array<{
     matcher: RegExp;
@@ -10,11 +10,13 @@ const routes: Array<{
 }> = [
     { matcher: /^\/subject/, handler: SubjectsProxy },
     { matcher: /^\/admin/, handler: AdminsProxy },
+    { matcher: /^\/support\/ticket/, handler: AdminsProxy },
+    { matcher: /^\/support\/?$/, handler: AdminsProxy },
     { matcher: /^\/coffee/, handler: FoolsProxy },
     { matcher: /^\/tea/, handler: FoolsProxy },
 ];
 
-export async function proxy(request: NextRequest): Promise<NextResponse | NextResponse<unknown>> {
+export async function proxy(request: NextRequest): Promise<NextResponse> {
     const { pathname } = request.nextUrl;
 
     for (const route of routes) {
@@ -27,5 +29,5 @@ export async function proxy(request: NextRequest): Promise<NextResponse | NextRe
 }
 
 export const config = {
-    matcher: ["/subject/:path*", "/admin/:path*", "/coffee/:path*", "/tea/:path*"],
+    matcher: ["/subject/:path*", "/admin/:path*", "/coffee/:path*", "/tea/:path*", "/support/:path*"],
 };

@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { SideNav } from "@/app/ui/nav/side-nav";
-import { Lusitania } from "@/app/lib/fonts";
+import { SideNav } from "@/app/src/ui/nav/side-nav";
+import { Lusitania } from "@/app/src/lib/fonts";
 import React, { ReactElement } from "react";
-import { AuthListener } from "@/app/lib/auth/auth-listener";
-import FlashToastListener from "@/app/ui/toast/flash-toast-listener";
-import { UserListener } from "@/app/lib/auth/user-listerner";
-import { Providers } from "@/app/ui/modals/providers";
-import CookieBanner from "@/app/ui/basic/cookies-banner";
+import { AuthListener } from "@/app/src/lib/auth/auth-listener";
+import FlashToastListener from "@/app/src/ui/toast/flash-toast-listener";
+import { UserListener } from "@/app/src/lib/auth/user-listerner";
+import { Providers } from "@/app/src/ui/modals/providers";
+import CookieBanner from "@/app/src/ui/basic/cookies-banner";
 
 export const metadata: Metadata = {
     title: "Goralys",
@@ -28,11 +28,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
                     </h1>
                 </div>
 
-                <div id="toast-root"></div>
-                <div id="confirm-root"></div>
-                <div id="draft-modal-root"></div>
-                <div id="import-topics-modal-root"></div>
-                <div id="password-modal-root"></div>
                 <Providers>
                     <AuthListener />
                     <UserListener />

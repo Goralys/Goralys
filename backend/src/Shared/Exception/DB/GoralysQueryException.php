@@ -7,4 +7,6 @@
 
 namespace Goralys\Shared\Exception\DB;
 
-class GoralysQueryException extends GoralysDBException {}
+class GoralysQueryException extends GoralysDBException
+{
+}

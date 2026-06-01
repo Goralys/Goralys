@@ -22,12 +22,18 @@ final class GoralysRequest implements RequestInterface
         $raw  = file_get_contents('php://input');
         $json = json_decode($raw, true);
 
+        // POST/body initialization
         if (!empty($_POST)) {
             $this->input = $_POST;
         } elseif (is_array($json)) {
             $this->input = $json;
         } else {
             $this->input = [];
+        }
+
+        // GET requests
+        if (!empty($_GET)) {
+            $this->input = array_merge($this->input, $_GET);
         }
     }
 
@@ -38,7 +44,7 @@ final class GoralysRequest implements RequestInterface
      * @param string $key The name of the input to read.
      * @return int|float|string|bool|null The value of the input.
      */
-    public function get(string $key): int|float|string|bool|null
+    public function param(string $key): int|float|string|bool|null
     {
         $v = $this->input[$key] ?? null;
         if (is_string($v)) {

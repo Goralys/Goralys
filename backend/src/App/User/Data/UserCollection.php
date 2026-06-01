@@ -11,11 +11,7 @@ use JsonSerializable;
 
 class UserCollection implements JsonSerializable
 {
-    private array $users = [] {
-        get {
-            return $this->users;
-        }
-    }
+    private array $users = [];
 
     /**
      * Adds a new user to the collection.

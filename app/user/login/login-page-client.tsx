@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Card } from "@/app/ui/card";
-import LoginForm from "@/app/ui/user/forms/login-form";
+import { Card } from "@/app/src/ui/card";
+import LoginForm from "@/app/src/ui/user/forms/login-form";
 import { ReactElement, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useToast } from "@/app/ui/toast/toast-provider";
-import { emitUserEvent } from "@/app/lib/auth/user-event";
+import { useToast } from "@/app/src/ui/toast/toast-provider";
+import { emitUserEvent } from "@/app/src/lib/auth/user-event";
 
 export default function LoginPageClient(): ReactElement {
     const searchParams = useSearchParams();

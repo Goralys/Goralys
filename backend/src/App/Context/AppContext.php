@@ -17,5 +17,6 @@ final class AppContext
     public function __construct(
         public ToastMode $mode,
         public string $originDomain,
-    ) {}
+    ) {
+    }
 }

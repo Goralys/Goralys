@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { ReactElement, useState } from "react";
-import { goralysFetchClient } from "@/app/lib/fetch/fetch.client";
-import { Button } from "@/app/ui/button";
-import { useToast } from "@/app/ui/toast/toast-provider";
-import { isFoolsDay } from "@/app/lib/fools";
+import { goralysFetchClient, handleToastRequest } from "@/app/src/lib/fetch/fetch.client";
+import { Button } from "@/app/src/ui/button";
+import { useToast } from "@/app/src/ui/toast/toast-provider";
+import { isFoolsDay } from "@/app/src/lib/fools";
 
 const flavours = [
     { value: "chocolate", label: "Chocolat" },
@@ -21,23 +21,9 @@ export default function CookiesPageClient(): ReactElement {
     const orderCookie = async (): Promise<void> => {
         const payload = { flavour: flavour };
 
-        const res = await goralysFetchClient(`cookies`, {
-            method: "POST",
-            headers: { "X-HTTP-Method-Override": "BREW" },
-            body: JSON.stringify(payload),
-        });
+        const res = await goralysFetchClient("BREW", "cookies", payload);
 
-        const data = await res.json();
-
-        if (data?.toast) {
-            showToast({
-                type: data.toastType,
-                title: data.toastTitle,
-                message: data.toastMessage,
-            });
-
-            window.location.href = data?.redirect ?? "/";
-        }
+        await handleToastRequest(res, showToast);
     };
 
     return (

@@ -11,9 +11,8 @@ use DateMalformedStringException;
 use DateTime;
 use Goralys\App\HTTP\Files\GoralysFileManager;
 use Goralys\App\Subjects\Data\Enums\SubjectFields;
-use Goralys\App\User\Services\UsernameManager;
 use Goralys\Core\Drafts\Services\StudentDraftsManager;
-use Goralys\Core\Subjects\Config\SubjectsExportConfig;
+use Goralys\Core\Subjects\Config\SubjectsExportConfig as Config;
 use Goralys\Core\Subjects\Data\Enums\SubjectStatus;
 use Goralys\Core\Subjects\Data\SpecialityDTO;
 use Goralys\Core\Subjects\Data\StudentSubjectsDTO;
@@ -27,10 +26,12 @@ use Goralys\Core\Subjects\Services\UpdateSubjectService;
 use Goralys\Core\User\Data\Enums\UserRole;
 use Goralys\Core\User\Repository\Interfaces\UserRepositoryInterface;
 use Goralys\Core\User\Repository\UserRepository;
+use Goralys\Core\User\Services\UsernameManager;
 use Goralys\Core\Utils\User\Services\UsernameFormatterService;
 use Goralys\Platform\DB\Interfaces\DbContainerInterface;
 use Goralys\Platform\Doc\PDF\Interfaces\PdfExporterInterface;
 use Goralys\Platform\Logger\Interfaces\LoggerInterface;
+use Goralys\Shared\Config\GoralysConfig;
 use Goralys\Shared\Exception\GoralysRuntimeException;
 use ZipArchive;
 
@@ -40,18 +41,17 @@ use ZipArchive;
  */
 final class SubjectsController
 {
+    public StudentDraftsManager $draftsManager;
     private LoggerInterface $logger;
     private DbContainerInterface $db;
     private SubjectsRepositoryInterface $repo;
     private UpdateSubjectService $updateService;
     private UsernameFormatterService $formatter;
     private UsernameManager $usernameManager;
-    public StudentDraftsManager $draftsManager;
     private GoralysFileManager $fileManager;
     private GetSubjectsService $getService;
     private UserRepositoryInterface $userRepo;
     private SubjectsTemplateRenderer $renderer;
-    private SubjectsExportConfig $exportConfig;
     private PdfExporterInterface $exporter;
 
     /**
@@ -84,9 +84,8 @@ final class SubjectsController
             $this->formatter,
             $this->usernameManager,
         );
-        $this->exportConfig = new SubjectsExportConfig();
         $this->exporter = $exporter;
-        $this->renderer = new SubjectsTemplateRenderer($this->exportConfig);
+        $this->renderer = new SubjectsTemplateRenderer();
     }
 
     /**
@@ -96,7 +95,7 @@ final class SubjectsController
      * @param string $topic The name of the topic.
      * @param SubjectFields $field The field to update.
      * @param string|SubjectStatus $newValue The new value of the field.
-     * @param bool|null $interdisciplinary Only used when updating the subject.
+     * @param ?bool $interdisciplinary Only used when updating the subject.
      * @return bool If the update was successful or not.
      */
     public function updateField(
@@ -136,14 +135,12 @@ final class SubjectsController
      * Let the defaults value ("") for admins as they have access to all subjects.
      * @return SubjectsCollection The list of the retrieved subjects.
      * @throws DateMalformedStringException If one the date column fails to create a valid {@see DateTime} object.
-     * @throws GoralysRuntimeException If the subjects cannot be retrived refer to the exact implementation for more
+     * @throws GoralysRuntimeException If the subjects cannot be retrived, refer to the exact implementation for more
      * details.
      */
     public function getForRole(UserRole $role): SubjectsCollection
     {
-        $username = $_SESSION['current_username'];
-
-        unset($_SESSION['username-table']);
+        $username = $_SESSION[GoralysConfig::SESSION::USERNAME];
 
         return match ($role) {
             UserRole::STUDENT => $this->getService->getStudentSubjects($username),
@@ -170,6 +167,34 @@ final class SubjectsController
     }
 
     /**
+     * Exports all subjects in the given collection.
+     * @param SubjectsCollection $subjects The subjects to export.
+     * @return string The path to the generated zip file.
+     * @throws GoralysRuntimeException If the zip export goes wrong.
+     */
+    public function exportAll(SubjectsCollection $subjects): string
+    {
+        $grouped = $this->groupByStudents($subjects);
+        $exportedPaths = [];
+
+        foreach ($grouped as $s) {
+            $filename = Config::EXPORT_BASE_NAME . date("Y") . " - " . $s->studentName . ".pdf";
+            $filePath = Config::EXPORT_BASE_DIR . $s->exportSuffix . $filename;
+
+            $pdf = $this->renderer->render($s);
+            $this->exporter->export(
+                $pdf,
+                $filePath,
+                Config::ASSETS_PATH,
+            );
+
+            $exportedPaths[] = $filePath;
+        }
+
+        return $this->zipExports($exportedPaths);
+    }
+
+    /**
      * Groups the given subjects by students.
      * @param SubjectsCollection $subjects The subjects to group.
      * @return StudentSubjectsDTO[] The students associated with their subjects.
@@ -187,86 +212,43 @@ final class SubjectsController
                     |> array_keys(...)
                     |> (fn($x) => array_map(
                         /**
-                         * @param SubjectDTO[] $subjects * @return StudentSubjectsDTO
+                         * @param SubjectDTO[] $subjects
+                         * @return StudentSubjectsDTO
                          * @throws GoralysRuntimeException
                          */
                         function (string $username, array $subjects) {
+
                             $specialities = [];
+                            $teacherMissing = false;
                             foreach ($subjects as $subject) {
+                                $teacherUsername =  $this->usernameManager->get($subject->teacherUsernameToken);
+                                // Use reversed formatted name (J. DOE instead of DOE J.) for consistency
+                                // between 'real' users (DB names) and 'virtual' users (formatted names)
+                                $teacherName = $this->userRepo->getFullNameForUsername($teacherUsername);
                                 $specialities[] = new SpecialityDTO(
-                                    $this->userRepo->getFullNameForUsername(
-                                        $this->usernameManager->get($subject->teacherUsernameToken),
-                                    ),
+                                    $teacherName ?? $this->formatter->formatUsername($teacherUsername, true),
                                     $subject->topic,
                                     $subject->topicCode,
                                     $subject->subject,
                                     $subject->lastUpdatedAt ?? new DateTime(),
                                     $subject->interdisciplinary,
                                 );
+
+                                if (!$teacherName) {
+                                    $teacherMissing = true;
+                                }
                             }
+                            $studentName = $this->userRepo->getFullNameForUsername($username);
                             return new StudentSubjectsDTO(
-                                $this->userRepo->getFullNameForUsername($username),
+                                $studentName ?? $this->formatter->formatUsername($username, true),
                                 $specialities,
+                                Config::determineBrokenDir(!$studentName, $teacherMissing)
                             );
                         },
                         $x,
                         $grouped,
                     ))
                     |> array_values(...);
-    }
-
-    /**
-     * Exports all subjects in the given collection.
-     * @param SubjectsCollection $subjects The subjects to export.
-     * @return string The path to the generated zip file.
-     * @throws GoralysRuntimeException If the zip export goes wrong.
-     */
-    public function exportAll(SubjectsCollection $subjects): string
-    {
-        $grouped = $this->groupByStudents($subjects);
-        $exportedPaths = [];
-
-        foreach ($grouped as $s) {
-            $filename = $this->exportConfig::EXPORT_BASE_NAME . date("Y") . " - " . $s->studentName . ".pdf";
-            $filePath = $this->exportConfig::ASSETS_PATH . "Exports/" . $filename;
-
-            $pdf = $this->renderer->render($s);
-            $this->exporter->export(
-                $pdf,
-                $filePath,
-                $this->exportConfig::ASSETS_PATH,
-            );
-
-            $exportedPaths[] = $filePath;
-        }
-
-        return $this->zipExports($exportedPaths);
-    }
-
-    /**
-     * Deletes all exported files (PDFs and zips) from the exports directory.
-     * @return void
-     * @throws GoralysRuntimeException If the exports directory does not exist or a file cannot be deleted.
-     */
-    public function cleanExports(): void
-    {
-        $exportsDir = $this->exportConfig::ASSETS_PATH . "Exports/";
-
-        if (!is_dir($exportsDir)) {
-            throw new GoralysRuntimeException("Exports directory not found at: $exportsDir");
-        }
-
-        $files = array_merge(glob($exportsDir . "*.pdf"), glob($exportsDir . "*.zip"));
-
-        foreach ($files as $file) {
-            if (!is_file($file)) {
-                continue;
-            }
-
-            if (!unlink($file)) {
-                throw new GoralysRuntimeException("Failed to delete export file: $file");
-            }
-        }
     }
 
     /**
@@ -277,7 +259,7 @@ final class SubjectsController
      */
     private function zipExports(array $filePaths): string
     {
-        $zipPath = $this->exportConfig::ASSETS_PATH . "Exports/export_" . date("Y-m-d_His") . ".zip";
+        $zipPath = Config::EXPORT_BASE_DIR . "export_" . date("Y-m-d_His") . ".zip";
 
         $zip = new ZipArchive();
 
@@ -290,11 +272,29 @@ final class SubjectsController
                 $zip->close();
                 throw new GoralysRuntimeException("File not found when zipping: $path");
             }
-            $zip->addFile($path, basename($path));
+            $zip->addFile($path, ltrim($path, Config::EXPORT_BASE_DIR));
         }
 
         $zip->close();
 
         return $zipPath;
+    }
+
+    /**
+     * Prepares the export directories.
+     * @return void
+     */
+    public function prepareExports(): void
+    {
+        $this->exporter->prepare();
+    }
+
+    /**
+     * Deletes all exported files (PDFs and zips) from the exports directory.
+     * @return void
+     */
+    public function cleanExports(): void
+    {
+        $this->exporter->clean();
     }
 }

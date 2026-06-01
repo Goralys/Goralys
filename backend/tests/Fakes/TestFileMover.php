@@ -9,7 +9,7 @@ use Goralys\Shared\Exception\GoralysRuntimeException;
 class TestFileMover implements FileMover
 {
     /** @var FileDTO[] */
-    private array $files;
+    public array $files;
 
     public function __construct(array $files)
     {

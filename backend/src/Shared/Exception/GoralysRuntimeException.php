@@ -7,4 +7,6 @@
 
 namespace Goralys\Shared\Exception;
 
-class GoralysRuntimeException extends GoralysException {}
+class GoralysRuntimeException extends GoralysException
+{
+}

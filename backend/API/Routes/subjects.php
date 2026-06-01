@@ -21,41 +21,42 @@ function createSubjectsRoutes(GoralysRouter $router): void
     // ================================================
     // [SECTION] Subjects getters
     // ================================================
-    $router->post('subjects/admin', function (GoralysKernel $kernel) {
+    $router->get('subjects/admin', function (GoralysKernel $kernel) {
         $result = $kernel->subjects->getForRole(UserRole::ADMIN);
         $kernel->response()->json($result);
     })
             ->middlewares(...MiddlewareSets::subjectsRoute('get-admin-subjects', UserRole::ADMIN));
 
-    $router->post('subjects/teacher', function (GoralysKernel $kernel) {
+    $router->get('subjects/teacher', function (GoralysKernel $kernel) {
         $result = $kernel->subjects->getForRole(UserRole::TEACHER);
         $kernel->response()->json($result);
     })
             ->middlewares(...MiddlewareSets::subjectsRoute('get-teacher-subjects', UserRole::TEACHER));
 
-    $router->post('subjects/student', function (GoralysKernel $kernel) {
+    $router->get('subjects/student', function (GoralysKernel $kernel) {
         $result = $kernel->subjects->getForRole(UserRole::STUDENT);
         $kernel->response()->json($result);
     })
             ->middlewares(...MiddlewareSets::subjectsRoute('get-student-subjects', UserRole::STUDENT));
 
-    // -------------------------
+    // --------------------------------------------------
     // [SUB SECTION] Get draft
-    // -------------------------
-    $router->post(
+    // --------------------------------------------------
+
+    $router->get(
         'subjects/draft',
         function (GoralysKernel $kernel, RequestInterface $request) {
             $path = $kernel->subjects->draftsManager->getPath(
-                $kernel->usernameManager->get($request->get("student-token")),
-                $kernel->usernameManager->get($request->get("teacher-token")),
-                $request->get("topic"),
+                $kernel->usernames->get($request->param("student")),
+                $kernel->usernames->get($request->param("teacher")),
+                $request->param("topic"),
             );
 
             $extension = pathinfo($path, PATHINFO_EXTENSION);
 
-            $kernel->response()->download($path, $request->get("file-name") . "." . $extension);
+            $kernel->response()->download($path, $request->param("file-name") . "." . $extension);
         },
-        ...RouterOptions::$INPUT::require("teacher-token", "student-token", "topic", "file-name"),
+        ...RouterOptions::$INPUT::require("teacher", "student", "topic", "file-name"),
         ...RouterOptions::$INPUT::onFailure(
             "Une erreur est survenue lors de la récupération du brouillon de l'élève, 
                 veuillez réessayer ultérieurement.",
@@ -73,18 +74,23 @@ function createSubjectsRoutes(GoralysRouter $router): void
     // ================================================
     $router->post('subjects/export', function (GoralysKernel $kernel) {
         $kernel->subjects->cleanExports(); // Cleans all previous exports
+        $kernel->subjects->prepareExports();
 
-        $subjects = $kernel->subjects->getForRole(UserRole::ADMIN);
+        $subjects = $kernel->subjects->getForRole(UserRole::ADMIN); // Get all subjects
         $path = $kernel->subjects->exportAll($subjects);
 
         $kernel->response()->download($path, "sujets-go.zip", after: fn() => $kernel->subjects->cleanExports());
     })
-            ->middlewares(...MiddlewareSets::subjectsRoute('export-subjects', UserRole::ADMIN));
+            ->middlewares(...MiddlewareSets::subjectsRoute(
+                'export-subjects',
+                UserRole::ADMIN,
+                rateLimit: "export-subjects"
+            ));
 
-    $router->update(
+    $router->patch(
         'subjects/status',
         function (GoralysKernel $kernel, RequestInterface $request) {
-            if (!$kernel->users->validatePassword($request->get("admin-password"))) {
+            if (!$kernel->users->validatePassword($request->param("admin-password"))) {
                 $kernel->deferredResponse(501)->toast( // Unauthorized
                     ToastType::WARNING,
                     "Mot de passe",
@@ -95,11 +101,11 @@ function createSubjectsRoutes(GoralysRouter $router): void
             }
 
             $kernel->subjects->updateField(
-                $kernel->usernameManager->get($request->get('teacher-token')),
-                $kernel->usernameManager->get($request->get('student-token')),
-                $request->get("topic"),
+                $kernel->usernames->get($request->param('teacher')),
+                $kernel->usernames->get($request->param('student')),
+                $request->param("topic"),
                 SubjectFields::STATUS,
-                SubjectStatus::fromString($request->get("status"))
+                SubjectStatus::fromString($request->param("status"))
             );
 
             $kernel->deferredResponse()->toast(
@@ -110,25 +116,25 @@ function createSubjectsRoutes(GoralysRouter $router): void
                     ->redirect("/subject")
                     ->send();
         },
-        ...RouterOptions::$INPUT::require("status", "topic", "teacher-token", "student-token", "admin-password")
+        ...RouterOptions::$INPUT::require("status", "topic", "teacher", "student", "admin-password")
     )
-        ->middlewares(...MiddlewareSets::subjectsRoute('update-subject-status', UserRole::ADMIN));
+        ->middlewares(...MiddlewareSets::subjectsRoute('update-subject-status', UserRole::ADMIN, update: true));
 
-    // -------------------------
+    // --------------------------------------------------
     // [SUB SECTION] Student
-    // -------------------------
-    $router->post(
-        'subjects/save-draft',
+    // --------------------------------------------------
+    $router->put(
+        'subjects/draft',
         function (GoralysKernel $kernel, RequestInterface $request) {
-            $kernel->guard->matchCurrentUser($request, 'student-token')?->send();
+            $kernel->guard->matchCurrentUser($request, 'student')?->send();
 
             $result = $kernel->subjects->updateField(
-                $kernel->usernameManager->get($request->get('teacher-token')),
-                $kernel->usernameManager->get($request->get('student-token')),
-                $request->get('topic'),
+                $kernel->usernames->get($request->param('teacher')),
+                $kernel->usernames->get($request->param('student')),
+                $request->param('topic'),
                 SubjectFields::SUBJECT,
-                $request->get('draft'),
-                (bool) $request->get('interdisciplinary'),
+                $request->param('draft'),
+                (bool) $request->param('interdisciplinary'),
             );
 
             if (!$result) {
@@ -146,25 +152,25 @@ function createSubjectsRoutes(GoralysRouter $router): void
             )
             ->send();
         },
-        ...RouterOptions::$INPUT::require("draft", "topic", "teacher-token", "student-token"),
+        ...RouterOptions::$INPUT::require("draft", "topic", "teacher", "student"),
         ...RouterOptions::$INPUT::onFailure(
             "Une erreur interne est survenue lors de l'enregistrement de votre brouillon, 
             veuillez réessayer ultérieurement.",
             "/subject/",
         ),
     )
-            ->middlewares(...MiddlewareSets::subjectsRoute('save-draft', UserRole::STUDENT));
+            ->middlewares(...MiddlewareSets::subjectsRoute('save-draft', UserRole::STUDENT, update: true));
 
     $router->post(
         'subjects/submit',
         function (GoralysKernel $kernel, RequestInterface $request) {
-            $kernel->guard->matchCurrentUser($request, 'student-token')?->send();
+            $kernel->guard->matchCurrentUser($request, 'student')?->send();
 
-            $teacherUsername = $kernel->usernameManager->get($request->get('teacher-token'));
-            $studentUsername = $kernel->usernameManager->get($request->get('student-token'));
-            $topic = $request->get('topic');
-            $subject = $request->get('subject');
-            $interdisciplinary = (bool) $request->get('interdisciplinary');
+            $teacherUsername = $kernel->usernames->get($request->param('teacher'));
+            $studentUsername = $kernel->usernames->get($request->param('student'));
+            $topic = $request->param('topic');
+            $subject = $request->param('subject');
+            $interdisciplinary = (bool) $request->param('interdisciplinary');
             $draftFile = $kernel->fileManager->get("draft-file");
 
             if ($draftFile && $draftFile->size > AppConfig::MAX_DRAFT_SIZE) {
@@ -210,16 +216,27 @@ function createSubjectsRoutes(GoralysRouter $router): void
             }
 
             if ($draftFile) {
-                $updateResult = $kernel->subjects->draftsManager->update($studentUsername, $teacherUsername, $topic);
+                $updateResult = $kernel->subjects->draftsManager->update(
+                    $studentUsername,
+                    $teacherUsername,
+                    $topic,
+                );
+            } else {
+                // We delete the old draft if present.
+                $updateResult = $kernel->subjects->draftsManager->flush(
+                    $studentUsername,
+                    $teacherUsername,
+                    $topic,
+                );
+            }
 
-                if (!$updateResult) {
-                    $kernel->db->rollback();
-                    $kernel->deferredResponse(500)->error( // Internal server error
-                        "Votre question n'a pas pu être envoyée, car votre brouillon n'a pas pu être enregistré. 
-                        Veuillez réessayer ultérieurement.",
-                    )
-                        ->send();
-                }
+            if (!$updateResult) {
+                $kernel->db->rollback();
+                $kernel->deferredResponse(500)->error( // Internal server error
+                    "Votre question n'a pas pu être envoyée, car votre brouillon n'a pas pu être enregistré. 
+                    Veuillez réessayer ultérieurement.",
+                )
+                    ->send();
             }
 
             $kernel->db->commit();
@@ -230,26 +247,31 @@ function createSubjectsRoutes(GoralysRouter $router): void
             )
                 ->send();
         },
-        ...RouterOptions::$INPUT::require("subject", "topic", "teacher-token", "student-token"),
+        ...RouterOptions::$INPUT::require("subject", "topic", "teacher", "student"),
         ...RouterOptions::$INPUT::onFailure(
             "Une erreur interne est survenue lors de l'envoi de votre question, veuillez réessayer ultérieurement.",
             "/subject/",
         ),
     )
-            ->middlewares(...MiddlewareSets::subjectsRoute('submit-subject', UserRole::STUDENT));
+            ->middlewares(...MiddlewareSets::subjectsRoute(
+                'submit-subject',
+                UserRole::STUDENT,
+                transaction: true,
+                update: true
+            ));
 
-    // -------------------------
+    // --------------------------------------------------
     // [SUB SECTION] Teacher
-    // -------------------------
+    // --------------------------------------------------
     $router->post(
         'subjects/reject',
         function (GoralysKernel $kernel, RequestInterface $request) {
-            $kernel->guard->matchCurrentUser($request, 'teacher-token')?->send();
+            $kernel->guard->matchCurrentUser($request, 'teacher')?->send();
 
-            $teacherUsername = $kernel->usernameManager->get($request->get('teacher-token'));
-            $studentUsername = $kernel->usernameManager->get($request->get('student-token'));
-            $topic = $request->get('topic');
-            $comment = $request->get('comment');
+            $teacherUsername = $kernel->usernames->get($request->param('teacher'));
+            $studentUsername = $kernel->usernames->get($request->param('student'));
+            $topic = $request->param('topic');
+            $comment = $request->param('comment');
             $currentStatus = $kernel->subjects->getStatus($teacherUsername, $studentUsername, $topic);
 
             if ($currentStatus === SubjectStatus::REJECTED) {
@@ -295,24 +317,29 @@ function createSubjectsRoutes(GoralysRouter $router): void
                 "La question a bien été invalidée.",
             )->send();
         },
-        ...RouterOptions::$INPUT::require("comment", "topic", "teacher-token", "student-token"),
+        ...RouterOptions::$INPUT::require("comment", "topic", "teacher", "student"),
         ...RouterOptions::$INPUT::onFailure(
             "Une erreur interne est survenue lors de l'invalidation de la question, 
                 veuillez réessayer ultérieurement.",
             "/subject/",
         ),
     )
-            ->middlewares(...MiddlewareSets::subjectsRoute('reject-subject', UserRole::TEACHER, transaction: true));
+            ->middlewares(...MiddlewareSets::subjectsRoute(
+                'reject-subject',
+                UserRole::TEACHER,
+                transaction: true,
+                update: true
+            ));
 
     $router->post(
         'subjects/approve',
         function (GoralysKernel $kernel, RequestInterface $request) {
-            $kernel->guard->matchCurrentUser($request, 'teacher-token')?->send();
+            $kernel->guard->matchCurrentUser($request, 'teacher')?->send();
 
             $result = $kernel->subjects->updateField(
-                $kernel->usernameManager->get($request->get('teacher-token')),
-                $kernel->usernameManager->get($request->get('student-token')),
-                $request->get("topic"),
+                $kernel->usernames->get($request->param('teacher')),
+                $kernel->usernames->get($request->param('student')),
+                $request->param("topic"),
                 SubjectFields::STATUS,
                 SubjectStatus::APPROVED,
             );
@@ -320,7 +347,7 @@ function createSubjectsRoutes(GoralysRouter $router): void
             if (!$result) {
                 $kernel->deferredResponse(500)->error( // Internal server error
                     "Une erreur interne est survenue lors de la validation de la question, 
-                veuillez réessayer ultérieurement.",
+                    veuillez réessayer ultérieurement.",
                 )
                 ->send();
             }
@@ -332,12 +359,12 @@ function createSubjectsRoutes(GoralysRouter $router): void
             )
             ->send();
         },
-        ...RouterOptions::$INPUT::require("topic", "teacher-token", "student-token"),
+        ...RouterOptions::$INPUT::require("topic", "teacher", "student"),
         ...RouterOptions::$INPUT::onFailure(
             "Une erreur interne est survenue lors de la validation de la question, 
                 veuillez réessayer ultérieurement.",
             "/subject/",
         ),
     )
-    ->middlewares(...MiddlewareSets::subjectsRoute('approve-subject', UserRole::TEACHER));
+    ->middlewares(...MiddlewareSets::subjectsRoute('approve-subject', UserRole::TEACHER, update: true));
 }

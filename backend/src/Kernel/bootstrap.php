@@ -6,6 +6,7 @@
  */
 
 use Goralys\Kernel\GoralysKernel;
+use Goralys\Shared\Config\GoralysConfig;
 
 // ----------- API bootstrap method ---------- //
 /**
@@ -16,6 +17,7 @@ use Goralys\Kernel\GoralysKernel;
  */
 function bootstrapAPI(GoralysKernel $kernel): void
 {
+    date_default_timezone_set('Europe/Paris');  // change if you are not french
     if (isset($_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'])) {
         $_SERVER['REQUEST_METHOD'] = $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'];
     }
@@ -46,12 +48,22 @@ function bootstrapAPI(GoralysKernel $kernel): void
     }
 
     // Check if the user agent from the client is valid
-    error_log("BOOTSTRAP - 3: UA check, current_id=" . ($_SESSION['current_id'] ?? 'none')
+    error_log("BOOTSTRAP - 3: UA check, current_id=" . ($_SESSION[GoralysConfig::SESSION::ID] ?? 'none')
             . ", UA=" . ($_SERVER['HTTP_USER_AGENT'] ?? 'none'));
-    if (isset($_SESSION['current_id'])) {
+    $whiteListUA = ["node"];
+    if (isset($_SESSION[GoralysConfig::SESSION::ID])) {
         $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? null;
+        $shouldCheck = true;
 
-        if ($userAgent !== null) {
+        foreach ($whiteListUA as $uaPattern) {
+            if (str_starts_with($userAgent, $uaPattern)) {
+                $shouldCheck = false;
+                error_log("Skipping check for UA: " . $userAgent);
+                break;
+            }
+        }
+
+        if ($userAgent !== null && $shouldCheck) {
             $ua = $_SESSION['ua'] ?? null;
             $uaHash = hash("sha256", $userAgent);
 
