@@ -100,6 +100,22 @@ create table student_topics
 ) engine = innodb;
 
 -- -----------------------------------------------------
+-- student_info table
+-- -----------------------------------------------------
+create table student_info
+(
+    username  varchar(32) not null unique,
+    firstname varchar(32) not null,
+    lastname  varchar(32) not null,
+    class     varchar(5)  not null,
+
+    primary key (username, class),
+    foreign key (username) references student_topics (student_username)
+        on update cascade
+        on delete cascade
+) engine = innodb;
+
+-- -----------------------------------------------------
 -- topic_teachers table
 -- -----------------------------------------------------
 create table topic_teachers
