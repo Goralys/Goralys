@@ -11,7 +11,7 @@ import CookieBanner from "@/app/src/ui/basic/cookies-banner";
 
 export const metadata: Metadata = {
     title: "Goralys",
-    description: "A cool project.",
+    description: "Un site pour simplifier la gestion du Grand Oral en Terminale.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>): ReactElement {
