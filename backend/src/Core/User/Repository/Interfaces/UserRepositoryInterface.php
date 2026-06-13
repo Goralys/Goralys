@@ -12,6 +12,7 @@ use Goralys\Core\User\Data\UserCreateDTO;
 use Goralys\Core\User\Data\UserFullDTO;
 use Goralys\Core\User\Data\UserLoginDTO;
 use Goralys\Core\User\Data\VirtualUserDTO;
+use Goralys\Shared\User\Data\FullNameDTO;
 
 /**
  * Contract for the user repository.
@@ -64,15 +65,15 @@ interface UserRepositoryInterface
 
     /**
      * @param string $username The user's username.
-     * @return UserRole|null The user's role, or null if the user does not exist.
+     * @return ?UserRole The user's role, or null if the user does not exist.
      */
     public function getRoleForUsername(string $username): ?UserRole;
 
     /**
      * @param string $username The user's username.
-     * @return ?string The user's full name, or null if the user does not exist.
+     * @return ?FullNameDTO The user's full name, or null if the user does not exist.
      */
-    public function getFullNameForUsername(string $username): ?string;
+    public function getFullNameForUsername(string $username): ?FullNameDTO;
 
     /**
      * @param string $username The user's username.

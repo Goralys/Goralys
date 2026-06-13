@@ -7,8 +7,11 @@
 
 namespace Goralys\Core\Topics\Services;
 
+use Goralys\App\Topics\Data\StudentDTO;
 use Goralys\Core\Topics\Config\TopicsImportConfig;
+use Goralys\Shared\Exception\Files\InvalidFileException;
 use Goralys\Shared\Exception\GoralysRuntimeException;
+use Goralys\Shared\User\Data\FullNameDTO;
 use Goralys\Shared\Utils\String\Data\StringCase;
 use Goralys\Shared\Utils\UtilitiesManager;
 use RuntimeException;
@@ -108,7 +111,7 @@ final class BuildFromCSVService
      * Parses a CSV file to extract student names from a specific column.
      * It attempts to automatically detect the student column based on common headers.
      * @param string $from The full path to the student CSV file.
-     * @return string[] A unique list of student names.
+     * @return StudentDTO[] A unique list of student names.
      * @throws GoralysRuntimeException If the CSV file cannot be opened.
      */
     public function buildStudents(string $from): array
@@ -135,30 +138,15 @@ final class BuildFromCSVService
             fn($v) => $this->utils->string->sanitize((string) $v, StringCase::LOWER),
             $firstRow,
         );
+        $studentCol = $this->getColIdx(['élève', 'student', 'étudiant', 'nom'], $normalized);
+        $classroomCol = $this->getColIdx(['classe', 'class'], $normalized);
 
-        $accepted = ['élève', 'student', 'étudiant', 'nom'];
-        $accepted = array_map(
-            fn($v) => $this->utils->string->sanitize((string) $v, StringCase::LOWER),
-            $accepted,
-        );
+        $headerValid = ($studentCol !== null) && ($classroomCol !== null);
 
-        $studentCol = null;
-        foreach ($normalized as $idx => $name) {
-            if (in_array($name, $accepted, true)) {
-                $studentCol = $idx;
-                break;
-            }
-        }
-
-        $hasHeader = ($studentCol !== null);
-
-        if (!$hasHeader) {
-            $studentCol = 0;
-
-            $s = isset($firstRow[$studentCol]) ? trim((string) $firstRow[$studentCol]) : '';
-            if ($s !== '' && mb_check_encoding($s, 'UTF-8') && !str_contains($s, "\u{FFFD}")) {
-                $students[] = $s;
-            }
+        if (!$headerValid) {
+            throw new InvalidFileException(
+                "Got invalid CSV file header for topics import: " . print_r($firstRow, true)
+            );
         }
 
         $file->rewind();
@@ -170,19 +158,44 @@ final class BuildFromCSVService
                 continue;
             }
 
-            if ($hasHeader && !$headerSkipped) {
+            if ($headerValid && !$headerSkipped) {
                 $headerSkipped = true;
                 continue;
             }
 
-            $s = isset($row[$studentCol]) ? trim((string) $row[$studentCol]) : '';
-            if ($s === '') {
+            $name = isset($row[$studentCol]) ? trim((string) $row[$studentCol]) : '';
+            $classroom = isset($row[$classroomCol]) ? trim((string) $row[$classroomCol]) : '';
+            if ($name === '' || $classroom === '') {
                 continue;
             }
 
-            $students[] = $s;
+            $students[] = new StudentDTO(new FullNameDTO(...$this->utils->string->separateNames($name)), $classroom);
         }
 
         return array_values(array_unique($students));
+    }
+
+    /**
+     * Finds a specified column index inside the header of a CSV file.
+     * @param array $accepted The different descriptors of the column.
+     * @param string[] $head The first row (header) of the CSV file.
+     * @return ?int The index of the desired column.
+     */
+    public function getColIdx(array $accepted, array $head): ?int
+    {
+        $accepted = array_map(
+            fn($v) => $this->utils->string->sanitize((string) $v, StringCase::LOWER),
+            $accepted,
+        );
+
+        $col = null;
+        foreach ($head as $idx => $name) {
+            if (in_array($name, $accepted, true)) {
+                $col = $idx;
+                break;
+            }
+        }
+
+        return $col;
     }
 }

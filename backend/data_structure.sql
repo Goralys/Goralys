@@ -1,13 +1,12 @@
 -- goralys database schema
--- version 2.3
+-- version 3.0.1
 
--- makes sure all previous tables are deleted
-drop table if exists student_topics, topic_teachers, topics, admins_list, users, public_ids, emails;
+set foreign_key_checks = 0;
 
 -- -----------------------------------------------------
 -- public ids table
 -- -----------------------------------------------------
-
+drop table if exists public_ids;
 create table public_ids
 (
     username  varchar(32) not null unique,
@@ -17,12 +16,13 @@ create table public_ids
 -- -----------------------------------------------------
 -- users table (main active accounts)
 -- -----------------------------------------------------
-
+drop table if exists users;
 create table users
 (
     id            int auto_increment primary key,
     username      varchar(32)                          not null unique, -- e.g. "j.dupont3"
-    full_name     varchar(100)                         not null,
+    firstname     varchar(30)                          not null,
+    lastname      varchar(70)                          not null,
     password_hash varchar(255),
     role          enum ('teacher', 'student', 'admin') not null,
     created_at    datetime default current_timestamp
@@ -31,7 +31,7 @@ create table users
 -- -----------------------------------------------------
 -- emails table
 -- -----------------------------------------------------
-
+drop table if exists emails;
 create table emails
 (
     username varchar(32)  not null unique, -- fk -> users.username
@@ -45,7 +45,7 @@ create table emails
 -- -----------------------------------------------------
 -- tickets table
 -- -----------------------------------------------------
-
+drop table if exists tickets;
 create table tickets
 (
     id         bigint auto_increment                                                     not null unique primary key,
@@ -63,6 +63,7 @@ create table tickets
 -- -----------------------------------------------------
 -- admins_list table (only source to create admins)
 -- -----------------------------------------------------
+drop table if exists admins_list;
 create table admins_list
 (
     username varchar(32) not null unique
@@ -82,6 +83,7 @@ create table topics
 -- -----------------------------------------------------
 -- student_topics table (many-to-many)
 -- -----------------------------------------------------
+drop table if exists student_info, student_topics;
 create table student_topics
 (
     student_username     varchar(32) not null,
@@ -101,6 +103,7 @@ create table student_topics
 
 -- -----------------------------------------------------
 -- student_info table
+-- This table is used to get accurate and "official" (no user input) data for the subjects export
 -- -----------------------------------------------------
 create table student_info
 (
@@ -118,6 +121,7 @@ create table student_info
 -- -----------------------------------------------------
 -- topic_teachers table
 -- -----------------------------------------------------
+drop table if exists topic_teachers;
 create table topic_teachers
 (
     topic_id         int, -- fk -> topics.id
@@ -127,3 +131,33 @@ create table topic_teachers
         on delete cascade
         on update cascade
 ) engine = innodb;
+
+
+set foreign_key_checks = 0;
+
+-- -----------------------------------------------------
+-- public ids triggers
+-- -----------------------------------------------------
+drop trigger if exists trg_after_insert_admin;
+create trigger trg_after_insert_admin
+    after insert
+    on admins_list
+    for each row
+    insert into public_ids (username, public_id)
+    values (new.username, uuid());
+
+drop trigger if exists trg_after_insert_teacher;
+create trigger trg_after_insert_teacher
+    after insert
+    on topic_teachers
+    for each row
+    insert ignore into public_ids (username, public_id)
+    values (new.teacher_username, uuid());
+
+drop trigger if exists trg_after_insert_student;
+create trigger trg_after_insert_student
+    after insert
+    on student_topics
+    for each row
+    insert ignore into public_ids (username, public_id)
+    values (new.student_username, uuid());

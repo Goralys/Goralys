@@ -51,4 +51,26 @@ final class StringUtils
             StringCase::UPPER => strtoupper($temp),
         };
     }
+
+    /**
+     * Separates a full name with the LAST First/LAST first format and returns the first and last name.
+     * @param string $full The full name to split.
+     * @param bool $getRaw A special flag to indicate that the names part should be returned
+     * as lists instead of a string.
+     * @return array The two names inside an array containing the following: [first, last].
+     */
+    public function separateNames(string $full, bool $getRaw = false): array
+    {
+        $parts = explode(" ", $full)
+                    |> (fn($x) => array_map(fn(string $s) => trim($s), $x))
+                    |> (fn($x) => array_filter($x, fn(string $s) => $s !== ''))
+                    |> (fn($x) => array_map(fn(string $s) => str_replace("--", "-", $s), $x));
+
+        $lastNameParts = array_values(array_filter($parts, fn($n) => strtoupper($n) === $n));
+        $firstNameParts = array_values(array_filter($parts, fn($n) => strtoupper($n) !== $n));
+
+        return $getRaw
+                ? [$firstNameParts, $lastNameParts]
+                : [implode(" ", $firstNameParts), implode(" ", $lastNameParts)];
+    }
 }

@@ -33,6 +33,7 @@ use Goralys\Platform\Doc\PDF\Interfaces\PdfExporterInterface;
 use Goralys\Platform\Logger\Interfaces\LoggerInterface;
 use Goralys\Shared\Config\GoralysConfig;
 use Goralys\Shared\Exception\GoralysRuntimeException;
+use Goralys\Shared\Exception\User\UserNotFoundException;
 use ZipArchive;
 
 /**
@@ -178,7 +179,8 @@ final class SubjectsController
         $exportedPaths = [];
 
         foreach ($grouped as $s) {
-            $filename = Config::EXPORT_BASE_NAME . date("Y") . " - " . $s->studentName . ".pdf";
+            $filename = Config::EXPORT_BASE_NAME . date("Y") . "-" . $s->student->classroom . " - "
+                        . $s->student->fullName->reversed() . ".pdf";
             $filePath = Config::EXPORT_BASE_DIR . $s->exportSuffix . $filename;
 
             $pdf = $this->renderer->render($s);
@@ -214,7 +216,7 @@ final class SubjectsController
                         /**
                          * @param SubjectDTO[] $subjects
                          * @return StudentSubjectsDTO
-                         * @throws GoralysRuntimeException
+                         * @throws GoralysRuntimeException|UserNotFoundException
                          */
                         function (string $username, array $subjects) {
 
@@ -222,9 +224,9 @@ final class SubjectsController
                             $teacherMissing = false;
                             foreach ($subjects as $subject) {
                                 $teacherUsername =  $this->usernameManager->get($subject->teacherUsernameToken);
+                                $teacherName = $this->userRepo->getFullNameForUsername($teacherUsername);
                                 // Use reversed formatted name (J. DOE instead of DOE J.) for consistency
                                 // between 'real' users (DB names) and 'virtual' users (formatted names)
-                                $teacherName = $this->userRepo->getFullNameForUsername($teacherUsername);
                                 $specialities[] = new SpecialityDTO(
                                     $teacherName ?? $this->formatter->formatUsername($teacherUsername, true),
                                     $subject->topic,
@@ -238,11 +240,12 @@ final class SubjectsController
                                     $teacherMissing = true;
                                 }
                             }
-                            $studentName = $this->userRepo->getFullNameForUsername($username);
+                            $student = $this->repo->getStudentInfo($username);
                             return new StudentSubjectsDTO(
-                                $studentName ?? $this->formatter->formatUsername($username, true),
+                                $student,
                                 $specialities,
-                                Config::determineBrokenDir(!$studentName, $teacherMissing)
+                                $student->classroom . DIRECTORY_SEPARATOR
+                                . Config::determineBrokenDir(!$student->fullName, $teacherMissing)
                             );
                         },
                         $x,
@@ -272,7 +275,7 @@ final class SubjectsController
                 $zip->close();
                 throw new GoralysRuntimeException("File not found when zipping: $path");
             }
-            $zip->addFile($path, ltrim($path, Config::EXPORT_BASE_DIR));
+            $zip->addFile($path, str_replace(Config::EXPORT_BASE_DIR, "", $path));
         }
 
         $zip->close();

@@ -16,6 +16,7 @@ use Goralys\Kernel\GoralysKernel;
 use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
 use Goralys\Platform\Mail\Config\MailerConfig;
 use Goralys\Shared\Config\GoralysConfig;
+use Goralys\Shared\User\Data\FullNameDTO;
 use Goralys\Shared\Utils\String\Data\StringCase;
 
 function createUserRoutes(GoralysRouter $router): void
@@ -121,7 +122,7 @@ function createUserRoutes(GoralysRouter $router): void
     $router->post('user/register', function (GoralysKernel $kernel, RequestInterface $request) {
         $registerData = new UserRegisterDTO(
             $request->param("user-name"),
-            $request->param("first-name") . " " . $request->param("last-name"),
+            new FullNameDTO($request->param("first-name"), $request->param("last-name")),
             $request->param("password"),
         );
 

@@ -66,6 +66,10 @@ final class DomPdfExporter implements PdfExporterInterface
      */
     public function export(PdfSourceDTO $pdf, string $path, string $basePath): void
     {
+        if (!is_dir(dirname($path))) {
+            mkdir(dirname($path), recursive: true);
+        }
+
         $finalSource = str_replace(
             '</head>',
             "<style>\n$pdf->CSS\n</style>\n</head>",

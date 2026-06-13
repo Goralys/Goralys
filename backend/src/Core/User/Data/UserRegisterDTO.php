@@ -7,6 +7,8 @@
 
 namespace Goralys\Core\User\Data;
 
+use Goralys\Shared\User\Data\FullNameDTO;
+
 /**
  * The DTO used to register a user
  */
@@ -14,12 +16,12 @@ final readonly class UserRegisterDTO
 {
     /**
      * @param string $username The desired username for the new account.
-     * @param string $fullName The full name of the registering user.
+     * @param FullNameDTO $fullName The full name of the registering user.
      * @param string $password The plain-text password (to be hashed before storage).
      */
     public function __construct(
         public string $username,
-        public string $fullName,
+        public FullNameDTO $fullName,
         public string $password,
     ) {
     }

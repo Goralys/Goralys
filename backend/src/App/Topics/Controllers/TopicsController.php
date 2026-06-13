@@ -9,6 +9,7 @@ namespace Goralys\App\Topics\Controllers;
 
 use Goralys\App\HTTP\Files\Data\UploadedFileDTO;
 use Goralys\App\HTTP\Files\GoralysFileManager;
+use Goralys\App\Topics\Data\StudentDTO;
 use Goralys\App\User\Data\UsernameTable;
 use Goralys\Core\Topics\Config\TopicsImportConfig;
 use Goralys\Core\Topics\Data\TopicDescriptorDTO;
@@ -76,7 +77,7 @@ final class TopicsController
         }
 
         if (
-            array_any($topic->teachers, fn($t) => !$this->repo->insertTeacher(
+            array_any($topic->teachers, fn(string $t) => !$this->repo->insertTeacher(
                 $topic->id,
                 $this->usernames->resolve($t),
             ))
@@ -84,9 +85,11 @@ final class TopicsController
             return false;
         }
 
-        return array_all($topic->students, fn($s) => $this->repo->insertStudent(
+        return array_all($topic->students, fn(StudentDTO $s) => $this->repo->insertStudent(
             $topic->id,
-            $this->usernames->resolve($s),
+            $this->usernames->resolve($s->fullName),
+            $s->fullName,
+            $s->classroom
         ));
     }
 
@@ -200,7 +203,7 @@ final class TopicsController
      * Creates a new TopicDTO instance.
      * @param string $name The name of the topic.
      * @param string $code The code (ID) of the topic.
-     * @param string[] $students A list of student names or usernames.
+     * @param StudentDTO[] $students A list of student names or usernames.
      * @param string[] $teachers A list of teacher names or usernames.
      * @return TopicDTO The topic.
      */
@@ -236,7 +239,7 @@ final class TopicsController
 
             $out .= "Élèves:" . PHP_EOL;
             foreach ($topic->students as $student) {
-                $out .= "    - " . $student . ": " . $this->usernames->resolve($student) . PHP_EOL;
+                $out .= "    - " . $student->fullName . ": " . $this->usernames->resolve($student->fullName) . PHP_EOL;
             }
 
             $out .= str_repeat("-", strlen($head)) . PHP_EOL;

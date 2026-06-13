@@ -34,11 +34,7 @@ final class UsernameTable
         if (isset($this->table[$fullName])) {
             return $this->table[$fullName];
         }
-
-        $fullName = trim($fullName);
-        $names = explode(" ", $fullName);
-        $lastNameParts = array_values(array_filter($names, fn($n) => strtoupper($n) === $n));
-        $firstNameParts = array_values(array_filter($names, fn($n) => strtoupper($n) !== $n));
+        [$firstNameParts, $lastNameParts] = $this->utils->string->separateNames($fullName, true);
 
         $firstName = implode("", $firstNameParts);
         $lastName = "";

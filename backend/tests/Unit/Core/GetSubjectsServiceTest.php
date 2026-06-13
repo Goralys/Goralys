@@ -9,6 +9,7 @@ use Goralys\Core\User\Data\UserFullDTO;
 use Goralys\Core\User\Services\UsernameManager;
 use Goralys\Core\Utils\User\Services\UsernameFormatterService;
 use Goralys\Shared\Exception\GoralysRuntimeException;
+use Goralys\Shared\User\Data\FullNameDTO;
 use Goralys\Tests\Fakes\FakeGoralysLogger;
 use Goralys\Tests\Fakes\FakeSubjectsRepository;
 use Goralys\Tests\Fakes\FakeUserRepository;
@@ -315,7 +316,7 @@ class GetSubjectsServiceTest extends TestCase
             1,
             "j.doe1",
             UserRole::TEACHER,
-            "DOE J.",
+            new FullNameDTO("J.", "DOE"),
             "jhon.doe@exemplemail.com"
         ));
 
@@ -324,7 +325,7 @@ class GetSubjectsServiceTest extends TestCase
             2,
             "m.smith2",
             UserRole::TEACHER,
-            "SMITH M.",
+            new FullNameDTO("M.", "SMITH"),
             "merry.smith@exemplemail.com"
         ));
 
@@ -333,7 +334,7 @@ class GetSubjectsServiceTest extends TestCase
             3,
             "e.doe3",
             UserRole::STUDENT,
-            "DOE E.",
+            new FullNameDTO("E.", "DOE"),
             "emma.doe@exemplemail.com"
         ));
 
@@ -342,7 +343,7 @@ class GetSubjectsServiceTest extends TestCase
             4,
             "l.dupont4",
             UserRole::STUDENT,
-            "DUPONT L.",
+            new FullNameDTO("L.", "DUPONT"),
             "laurent.dupont@exemplemail.com"
         ));
     }

@@ -7,6 +7,8 @@
 
 namespace Goralys\Core\Topics\Repository\Interfaces;
 
+use Goralys\Shared\User\Data\FullNameDTO;
+
 /**
  * Contract for the topic repository.
  * Covers insertion of topics, their teachers, and students, as well as bulk deletion.
@@ -31,9 +33,16 @@ interface TopicsRepositoryInterface
     /**
      * @param int $topicId The ID of the topic to attach the student to.
      * @param string $studentUsername The student's username.
+     * @param FullNameDTO $fullName The student's "official" full name from the import data.
+     * @param string $classroom The student's classroom (e.g. TA, TB, TF, etc.)
      * @return bool If the insertion was successful or not.
      */
-    public function insertStudent(int $topicId, string $studentUsername): bool;
+    public function insertStudent(
+        int $topicId,
+        string $studentUsername,
+        FullNameDTO $fullName,
+        string $classroom
+    ): bool;
 
     /**
      * Removes all topics and their associated records from the database.

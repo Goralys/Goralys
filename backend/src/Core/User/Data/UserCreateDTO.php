@@ -8,6 +8,7 @@
 namespace Goralys\Core\User\Data;
 
 use Goralys\Core\User\Data\Enums\UserRole;
+use Goralys\Shared\User\Data\FullNameDTO;
 
 /**
  * The DTO used to append a new user to the database
@@ -16,13 +17,13 @@ final readonly class UserCreateDTO
 {
     /**
      * @param string $username The username of the new user.
-     * @param string $fullName The full name of the new user.
+     * @param FullNameDTO $fullName The full name of the new user.
      * @param string $passwordHash The hashed password of the new user.
      * @param UserRole $role The role assigned to the new user.
      */
     public function __construct(
         public string $username,
-        public string $fullName,
+        public FullNameDTO $fullName,
         public string $passwordHash,
         public UserRole $role,
     ) {
