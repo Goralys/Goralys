@@ -21,12 +21,12 @@ use Goralys\Core\User\Services\UsernameManager;
 use Goralys\Platform\DB\Interfaces\DbContainerInterface;
 use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
 use Goralys\Platform\Logger\Interfaces\LoggerInterface;
-use Goralys\Shared\Config\GoralysConfig;
+use Goralys\Shared\Config\GoralysConfig as Config;
 use Goralys\Shared\Exception\GoralysRuntimeException;
 use Goralys\Shared\Exception\User\GoralysUserException;
 use Goralys\Shared\Exception\User\UserNotFoundException;
-use Goralys\Shared\Utils\String\Data\StringCase;
-use Goralys\Shared\Utils\UtilitiesManager;
+use Goralys\Shared\Lib\GoralysLib as Lib;
+use Goralys\Shared\Lib\String\StringCase;
 
 /**
  * The controller that handles the user logic.
@@ -37,7 +37,6 @@ final class UserController
     private DbContainerInterface $db;
     private UserRepositoryInterface $repo;
     private UsernameManager $usernames;
-    private UtilitiesManager $utils;
 
     /**
      * Initializes the logger and the database container used by the controller.
@@ -53,7 +52,6 @@ final class UserController
 
         $this->repo = new UserRepository($this->logger, $this->db);
         $this->usernames = new UsernameManager($this->repo);
-        $this->utils = new UtilitiesManager();
     }
 
     /**
@@ -62,6 +60,17 @@ final class UserController
      */
     public function clear(): bool
     {
+        // clean username list first
+        if ($raw = file(Config::USER::USERNAME_LIST_PATH, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES)) {
+            $result = array_filter($raw, function ($line) {
+                [$fullName, $username] = explode("=", $line);
+                if (is_string($fullName) && is_string($username)) {
+                    return str_contains($username, Config::USER::ADMIN_SUFFIX);
+                }
+                return false;
+            });
+            file_put_contents(Config::USER::USERNAME_LIST_PATH, implode(PHP_EOL, $result));
+        }
         return $this->repo->clearAll();
     }
 
@@ -86,7 +95,7 @@ final class UserController
         $collection = new UserCollection();
         foreach ($users as $user) {
             // Let PHP throw because all users should have a public id, even uncreated ones.
-            $collection->addUser($fromDTO($user, $publicIds[$this->utils->string->sanitize(
+            $collection->addUser($fromDTO($user, $publicIds[Lib::STRING::sanitize(
                 $user->username,
                 StringCase::LOWER,
             )]));
@@ -129,8 +138,7 @@ final class UserController
      */
     public function addAdmin(string $name): ?string
     {
-        $utils = new UtilitiesManager();
-        $table = new UsernameTable($utils);
+        $table = new UsernameTable();
         $username = $table->resolve($name, UserRole::ADMIN);
         return $this->repo->addAdmin($username) ? $username : null;
     }
@@ -155,7 +163,7 @@ final class UserController
     public function validatePassword(string $password): bool
     {
         $service = new LoginService($this->logger, $this->repo);
-        return $service->checkPassword(new UserLoginDTO($_SESSION[GoralysConfig::SESSION::USERNAME], $password));
+        return $service->checkPassword(new UserLoginDTO($_SESSION[Config::SESSION::USERNAME], $password));
     }
 
     /**
@@ -179,8 +187,7 @@ final class UserController
      */
     public function replaceTeacher(string $publicId, string $newName): ?string
     {
-        $utils = new UtilitiesManager();
-        $table = new UsernameTable($utils);
+        $table = new UsernameTable();
         $old = $this->usernames->get($publicId);
         $new = $table->resolve($newName);
         return ($this->repo->softDelete($old) && $this->repo->replaceTeacher($old, $new)) ? $new : null;
@@ -197,7 +204,7 @@ final class UserController
         $target = $this->usernames->get($publicId);
         $this->logger->info(
             LoggerInitiator::CORE,
-            "Attempting to delete user " . $target . " (initiator: " . $_SESSION[GoralysConfig::SESSION::USERNAME]
+            "Attempting to delete user " . $target . " (initiator: " . $_SESSION[Config::SESSION::USERNAME]
         );
         return $this->repo->hardDelete($target);
     }
@@ -213,7 +220,7 @@ final class UserController
     {
         return $this->repo->getEmail(
             $publicId ? $this->usernames->get($publicId)
-            : $_SESSION[GoralysConfig::SESSION::USERNAME]
+            : $_SESSION[Config::SESSION::USERNAME]
         );
     }
 
@@ -224,10 +231,10 @@ final class UserController
      */
     public function setEmail(string $email): bool
     {
-        if (!$this->repo->setEmail($_SESSION[GoralysConfig::SESSION::USERNAME], $email)) {
+        if (!$this->repo->setEmail($_SESSION[Config::SESSION::USERNAME], $email)) {
             return false;
         }
-        $_SESSION[GoralysConfig::SESSION::EMAIL] = $email;
+        $_SESSION[Config::SESSION::EMAIL] = $email;
         return true;
     }
 
@@ -237,10 +244,10 @@ final class UserController
      */
     public function removeEmail(): bool
     {
-        if (!$this->repo->removeEmail($_SESSION[GoralysConfig::SESSION::USERNAME])) {
+        if (!$this->repo->removeEmail($_SESSION[Config::SESSION::USERNAME])) {
             return false;
         }
-        unset($_SESSION[GoralysConfig::SESSION::EMAIL]);
+        unset($_SESSION[Config::SESSION::EMAIL]);
         return true;
     }
 }

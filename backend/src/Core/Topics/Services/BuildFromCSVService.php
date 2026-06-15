@@ -11,9 +11,9 @@ use Goralys\App\Topics\Data\StudentDTO;
 use Goralys\Core\Topics\Config\TopicsImportConfig;
 use Goralys\Shared\Exception\Files\InvalidFileException;
 use Goralys\Shared\Exception\GoralysRuntimeException;
+use Goralys\Shared\Lib\GoralysLib as Lib;
+use Goralys\Shared\Lib\String\StringCase;
 use Goralys\Shared\User\Data\FullNameDTO;
-use Goralys\Shared\Utils\String\Data\StringCase;
-use Goralys\Shared\Utils\UtilitiesManager;
 use RuntimeException;
 use SplFileObject;
 
@@ -22,16 +22,13 @@ use SplFileObject;
  */
 final class BuildFromCSVService
 {
-    private UtilitiesManager $utils;
     private TopicsImportConfig $config;
 
     /**
-     * @param UtilitiesManager $utils
-     * @param TopicsImportConfig $config
+     * @param TopicsImportConfig $config The injected config for the topics export.
      */
-    public function __construct(UtilitiesManager $utils, TopicsImportConfig $config)
+    public function __construct(TopicsImportConfig $config)
     {
-        $this->utils = $utils;
         $this->config = $config;
     }
 
@@ -54,7 +51,7 @@ final class BuildFromCSVService
 
             if (count($row) !== 2) {
                 throw new GoralysRuntimeException(
-                    "CSV format error at line " . ($i + 1) . ": expected 2 columns.",
+                    "CSV format error at line " . ($i + 1) . ": expected 2 columns."
                 );
             }
 
@@ -135,7 +132,7 @@ final class BuildFromCSVService
         }
 
         $normalized = array_map(
-            fn($v) => $this->utils->string->sanitize((string) $v, StringCase::LOWER),
+            fn($v) => Lib::STRING::sanitize((string) $v, StringCase::LOWER),
             $firstRow,
         );
         $studentCol = $this->getColIdx(['élève', 'student', 'étudiant', 'nom'], $normalized);
@@ -169,7 +166,7 @@ final class BuildFromCSVService
                 continue;
             }
 
-            $students[] = new StudentDTO(new FullNameDTO(...$this->utils->string->separateNames($name)), $classroom);
+            $students[] = new StudentDTO(new FullNameDTO(...Lib::STRING::separateNames($name)), $classroom);
         }
 
         return array_values(array_unique($students));
@@ -184,7 +181,7 @@ final class BuildFromCSVService
     public function getColIdx(array $accepted, array $head): ?int
     {
         $accepted = array_map(
-            fn($v) => $this->utils->string->sanitize((string) $v, StringCase::LOWER),
+            fn($v) => Lib::STRING::sanitize((string) $v, StringCase::LOWER),
             $accepted,
         );
 

@@ -5,9 +5,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace Goralys\Shared\Utils\String;
-
-use Goralys\Shared\Utils\String\Data\StringCase;
+namespace Goralys\Shared\Lib\String;
 
 /**
  * General-purpose string utilities.
@@ -22,7 +20,7 @@ final class StringUtils
      * @param StringCase $c The case transformation to apply (default: {@see StringCase::NONE}).
      * @return string The sanitized string.
      */
-    public function sanitize(string $s, StringCase $c = StringCase::NONE): string
+    public static function sanitize(string $s, StringCase $c = StringCase::NONE): string
     {
         $temp = trim(str_replace(
             ['à','â','ä','á','ã','å','À','Â','Ä','Á','Ã','Å',
@@ -59,7 +57,7 @@ final class StringUtils
      * as lists instead of a string.
      * @return array The two names inside an array containing the following: [first, last].
      */
-    public function separateNames(string $full, bool $getRaw = false): array
+    public static function separateNames(string $full, bool $getRaw = false): array
     {
         $parts = explode(" ", $full)
                     |> (fn($x) => array_map(fn(string $s) => trim($s), $x))

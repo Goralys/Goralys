@@ -16,8 +16,10 @@ use Goralys\Kernel\GoralysKernel;
 use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
 use Goralys\Platform\Mail\Config\MailerConfig;
 use Goralys\Shared\Config\GoralysConfig;
+use Goralys\Shared\Exception\User\GoralysUserException;
+use Goralys\Shared\Lib\GoralysLib as Lib;
+use Goralys\Shared\Lib\String\StringCase;
 use Goralys\Shared\User\Data\FullNameDTO;
-use Goralys\Shared\Utils\String\Data\StringCase;
 
 function createUserRoutes(GoralysRouter $router): void
 {
@@ -220,6 +222,11 @@ function createUserRoutes(GoralysRouter $router): void
     // --------------------------------------------------
 
     $router->post('admin/create', function (GoralysKernel $kernel, RequestInterface $request) {
+        $kernel->setExceptionMessage(
+            GoralysUserException::class,
+            "L'administrateur n'a pas pu être créé, trop d'administrateurs ont les mêmes initiales."
+        );
+
         if (!$kernel->users->validatePassword($request->param("admin-password"))) {
             $kernel->deferredResponse(501)->toast( // Unauthorized
                 ToastType::WARNING,
@@ -231,13 +238,13 @@ function createUserRoutes(GoralysRouter $router): void
         }
 
         $result = $kernel->users->addAdmin(
-            trim($kernel->utils->string->sanitize($request->param("last-name"), StringCase::UPPER))
+            trim(Lib::STRING::sanitize($request->param("last-name"), StringCase::UPPER))
             . " " . trim($request->param("first-name")),
         );
 
         if (!$result) {
             $kernel->deferredResponse(500)->error(
-                "L'administrateur n'a pas pu être créé.",
+                "L'administrateur n'a pas pu être créé, il existe peut-être déjà.",
             )
                     ->redirect("/admin/user")
                     ->send();
@@ -392,7 +399,7 @@ function createUserRoutes(GoralysRouter $router): void
 
         $result = $kernel->users->replaceTeacher(
             $request->param("target"),
-            trim($kernel->utils->string->sanitize($request->param("last-name"), StringCase::UPPER))
+            trim(Lib::STRING::sanitize($request->param("last-name"), StringCase::UPPER))
             . " " . trim($request->param("first-name")),
         );
 

@@ -20,7 +20,6 @@ use Goralys\Core\Topics\Services\BuildFromCSVService;
 use Goralys\Platform\DB\Interfaces\DbContainerInterface;
 use Goralys\Shared\Exception\GoralysRuntimeException;
 use Goralys\Shared\Exception\User\GoralysUserException;
-use Goralys\Shared\Utils\UtilitiesManager;
 
 /**
  * Controller for managing topic-related operations, including CSV/ZIP imports and persistence.
@@ -38,13 +37,11 @@ final class TopicsController
     /**
      * @param DbContainerInterface $db The injected DB.
      * @param UsernameTable $usernames The injected username table.
-     * @param UtilitiesManager $utils The injected utility manager.
      * @param GoralysFileManager $files The injected file manager.
      */
     public function __construct(
         DbContainerInterface $db,
         UsernameTable $usernames,
-        UtilitiesManager $utils,
         GoralysFileManager $files,
     ) {
         $this->usernames = $usernames;
@@ -53,7 +50,7 @@ final class TopicsController
         $this->config = new TopicsImportConfig();
 
         $this->repo = new TopicsRepository($this->db);
-        $this->CSVBuilder = new BuildFromCSVService($utils, $this->config);
+        $this->CSVBuilder = new BuildFromCSVService($this->config);
         $this->nextId = 0;
         $this->files = $files;
     }

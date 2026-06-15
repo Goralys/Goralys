@@ -5,7 +5,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace Goralys\Shared\Utils\String\Data;
+namespace Goralys\Shared\Lib\String;
 
 /**
  * Defines the casing transformation to apply when sanitizing or comparing strings.
