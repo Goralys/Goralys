@@ -47,6 +47,7 @@ next-env.d.ts
 /backend/vendor
 /backend/RateLimiter
 /backend/migration.sql
+/backend/Users
 
 # IDE
 /.idea
