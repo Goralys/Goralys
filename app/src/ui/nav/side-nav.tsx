@@ -4,9 +4,8 @@ import { NavLink } from "@/app/src/ui/nav/nav-link";
 import { UserNav } from "@/app/src/ui/nav/user-nav";
 import Cookies from "universal-cookie";
 import { ReactElement, useEffect, useState } from "react";
-import { buildArray, USER_ROLES, UserRole } from "@/app/src/lib/types";
+import { buildArray, USER_ROLES, UserRole, ROLE_KEY } from "@goralys/core";
 import Image from "next/image";
-import { ROLE_KEY } from "@/app/src/lib/config";
 
 export function SideNav(): ReactElement {
     const [role, setRole] = useState<UserRole["role"]>("none");

@@ -1,12 +1,10 @@
 import { Card } from "@/app/src/ui/card";
 import { Button } from "@/app/src/ui/button";
 import React, { ReactElement, useEffect, useState } from "react";
-import { fetchCsrfClient } from "@/app/src/lib/fetch/fetch.client";
+import { fetchCsrfClient, reasonsConfig, SupportReasons, EMAIL_KEY } from "@goralys/core";
 import { TextArea } from "@/app/src/ui/inputs/text-area";
 import { FloatingInput } from "@/app/src/ui/inputs/floating-input";
 import Cookies from "universal-cookie";
-import { reasonsConfig, SupportReasons } from "@/app/src/lib/types";
-import { EMAIL_KEY } from "@/app/src/lib/config";
 
 export default function SupportForm(): ReactElement {
     const [csrfToken, setCsrfToken] = useState<string | null>(null);

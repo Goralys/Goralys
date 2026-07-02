@@ -1,17 +1,17 @@
 "use client";
 
-import { useUsers, useVirtualUsers } from "@/app/src/hooks/useUsers";
+import { useUsersWeb, useVirtualUsersWeb } from "@/app/src/hooks/useUsersWeb";
 import UserCard from "@/app/src/ui/admin-panel/user-card";
 import { ReactElement, Suspense, useState } from "react";
-import { User } from "@/app/src/lib/types";
+import { User } from "@goralys/core";
 import { UsersSearchBar } from "@/app/src/ui/admin-panel/users-search-bar";
 import UserCardSkeleton from "@/app/src/ui/skeletons/admin-panel/user-card";
 
 export default function UserPanelPageClient(): ReactElement {
-    const { users, refetch, syncKey } = useUsers();
+    const { users, refetch, syncKey } = useUsersWeb();
     const [currentUsers, setCurrentUsers] = useState<User[] | null>(null);
 
-    const { users: virtualUsers, refetch: virtualRefetch, syncKey: virtualSyncKey } = useVirtualUsers();
+    const { users: virtualUsers, refetch: virtualRefetch, syncKey: virtualSyncKey } = useVirtualUsersWeb();
     const [currentVirtualUsers, setCurrentVirtualUsers] = useState<User[] | null>(null);
 
     const skeletons = Array.from({ length: 3 }, (_, i) => <UserCardSkeleton key={i} />);

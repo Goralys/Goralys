@@ -4,10 +4,9 @@ import Link from "next/link";
 import Cookies from "universal-cookie";
 import { ReactElement, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { onUserEvent } from "@/app/src/lib/auth/user-event";
+import { onUserEvent, FULL_NAME_KEY, ROLE_KEY, USERNAME_KEY } from "@goralys/core";
 import { UserCircleIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
-import { FULL_NAME_KEY, ROLE_KEY, USERNAME_KEY } from "@/app/src/lib/config";
 
 export function UserNav(): ReactElement {
     const [text, setText] = useState<string | null>(null);

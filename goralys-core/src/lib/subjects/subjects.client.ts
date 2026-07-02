@@ -1,15 +1,14 @@
 /*
  * Copyright (C) 2026 Sami Saubion
- * SPDX-License-Identifier: AGPL-3.0-or-later
+ * SPDX-License-Identifier: LGPL-3.0-or-later
  */
 
 "use client";
 
-import { UserRole } from "@/app/src/lib/types";
-import { buildApiUrl, fetchCsrfClient, goralysFetchClient } from "@/app/src/lib/fetch/fetch.client";
+import { UserRole } from "@/types/user";
+import { buildApiUrl, fetchCsrfClient, goralysFetchClient } from "@/lib/fetch/fetch.client";
 
 // Subjects fetches
-
 async function fetchStudentSubjectsClient(): Promise<Response | null> {
     const csrfToken = await fetchCsrfClient("get-student-subjects");
 

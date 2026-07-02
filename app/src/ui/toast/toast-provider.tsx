@@ -2,7 +2,7 @@
 
 import { createContext, ReactElement, ReactNode, useCallback, useContext, useMemo, useState } from "react";
 import ToastElement from "@/app/src/ui/toast/toast-element";
-import { Toast } from "@/app/src/lib/types";
+import { Toast } from "@goralys/core";
 import { createPortal } from "react-dom";
 
 export type ToastContext = {

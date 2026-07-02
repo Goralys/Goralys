@@ -1,17 +1,15 @@
 "use client";
 
-import { HttpMethod, User } from "@/app/src/lib/types";
+import { HttpMethod, User, buildApiUrl, fetchCsrfClient, goralysFetchClient, handleToastRequest, USER_SYNCS } from "@goralys/core";
 import { Card } from "@/app/src/ui/card";
 import { Button } from "@/app/src/ui/button";
 import { AcademicCapIcon, BookOpenIcon } from "@heroicons/react/24/outline";
 import { usePasswordModal } from "@/app/src/ui/modals/password/password-modal-provider";
 import { useToast } from "@/app/src/ui/toast/toast-provider";
-import { buildApiUrl, fetchCsrfClient, goralysFetchClient, handleToastRequest } from "@/app/src/lib/fetch/fetch.client";
 import Cookies from "universal-cookie";
 import ReplaceTeacherElement from "./replace-teacher-element";
 import { ReactElement } from "react";
 import { useConfirm } from "@/app/src/ui/modals/confirm/confirm-provider";
-import { USER_SYNCS } from "@/app/src/lib/config";
 
 interface UserCardProps {
     user: User;

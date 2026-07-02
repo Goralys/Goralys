@@ -1,15 +1,13 @@
 "use client";
 
-import { Subject } from "@/app/src/lib/types";
+import { Subject, fetchCsrfClient, goralysFetchClient, handleToastRequest, SUBJECT_SYNCS } from "@goralys/core";
 import { Button } from "@/app/src/ui/button";
 import { ReactElement, useRef, useState } from "react";
-import { fetchCsrfClient, goralysFetchClient, handleToastRequest } from "@/app/src/lib/fetch/fetch.client";
 import { useToast } from "@/app/src/ui/toast/toast-provider";
 import { useConfirm } from "@/app/src/ui/modals/confirm/confirm-provider";
 import Cookies from "universal-cookie";
 import { SubjectInputTeacher } from "@/app/src/ui/inputs/subject-input-teacher";
 import CommentTeacher from "@/app/src/ui/subjects/comment-teacher";
-import { SUBJECT_SYNCS } from "@/app/src/lib/config";
 
 interface TeacherCardProps {
     subjectData: Subject;

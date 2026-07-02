@@ -1,8 +1,15 @@
 "use client";
 
 import { ReactElement, useState } from "react";
-import { buildApiUrl, fetchCsrfClient, goralysFetchClient, handleToastRequest } from "@/app/src/lib/fetch/fetch.client";
-import { parsePhpDateTime, reasonsConfig, SupportTicket } from "@/app/src/lib/types";
+import {
+    buildApiUrl,
+    fetchCsrfClient,
+    goralysFetchClient,
+    handleToastRequest,
+    parsePhpDateTime,
+    reasonsConfig,
+    SupportTicket,
+} from "@goralys/core";
 import { Card } from "@/app/src/ui/card";
 import { Button } from "@/app/src/ui/button";
 import { TextArea } from "@/app/src/ui/inputs/text-area";

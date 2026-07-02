@@ -1,7 +1,6 @@
 import { FloatingInput } from "@/app/src/ui/inputs/floating-input";
 import React, { FormEvent, ReactElement, useEffect, useState } from "react";
-import { searchFields, Subject, SubjectsSearchField } from "@/app/src/lib/types";
-import { getLongFromShort } from "@/app/src/lib/subjects/subjects-utils";
+import { searchFields, Subject, SubjectsSearchField, getLongFromShort } from "@goralys/core";
 
 interface SubjectsSearchBarProps {
     subjects: Subject[] | null;

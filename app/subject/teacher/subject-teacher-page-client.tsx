@@ -1,15 +1,15 @@
 "use client";
 
-import { useSubjects } from "@/app/src/hooks/useSubjects";
+import { useSubjectsWeb } from "@/app/src/hooks/useSubjectsWeb";
 import TeacherCard from "@/app/src/ui/subjects/teacher-card";
 import { SubjectsSearchBar } from "@/app/src/ui/subjects/subjects-search-bar";
-import { useState, Suspense, ReactElement } from "react";
-import { Subject } from "@/app/src/lib/types";
+import { ReactElement, Suspense, useState } from "react";
+import { Subject } from "@goralys/core";
 import Cookies from "universal-cookie";
 import TeacherCardSkeleton from "@/app/src/ui/skeletons/subjects/teacher-card";
 
 export default function SubjectTeacherPageClient(): ReactElement {
-    const { subjects, refetch, syncKey } = useSubjects("teacher");
+    const { subjects, refetch, syncKey } = useSubjectsWeb("teacher");
     const [currentSubjects, setCurrentSubjects] = useState<Subject[] | null>(subjects || null);
     const cookies = new Cookies();
     const updateSubjects = async (): Promise<void> => {

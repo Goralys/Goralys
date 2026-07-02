@@ -1,7 +1,7 @@
 "use client";
 
 import { ReactElement, useEffect, useRef } from "react";
-import { LOGO_PATH } from "@/app/src/lib/asset";
+import { LOGO_PATH } from "@goralys/core";
 
 export default function GoralysLogoLoader(): ReactElement {
     const mainPathRef = useRef<SVGPathElement>(null);

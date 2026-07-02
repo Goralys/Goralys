@@ -3,7 +3,7 @@
 import { clsx } from "clsx";
 import React, { ChangeEventHandler, ReactElement, RefObject, useState } from "react";
 import { useAutoResize } from "@/app/src/lib/inputs";
-import { Subject } from "@/app/src/lib/types";
+import { Subject } from "@goralys/core";
 
 interface SubjectTextAreaProps {
     defaultValue?: string;

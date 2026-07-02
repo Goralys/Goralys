@@ -1,43 +1,44 @@
 /*
  * Copyright (C) 2026 Sami Saubion
- * SPDX-License-Identifier: AGPL-3.0-or-later
+ * SPDX-License-Identifier: LGPL-3.0-or-later
  */
 
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Subject, UserRole } from "@/app/src/lib/types";
-import { useToast } from "@/app/src/ui/toast/toast-provider";
-import Cookies from "universal-cookie";
-import { fetchSubjectsForRoleClient } from "@/app/src/lib/subjects/subjects.client";
-import { handleToastRequest } from "@/app/src/lib/fetch/fetch.client";
-import { SUBJECT_CACHES, SUBJECT_SYNCS, USERNAME_KEY } from "@/app/src/lib/config";
+import { UserRole } from "@/types/user";
+import { fetchSubjectsForRoleClient } from "@/lib/subjects/subjects.client";
+import { handleToastRequest } from "@/lib/fetch/fetch.client";
+import { SUBJECT_CACHES, SUBJECT_SYNCS } from "@/lib/config";
+import { isAuthenticated } from "@/lib/auth/check-auth";
+import { storageGet, storageRemove, storageSet } from "@/lib/storage/storage-adapter";
+import { ToastFn } from "@/types/toast";
+import { Subject } from "@/types/subjects";
 
-export function useSubjects(role: UserRole["role"]): {
+export function useSubjects(
+    role: UserRole["role"],
+    showToast: ToastFn,
+): {
     subjects: Subject[] | null;
     refetch: () => Promise<undefined | void>;
     syncKey: string;
 } {
     const [subjects, setSubjects] = useState<Subject[] | null>(null);
-    const { showToast } = useToast();
     const showToastRef = useRef(showToast);
     useEffect(() => {
         showToastRef.current = showToast;
     }, [showToast]);
 
-    const cookiesRef = useRef<Cookies>(new Cookies());
-
     const inFlightRef = useRef<Promise<void> | null>(null);
 
     const fetchSubjects = useCallback(async () => {
-        const cookies = cookiesRef.current;
         const cacheKey = SUBJECT_CACHES[role];
         const syncKey = SUBJECT_SYNCS[role];
 
         console.log("[useSubjects] fetchSubjects called", { role });
 
-        if (!cookies.get(USERNAME_KEY)) {
-            console.log("[useSubjects] no username cookie, aborting");
+        if (!isAuthenticated()) {
+            console.log("[useSubjects] not authenticated, aborting");
             return;
         }
 
@@ -52,13 +53,13 @@ export function useSubjects(role: UserRole["role"]): {
         });
 
         try {
-            const syncValue = cookies.get(syncKey);
+            const syncValue = await storageGet(syncKey);
 
             if (syncValue == "1") {
-                const raw = localStorage.getItem(cacheKey);
+                const raw = await storageGet(cacheKey);
                 if (raw === null || raw === undefined) {
-                    cookies.set(syncKey, "0", { path: "/" });
-                    localStorage.removeItem(cacheKey);
+                    await storageSet(syncKey, "0");
+                    await storageRemove(cacheKey);
                     await fetchSubjects();
                     return;
                 }
@@ -74,13 +75,11 @@ export function useSubjects(role: UserRole["role"]): {
             if (res) await handleToastRequest(res, showToastRef.current, false);
             const data = await res?.json();
 
-            cookies.set(syncKey, "1", { path: "/" });
-            localStorage.setItem(cacheKey, JSON.stringify(data));
+            await storageSet(syncKey, "1");
+            await storageSet(cacheKey, JSON.stringify(data));
             console.log("[useSubjects] set syncKey and cached to localStorage");
-            console.log("[useSubjects] localStorage after set:", localStorage.getItem(cacheKey)?.slice(0, 100));
 
             const result = Array.isArray(data) ? data : null;
-            console.log("[useSubjects] setting subjects:", result ? `array(${result.length})` : result);
             setSubjects((prev) => {
                 if (JSON.stringify(prev) === JSON.stringify(result)) return prev;
                 return result;
@@ -90,20 +89,6 @@ export function useSubjects(role: UserRole["role"]): {
             resolve!();
         }
     }, [role]);
-
-    useEffect(() => {
-        const cookies = new Cookies();
-        const onChange = (): void => {
-            if (inFlightRef.current) return;
-            const syncKey = SUBJECT_SYNCS[role];
-            if (cookies.get(syncKey) != "1") {
-                void fetchSubjects();
-            }
-        };
-
-        cookies.addChangeListener(onChange);
-        return (): void => cookies.removeChangeListener(onChange);
-    }, [fetchSubjects, role]);
 
     useEffect(() => {
         void fetchSubjects();

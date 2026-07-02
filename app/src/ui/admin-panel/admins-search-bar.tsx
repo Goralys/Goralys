@@ -2,7 +2,7 @@
 
 import { FloatingInput } from "@/app/src/ui/inputs/floating-input";
 import React, { FormEvent, ReactElement, useEffect, useState } from "react";
-import { User } from "@/app/src/lib/types";
+import { User } from "@goralys/core";
 
 interface AdminsSearchBarProps {
     type: "real" | "virtual";

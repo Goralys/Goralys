@@ -2,7 +2,7 @@ import { Card } from "@/app/src/ui/card";
 import { FloatingInput } from "@/app/src/ui/inputs/floating-input";
 import { Button } from "@/app/src/ui/button";
 import { ReactElement, useEffect, useRef, useState } from "react";
-import { fetchCsrfClient } from "@/app/src/lib/fetch/fetch.client";
+import { fetchCsrfClient } from "@goralys/core";
 import { useRouter, useSearchParams } from "next/navigation";
 
 export default function RegisterForm(): ReactElement {

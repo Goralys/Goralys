@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 2026 Sami Saubion
- * SPDX-License-Identifier: AGPL-3.0-or-later
+ * SPDX-License-Identifier: LGPL-3.0-or-later
  */
 
-import { cacheUserDataClient } from "@/app/src/lib/user/user.client";
-import { emitUserEvent } from "@/app/src/lib/auth/user-event";
+import { cacheUserDataClient } from "@/lib/user/user.client";
+import { emitUserEvent } from "@/lib/auth/user-event";
 
 export class GoralysActionHandler {
     public handle = async (r: Response): Promise<void> => {

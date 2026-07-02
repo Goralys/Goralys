@@ -5,7 +5,7 @@ import { FloatingInput } from "@/app/src/ui/inputs/floating-input";
 import { Button } from "@/app/src/ui/button";
 import { usePasswordModal } from "@/app/src/ui/modals/password/password-modal-provider";
 import { useToast } from "@/app/src/ui/toast/toast-provider";
-import { fetchCsrfClient, goralysFetchClient, handleToastRequest } from "@/app/src/lib/fetch/fetch.client";
+import { fetchCsrfClient, goralysFetchClient, handleToastRequest } from "@goralys/core";
 import Cookies from "universal-cookie";
 
 interface CreatAdminElementProps {

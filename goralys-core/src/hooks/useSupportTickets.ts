@@ -1,40 +1,37 @@
 /*
  * Copyright (C) 2026 Sami Saubion
- * SPDX-License-Identifier: AGPL-3.0-or-later
+ * SPDX-License-Identifier: LGPL-3.0-or-later
  */
 
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { SupportTicket } from "@/app/src/lib/types";
-import { useToast } from "@/app/src/ui/toast/toast-provider";
-import Cookies from "universal-cookie";
-import { buildApiUrl, fetchCsrfClient, goralysFetchClient, handleToastRequest } from "@/app/src/lib/fetch/fetch.client";
-import { SUPPORT_TICKET_CACHE, SUPPORT_TICKET_SYNC, USERNAME_KEY } from "@/app/src/lib/config";
+import { SupportTicket } from "@/types/support";
+import { buildApiUrl, fetchCsrfClient, goralysFetchClient, handleToastRequest } from "@/lib/fetch/fetch.client";
+import { SUPPORT_TICKET_CACHE, SUPPORT_TICKET_SYNC } from "@/lib/config";
+import { storageGet, storageRemove, storageSet } from "@/lib/storage/storage-adapter";
+import { ToastFn } from "@/types/toast";
+import { isAuthenticated } from "@/lib/auth/check-auth";
 
-export function useSupportTickets(): {
+export function useSupportTickets(showToast: ToastFn): {
     supportTickets: SupportTicket[] | null;
     refetch: () => Promise<undefined | void>;
     syncKey: string;
 } {
     const [supportTickets, setSupportTickets] = useState<SupportTicket[] | null>(null);
-    const { showToast } = useToast();
     const showToastRef = useRef(showToast);
     useEffect(() => {
         showToastRef.current = showToast;
     }, [showToast]);
 
-    const cookiesRef = useRef<Cookies>(new Cookies());
-
     const inFlightRef = useRef<Promise<void> | null>(null);
 
     const fetchSupportTickets = useCallback(async () => {
-        const cookies = cookiesRef.current;
         const syncKey = SUPPORT_TICKET_SYNC;
         const cacheKey = SUPPORT_TICKET_CACHE;
 
-        if (!cookies.get(USERNAME_KEY)) {
-            console.log("[useSupportTickets] no username cookie, aborting");
+        if (!isAuthenticated()) {
+            console.log("[useSupportTickets] not authenticated, aborting");
             return;
         }
 
@@ -49,13 +46,13 @@ export function useSupportTickets(): {
         });
 
         try {
-            const syncValue = cookies.get(syncKey);
+            const syncValue = (await storageGet(syncKey)) ?? "0";
 
             if (syncValue == "1") {
-                const raw = localStorage.getItem(cacheKey);
+                const raw = await storageGet(cacheKey);
                 if (raw === null || raw === undefined) {
-                    cookies.set(syncKey, "0", { path: "/" });
-                    localStorage.removeItem(cacheKey);
+                    await storageSet(syncKey, "0");
+                    await storageRemove(cacheKey);
                     await fetchSupportTickets();
                     return;
                 }
@@ -74,13 +71,11 @@ export function useSupportTickets(): {
             if (res) await handleToastRequest(res, showToastRef.current, false);
             const data = await res?.json();
 
-            cookies.set(syncKey, "1", { path: "/" });
-            localStorage.setItem(cacheKey, JSON.stringify(data));
+            await storageSet(syncKey, "1");
+            await storageSet(cacheKey, JSON.stringify(data));
             console.log("[useSupportTickets] set syncKey and cached to localStorage");
-            console.log("[useSupportTickets] localStorage after set:", localStorage.getItem(cacheKey)?.slice(0, 100));
 
             const result = Array.isArray(data) ? data : null;
-            console.log("[useSupportTickets] setting supportTickets:", result ? `array(${result.length})` : result);
             setSupportTickets((prev) => {
                 if (JSON.stringify(prev) === JSON.stringify(result)) return prev;
                 return result;
@@ -90,20 +85,6 @@ export function useSupportTickets(): {
             resolve!();
         }
     }, []);
-
-    useEffect(() => {
-        const cookies = new Cookies();
-        const onChange = (): void => {
-            if (inFlightRef.current) return;
-            const syncKey = `support-tickets-synced`;
-            if (cookies.get(syncKey) != "1") {
-                void fetchSupportTickets();
-            }
-        };
-
-        cookies.addChangeListener(onChange);
-        return (): void => cookies.removeChangeListener(onChange);
-    }, [fetchSupportTickets]);
 
     useEffect(() => {
         void fetchSupportTickets();

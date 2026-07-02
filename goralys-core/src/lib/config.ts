@@ -1,9 +1,9 @@
 /*
  * Copyright (C) 2026 Sami Saubion
- * SPDX-License-Identifier: AGPL-3.0-or-later
+ * SPDX-License-Identifier: LGPL-3.0-or-later
  */
 
-import { UserRole } from "@/app/src/lib/types";
+import { UserRole } from "@/types/user";
 
 export const PERSISTANT_COOKIES: string[] = ["cookie-banner-dismissed"];
 export const PERSISTANT_LOCALS: string[] = ["goralys-cookies-expire", "flash_toast"];

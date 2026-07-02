@@ -2,7 +2,7 @@ import { Card } from "@/app/src/ui/card";
 import { FloatingInput } from "@/app/src/ui/inputs/floating-input";
 import { Button } from "@/app/src/ui/button";
 import { ReactElement, useEffect, useState } from "react";
-import { fetchCsrfClient } from "@/app/src/lib/fetch/fetch.client";
+import { fetchCsrfClient } from "@goralys/core";
 
 export default function LoginForm(): ReactElement {
     const [csrfToken, setCsrfToken] = useState<string | null>(null);

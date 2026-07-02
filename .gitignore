@@ -40,6 +40,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# goralys core package
+goralys-core/node_modules
+goralys-core/dist
+
 #backend
 /backend/Logs
 /backend/Assets

@@ -1,9 +1,16 @@
 "use client";
 
-import { getStatusLabel, Subject, SubjectStatus, SubjectStatusConfig } from "@/app/src/lib/types";
+import {
+    getStatusLabel,
+    Subject,
+    SubjectStatus,
+    SubjectStatusConfig,
+    fetchCsrfClient,
+    goralysFetchClient,
+    handleToastRequest,
+} from "@goralys/core";
 import { SubjectInputAdmin } from "@/app/src/ui/inputs/subject-input-admin";
 import React, { ReactElement } from "react";
-import { fetchCsrfClient, goralysFetchClient, handleToastRequest } from "@/app/src/lib/fetch/fetch.client";
 import { usePasswordModal } from "@/app/src/ui/modals/password/password-modal-provider";
 import { useToast } from "@/app/src/ui/toast/toast-provider";
 import Cookies from "universal-cookie";
