@@ -16,7 +16,7 @@ use Goralys\App\Config\Data\RateLimitTimeMethod;
  */
 final class RateLimiterConfig
 {
-    public const array GENERAL = [100, 60];
+    public const array GENERAL = [50, 60];
 
     /**
      * @return array<string, RateLimit>
