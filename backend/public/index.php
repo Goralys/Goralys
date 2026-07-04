@@ -8,7 +8,7 @@ require __DIR__ . "/../src/Kernel/bootstrap.php";
 $kernel = bootKernel();
 $router = new GoralysRouter($kernel);
 
-(require __DIR__ . "/../API/api.php")($router);
+(require __DIR__ . "/../API/api.php")();
 
 const BASE_PREFIX = '/backend/public';
 

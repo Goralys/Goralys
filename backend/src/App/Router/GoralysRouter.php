@@ -156,18 +156,20 @@ final class GoralysRouter
      */
     public function dispatch(string $method, string $uri): mixed
     {
+        $routes = new Routes()->getAll();
+
         $this->kernel->logger->debug(LoggerInitiator::APP, "DISPATCH: $method $uri");
         $path = trim($uri, "/");
 
-        if (!array_key_exists($method, $this->routes) || !array_key_exists($path, $this->routes[$method])) {
+        if (!array_key_exists($method, $routes) || !array_key_exists($path, $routes[$method])) {
             $this->kernel->logger->error(
                 LoggerInitiator::APP,
-                "Unknow route $path, known:\n" . $this->formatKnownRoutes(),
+                "Unknow route $path, known:\n" . $this->formatKnownRoutes($routes),
             );
             $this->kernel->response(404)->http();
         }
 
-        $route = $this->routes[$method][$path];
+        $route = $routes[$method][$path];
         $request = $this->kernel->request();
         $middlewares = $this->resolveMiddlewares($route, $path);
         $this->resolveOptions($route, $request);
@@ -183,12 +185,13 @@ final class GoralysRouter
 
     /**
      * Formates all the router's route into a readable Rest-like format.
+     * @param Route[][] $routesArr All the known routes.
      * @return string
      */
-    private function formatKnownRoutes(): string
+    private function formatKnownRoutes(array $routesArr): string
     {
         $formatted = [];
-        foreach ($this->routes as $method => $routes) {
+        foreach ($routesArr as $method => $routes) {
             $routeNames = array_keys($routes);
             if (!empty($routeNames)) {
                 $formatted[] = "$method: " . implode(", ", $routeNames);

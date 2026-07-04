@@ -58,7 +58,12 @@ export default function RegisterForm(): ReactElement {
 
                 <input type="hidden" name="csrf-token" value={(csrfToken ? csrfToken : "no-token").trim()} />
 
-                <Button type="submit" text="Créer mon compte" className="absolute! bottom-0" />
+                <Button
+                    type="submit"
+                    text={csrfToken === null ? "Chargement..." : "Se connecter"}
+                    className="absolute! bottom-0"
+                    disabled={csrfToken === null}
+                />
             </form>
         </Card>
     );
