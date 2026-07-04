@@ -5,7 +5,6 @@ use Goralys\App\HTTP\Middleware\CSRFMiddleware;
 use Goralys\App\HTTP\Middleware\DbMiddleware;
 use Goralys\App\HTTP\Middleware\MiddlewareSets;
 use Goralys\App\HTTP\Middleware\RateLimitMiddleware;
-use Goralys\App\HTTP\Middleware\ToastMiddleware;
 use Goralys\App\HTTP\Request\Interfaces\RequestInterface;
 use Goralys\App\Router\GoralysRouter;
 use Goralys\App\Router\Options\RouterOptions;
@@ -173,15 +172,15 @@ function createUserRoutes(GoralysRouter $router): void
             ->redirect("/subject")
             ->action("login-success")
             ->send();
-    }, ...RouterOptions::$INPUT::require("username", "password"))
+    }, ...RouterOptions::$INPUT::require("username", "password"),
+       ...RouterOptions::$TOAST::flash())
         ->middleware(...RateLimitMiddleware::for(
             'login',
             '/user/login',
             "Tentatives de connexion trop nombreuses, veuillez réessayer dans quelques minutes",
         ))
         ->middleware(...CSRFMiddleware::form('login', '/user/login'))
-        ->middleware(...DbMiddleware::require())
-        ->middleware(...ToastMiddleware::flash());
+        ->middleware(...DbMiddleware::require());
 
     $router->post('user/logout', function (GoralysKernel $kernel) {
         $kernel->auth->logout();

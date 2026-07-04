@@ -4,7 +4,6 @@ use Goralys\App\HTTP\Middleware\AuthMiddleware;
 use Goralys\App\HTTP\Middleware\DbMiddleware;
 use Goralys\App\HTTP\Middleware\MiddlewareSets;
 use Goralys\App\HTTP\Middleware\RoleMiddleware;
-use Goralys\App\HTTP\Middleware\ToastMiddleware;
 use Goralys\App\HTTP\Request\Interfaces\RequestInterface;
 use Goralys\App\Router\GoralysRouter;
 use Goralys\App\Router\Options\RouterOptions;
@@ -58,9 +57,9 @@ function createSupportRoutes(GoralysRouter $router): void
         )
                 ->redirect("/")
                 ->send();
-    }, RouterOptions::$INPUT::require("reason", "message", "user-email"))
-            ->middlewares(...MiddlewareSets::supportRoute("support-ticket", [UserRole::STUDENT, false]))
-            ->middleware(...ToastMiddleware::flash());
+    }, ...RouterOptions::$INPUT::require("reason", "message", "user-email"),
+       ...RouterOptions::$TOAST::flash())
+            ->middlewares(...MiddlewareSets::supportRoute("support-ticket", [UserRole::STUDENT, false]));
 
     $router->get("support/tickets", function (GoralysKernel $kernel) {
         $kernel->response()->json($kernel->support->getTickets()); // OK
@@ -78,9 +77,9 @@ function createSupportRoutes(GoralysRouter $router): void
                     ->send();
         }
         $kernel->response()->json($ticket); // OK
-    }, ...RouterOptions::$INPUT::require("t"))
-            ->middlewares(...MiddlewareSets::supportRoute("get-ticket"))
-            ->middleware(...ToastMiddleware::flash());
+    }, ...RouterOptions::$INPUT::require("t"),
+       ...RouterOptions::$TOAST::flash())
+            ->middlewares(...MiddlewareSets::supportRoute("get-ticket"));
 
     $router->get("ticket/contact", function (GoralysKernel $kernel, RequestInterface $request) {
         if (!$ticket = $kernel->support->getTicket($request->param("t"))) {

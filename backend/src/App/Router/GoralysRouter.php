@@ -14,7 +14,7 @@ use Goralys\App\HTTP\Middleware\DbMiddleware;
 use Goralys\App\HTTP\Middleware\Interface\MiddlewareInterface;
 use Goralys\App\HTTP\Middleware\RateLimitMiddleware;
 use Goralys\App\HTTP\Middleware\RoleMiddleware;
-use Goralys\App\HTTP\Middleware\ToastMiddleware;
+use Goralys\App\HTTP\Request\Interfaces\RequestInterface;
 use Goralys\App\Router\Data\Route;
 use Goralys\App\Router\Options\InputOptions;
 use Goralys\App\Router\Options\ToastOptions;
@@ -43,7 +43,6 @@ final class GoralysRouter
     /** @var array<string, class-string<MiddlewareInterface>>  */
     private array $middlewaresMap = [
         'auth' => AuthMiddleware::class,
-        'toast' => ToastMiddleware::class,
         'role' => RoleMiddleware::class,
         'rate-limit' => RateLimitMiddleware::class,
         'csrf' => CSRFMiddleware::class,
@@ -101,7 +100,7 @@ final class GoralysRouter
     }
 
     /**
-     * Registers an PATCH route.
+     * Registers a PATCH route.
      * @param string $route The route path.
      * @param Closure $handler The route handler.
      * @param array ...$options Optional middleware and input option arrays.
@@ -170,42 +169,8 @@ final class GoralysRouter
 
         $route = $this->routes[$method][$path];
         $request = $this->kernel->request();
-        $resolved = [];
-        foreach ($route->middlewares as $middleware) {
-            $class = $this->middlewaresMap[$middleware->name] ?? null;
-            if ($class === null) {
-                $this->kernel->logger->error(
-                    LoggerInitiator::APP,
-                    "Unknown middleware: " . $middleware->name,
-                );
-                continue;
-            }
-            $resolved[] = new $class($path, ...$middleware->params);
-        }
-
-        $this->kernel->logger->debug(
-            LoggerInitiator::APP,
-            "Options for {$route->route}:\n" . print_r($route->options, true)
-        );
-
-        if ((bool)($route->options[ToastOptions::MAIN_KEY][ToastOptions::FLASH_KEY] ?? false) === true) {
-            $this->kernel->useFlash();
-        }
-
-        if (isset($route->options[InputOptions::MAIN_KEY]) && is_array($route->options[InputOptions::MAIN_KEY])) {
-            try {
-                $request->validate($route->options[InputOptions::MAIN_KEY]);
-            } catch (InvalidInputException) {
-                $this->kernel->deferredResponse(400)->toast( // Bad Request
-                    ToastType::WARNING,
-                    "Champs invalides",
-                    $route->options[InputOptions::MAIN_KEY][InputOptions::FAIL_MESSAGE_KEY]
-                            ?? "Veuillez remplir tous les champs.",
-                )
-                        ->redirect($route->options[InputOptions::MAIN_KEY][InputOptions::FAIL_REDIRECT_KEY] ?? "/")
-                        ->send();
-            }
-        }
+        $middlewares = $this->resolveMiddlewares($route, $path);
+        $this->resolveOptions($route, $request);
 
         $dest = function () use ($request, $route) {
             $this->kernel->run(function () use ($route, $request) {
@@ -213,7 +178,7 @@ final class GoralysRouter
             });
         };
 
-        return $this->pipeline($resolved, $dest);
+        return $this->pipeline($middlewares, $dest);
     }
 
     /**
@@ -233,9 +198,63 @@ final class GoralysRouter
     }
 
     /**
-     * @param list<MiddlewareInterface> $middlewares
-     * @param callable $destination
-     * @return mixed
+     * Helper to resolve the middlewares of a given route.
+     * @param Route $route The to resolve the middlewares for.
+     * @param string $path The URI of the route.
+     * @return MiddlewareInterface[] The resolved middlewares
+     */
+    private function resolveMiddlewares(Route $route, string $path): array
+    {
+        /** @var MiddlewareInterface[] $resolved */
+        $resolved = [];
+        foreach ($route->middlewares as $middleware) {
+            $class = $this->middlewaresMap[$middleware->name] ?? null;
+            if ($class === null) {
+                $this->kernel->logger->error(
+                    LoggerInitiator::APP,
+                    "Unknown middleware: " . $middleware->name,
+                );
+                continue;
+            }
+            $resolved[] = new $class($path, ...$middleware->params);
+        }
+
+        return $resolved;
+    }
+
+    /**
+     * Helper to resolve the options of a given route.
+     * @param Route $route The to resolve the options for.
+     * @param RequestInterface $request The incoming request to the route.
+     * @return void
+     */
+    private function resolveOptions(Route $route, RequestInterface $request): void
+    {
+        if ((bool)($route->options[ToastOptions::MAIN_KEY][ToastOptions::FLASH_KEY] ?? false) === true) {
+            $this->kernel->useFlash();
+        }
+
+        if (isset($route->options[InputOptions::MAIN_KEY]) && is_array($route->options[InputOptions::MAIN_KEY])) {
+            try {
+                $request->validate($route->options[InputOptions::MAIN_KEY]);
+            } catch (InvalidInputException) {
+                $this->kernel->deferredResponse(400)->toast( // Bad Request
+                    ToastType::WARNING,
+                    "Champs invalides",
+                    $route->options[InputOptions::MAIN_KEY][InputOptions::FAIL_MESSAGE_KEY]
+                        ?? "Veuillez remplir tous les champs.",
+                )
+                        ->redirect($route->options[InputOptions::MAIN_KEY][InputOptions::FAIL_REDIRECT_KEY] ?? "/")
+                        ->send();
+            }
+        }
+    }
+
+    /**
+     * Builds the pipeline for a given route by calling all the middlewares and then the route.
+     * @param MiddlewareInterface[] $middlewares The list of middlewares to run for the given route.
+     * @param callable $destination The route's callable function.
+     * @return mixed The final pipeline for the route.
      */
     private function pipeline(array $middlewares, callable $destination): mixed
     {

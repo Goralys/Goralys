@@ -6,7 +6,6 @@ use Goralys\App\HTTP\Middleware\DbMiddleware;
 use Goralys\App\HTTP\Middleware\MiddlewareSets;
 use Goralys\App\HTTP\Middleware\RateLimitMiddleware;
 use Goralys\App\HTTP\Middleware\RoleMiddleware;
-use Goralys\App\HTTP\Middleware\ToastMiddleware;
 use Goralys\App\HTTP\Request\Interfaces\RequestInterface;
 use Goralys\App\Router\GoralysRouter;
 use Goralys\App\Router\Options\RouterOptions;
@@ -62,12 +61,12 @@ function createSubjectsRoutes(GoralysRouter $router): void
                 veuillez réessayer ultérieurement.",
             "/subject/",
         ),
+        ...RouterOptions::$TOAST::flash(),
     )
             ->middleware(...RateLimitMiddleware::for('get-student-draft', '/subject/'))
             ->middleware(...AuthMiddleware::require())
             ->middleware(...RoleMiddleware::require(UserRole::TEACHER, true))
-            ->middleware(...DbMiddleware::require())
-            ->middleware(...ToastMiddleware::flash());
+            ->middleware(...DbMiddleware::require());
 
     // ================================================
     // [SECTION] Subject modifiers/setters
