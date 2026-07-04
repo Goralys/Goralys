@@ -17,6 +17,7 @@ use Goralys\App\HTTP\Middleware\RoleMiddleware;
 use Goralys\App\HTTP\Middleware\ToastMiddleware;
 use Goralys\App\Router\Data\Route;
 use Goralys\App\Router\Options\InputOptions;
+use Goralys\App\Router\Options\ToastOptions;
 use Goralys\App\Utils\Toast\Data\Enums\ToastType;
 use Goralys\Kernel\GoralysKernel;
 use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
@@ -182,16 +183,26 @@ final class GoralysRouter
             $resolved[] = new $class($path, ...$middleware->params);
         }
 
-        if (isset($route->options['input']) && is_array($route->options['input'])) {
+        $this->kernel->logger->debug(
+            LoggerInitiator::APP,
+            "Options for {$route->route}:\n" . print_r($route->options, true)
+        );
+
+        if ((bool)($route->options[ToastOptions::MAIN_KEY][ToastOptions::FLASH_KEY] ?? false) === true) {
+            $this->kernel->useFlash();
+        }
+
+        if (isset($route->options[InputOptions::MAIN_KEY]) && is_array($route->options[InputOptions::MAIN_KEY])) {
             try {
-                $request->validate($route->options['input']);
+                $request->validate($route->options[InputOptions::MAIN_KEY]);
             } catch (InvalidInputException) {
                 $this->kernel->deferredResponse(400)->toast( // Bad Request
                     ToastType::WARNING,
                     "Champs invalides",
-                    $route->options['input'][InputOptions::FAIL_MESSAGE_KEY] ?? "Veuillez remplir tous les champs.",
+                    $route->options[InputOptions::MAIN_KEY][InputOptions::FAIL_MESSAGE_KEY]
+                            ?? "Veuillez remplir tous les champs.",
                 )
-                        ->redirect($route->options['input'][InputOptions::FAIL_MESSAGE_KEY] ?? "/")
+                        ->redirect($route->options[InputOptions::MAIN_KEY][InputOptions::FAIL_REDIRECT_KEY] ?? "/")
                         ->send();
             }
         }

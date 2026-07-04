@@ -124,8 +124,8 @@ function createUserRoutes(GoralysRouter $router): void
     $router->post('user/register', function (GoralysKernel $kernel, RequestInterface $request) {
         $registerData = new UserRegisterDTO(
             $request->param("user-name"),
-            new FullNameDTO($request->param("first-name"), $request->param("last-name")),
             $request->param("password"),
+            $request->param("email") ?? null,
         );
 
         if (!$kernel->auth->register($registerData)) {
@@ -143,10 +143,11 @@ function createUserRoutes(GoralysRouter $router): void
         )
             ->redirect("/user/login")
             ->send();
-    }, ...RouterOptions::$INPUT::require("user-name", "password", "first-name", "last-name"))
+    }, ...RouterOptions::$INPUT::require("user-name", "password"),
+       ...RouterOptions::$INPUT::onFailure("Veuillez remplir tous les champs obligatoire", "/user/register"),
+       ...RouterOptions::$TOAST::flash())
         ->middleware(...CSRFMiddleware::form('register', '/user/register'))
-        ->middleware(...DbMiddleware::require())
-        ->middleware(...ToastMiddleware::flash());
+        ->middleware(...DbMiddleware::require());
 
     $router->post('user/login', function (GoralysKernel $kernel, RequestInterface $request) {
         $userData = new UserLoginDTO(
@@ -238,8 +239,10 @@ function createUserRoutes(GoralysRouter $router): void
         }
 
         $result = $kernel->users->addAdmin(
-            trim(Lib::STRING::sanitize($request->param("last-name"), StringCase::UPPER))
-            . " " . trim($request->param("first-name")),
+            new FullNameDTO(
+                trim($request->param("first-name")),
+                trim(Lib::STRING::sanitize($request->param("last-name"), StringCase::UPPER))
+            )
         );
 
         if (!$result) {

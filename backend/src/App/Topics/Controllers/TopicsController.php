@@ -17,9 +17,14 @@ use Goralys\Core\Topics\Data\TopicDTO;
 use Goralys\Core\Topics\Repository\Interfaces\TopicsRepositoryInterface;
 use Goralys\Core\Topics\Repository\TopicsRepository;
 use Goralys\Core\Topics\Services\BuildFromCSVService;
+use Goralys\Core\User\Repository\Interfaces\UserRepositoryInterface;
+use Goralys\Core\User\Repository\UserRepository;
 use Goralys\Platform\DB\Interfaces\DbContainerInterface;
+use Goralys\Platform\Logger\Interfaces\LoggerInterface;
 use Goralys\Shared\Exception\GoralysRuntimeException;
 use Goralys\Shared\Exception\User\GoralysUserException;
+use Goralys\Shared\Lib\GoralysLib as Lib;
+use Goralys\Shared\User\Data\FullNameDTO;
 
 /**
  * Controller for managing topic-related operations, including CSV/ZIP imports and persistence.
@@ -29,6 +34,7 @@ final class TopicsController
     private DbContainerInterface $db;
     private TopicsImportConfig $config;
     private TopicsRepositoryInterface $repo;
+    private UserRepositoryInterface $users;
     private BuildFromCSVService $CSVBuilder;
     private GoralysFileManager $files;
     private UsernameTable $usernames;
@@ -43,6 +49,7 @@ final class TopicsController
         DbContainerInterface $db,
         UsernameTable $usernames,
         GoralysFileManager $files,
+        LoggerInterface $logger,
     ) {
         $this->usernames = $usernames;
 
@@ -50,6 +57,7 @@ final class TopicsController
         $this->config = new TopicsImportConfig();
 
         $this->repo = new TopicsRepository($this->db);
+        $this->users = new UserRepository($logger, $this->db);
         $this->CSVBuilder = new BuildFromCSVService($this->config);
         $this->nextId = 0;
         $this->files = $files;
@@ -74,7 +82,8 @@ final class TopicsController
         }
 
         if (
-            array_any($topic->teachers, fn(string $t) => !$this->repo->insertTeacher(
+            array_any($topic->teachers, fn(FullNameDTO $t) => $this->users->whitelist($this->usernames->resolve($t), $t)
+            && !$this->repo->insertTeacher(
                 $topic->id,
                 $this->usernames->resolve($t),
             ))
@@ -82,12 +91,16 @@ final class TopicsController
             return false;
         }
 
-        return array_all($topic->students, fn(StudentDTO $s) => $this->repo->insertStudent(
-            $topic->id,
-            $this->usernames->resolve($s->fullName),
-            $s->fullName,
-            $s->classroom
-        ));
+        return array_all($topic->students, fn(StudentDTO $s) =>
+                $this->users->whitelist(
+                    $this->usernames->resolve($s->fullName),
+                    $s->fullName
+                )
+                && $this->repo->insertStudent(
+                    $topic->id,
+                    $this->usernames->resolve($s->fullName),
+                    $s->classroom
+                ));
     }
 
     /**
@@ -211,7 +224,7 @@ final class TopicsController
             $this->nextId,
             $name,
             $code,
-            $teachers,
+            array_map(fn (string $t) => new FullNameDTO(...Lib::STRING::separateNames($t)), $teachers),
             $students,
         );
     }

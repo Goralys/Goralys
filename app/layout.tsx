@@ -9,6 +9,7 @@ import { UserListener } from "@/app/src/lib/auth/user-listerner";
 import { Providers } from "@/app/src/ui/modals/providers";
 import CookieBanner from "@/app/src/ui/basic/cookies-banner";
 import { NavigationListener } from "@/app/src/lib/navigation/navigation-listener";
+import Bootstrap from "@/app/src/ui/bootstrap";
 
 export const metadata: Metadata = {
     title: "Goralys",
@@ -28,6 +29,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
                         Goralys n&#39;est malheureusement pas disponible sur téléphone et tablette pour l&#39;instant.
                     </h1>
                 </div>
+
+                <Bootstrap />
 
                 <Providers>
                     <AuthListener />

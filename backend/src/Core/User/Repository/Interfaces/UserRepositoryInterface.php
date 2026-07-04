@@ -21,6 +21,14 @@ use Goralys\Shared\User\Data\FullNameDTO;
 interface UserRepositoryInterface
 {
     /**
+     * Whitelists a user inside the database so that it can then be registered.
+     * @param string $username The username of the user to whitelist.
+     * @param FullNameDTO $fullName The fullname of the user to whitelist.
+     * @return bool Wether the operation was successful or not.
+    */
+    public function whitelist(string $username, FullNameDTO $fullName): bool;
+
+    /**
      * @param string $username The user's username.
      * @return UserFullDTO The full user record.
      */
@@ -33,6 +41,7 @@ interface UserRepositoryInterface
     public function getByPublicId(string $uuid): UserFullDTO;
 
     /**
+     * Checks if a user exits inside the database.
      * @param string $username The username to check.
      * @return bool Whether a user with this username exists.
      */
@@ -127,7 +136,7 @@ interface UserRepositoryInterface
 
     /**
      * Returns all uncreated admins from the database.
-     * These are users present in admins_list but not yet in the users table.
+     * These are users present in admins_list but not yet in the `users` table.
      * @return VirtualUserDTO[] The virtual admins.
      */
     public function getVirtualAdmins(): array;

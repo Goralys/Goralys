@@ -11,8 +11,9 @@ namespace Goralys\App\Router\Options;
  * Builder for route input-validation option arrays.
  * The produced arrays are merged into a route's options and processed by the router before dispatch.
  */
-final class InputOptions
+final class InputOptions extends Option
 {
+    public const string MAIN_KEY = 'input';
     public const string FAIL_MESSAGE_KEY = 'on-fail-message';
     public const string FAIL_REDIRECT_KEY = 'on-fail-redirect';
 

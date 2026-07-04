@@ -1,4 +1,3 @@
-import "@/app/src/lib/bootstrap";
 import { ToastProvider } from "@/app/src/ui/toast/toast-provider";
 import { ConfirmProvider } from "@/app/src/ui/modals/confirm/confirm-provider";
 import { DraftModalProvider } from "@/app/src/ui/modals/drafts/draft-modal-provider";

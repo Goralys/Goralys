@@ -9,7 +9,6 @@ namespace Goralys\Core\Topics\Repository;
 
 use Goralys\Core\Topics\Repository\Interfaces\TopicsRepositoryInterface;
 use Goralys\Platform\DB\Interfaces\DbContainerInterface;
-use Goralys\Shared\User\Data\FullNameDTO;
 
 /**
  * Repository class for handling database operations related to Topics.
@@ -65,11 +64,10 @@ final class TopicsRepository implements TopicsRepositoryInterface
      * Associates a student with a topic in the 'student_topics' table.
      * @param int $topicId The ID of the topic to attach the student to.
      * @param string $studentUsername The student's username.
-     * @param FullNameDTO $fullName The student's "official" full name from the import data.
      * @param string $classroom The student's classroom.
      * @return bool If the insertion succeeded.
      */
-    public function insertStudent(int $topicId, string $studentUsername, FullNameDTO $fullName, string $classroom): bool
+    public function insertStudent(int $topicId, string $studentUsername, string $classroom): bool
     {
         return $this->db->run(
             "insert into student_topics 
@@ -79,11 +77,9 @@ final class TopicsRepository implements TopicsRepositoryInterface
             $studentUsername,
             $topicId,
         ) && $this->db->run(
-            "insert ignore into student_info (username, firstname, lastname, class) values (?, ?, ?, ?)",
-            "ssss",
+            "insert ignore into students_classroom (username, class) values (?, ?)",
+            "ss",
             $studentUsername,
-            $fullName->first,
-            $fullName->last,
             $classroom
         );
     }

@@ -12,6 +12,7 @@ use Goralys\Core\User\Data\UserLoginDTO;
 use Goralys\Core\User\Data\UserRegisterDTO;
 use Goralys\Core\User\Repository\Interfaces\UserRepositoryInterface;
 use Goralys\Core\User\Repository\UserRepository;
+use Goralys\Core\User\Services\AddEmailService;
 use Goralys\Core\User\Services\CreateUserService;
 use Goralys\Core\User\Services\GetUserRoleService;
 use Goralys\Core\User\Services\LoginService;
@@ -71,12 +72,14 @@ final class AuthController
         $validator = new RegisterValidatorService($this->repo);
         $roleGetter = new GetUserRoleService($this->repo);
         $userCreator = new CreateUserService($this->repo);
+        $emailAdder = new AddEmailService($this->repo);
 
         $service = new RegisterService(
             $this->logger,
             $validator,
             $roleGetter,
             $userCreator,
+            $emailAdder
         );
         return $service->register($userData);
     }

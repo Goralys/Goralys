@@ -107,7 +107,7 @@ create table topics
 -- -----------------------------------------------------
 -- student_topics table (many-to-many)
 -- -----------------------------------------------------
-drop table if exists student_info, student_topics;
+drop table if exists student_topics;
 create table student_topics
 (
     student_username     varchar(32) not null, -- fk -> users_info.username
@@ -129,8 +129,8 @@ create table student_topics
 ) engine = innodb;
 
 -- -----------------------------------------------------
--- student_info table
--- This table is used to get accurate and "official" (no user input) data for the subjects export
+-- student_classroom table
+-- This table is used to retrieve the classroom of students for the subjects export
 -- -----------------------------------------------------
 create table students_classroom
 (

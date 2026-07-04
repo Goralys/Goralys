@@ -24,6 +24,7 @@ final class RegisterService
     private RegisterValidatorServiceInterface $validator;
     private GetUserRoleInterface $roleGetter;
     private CreateUserInterface $userCreator;
+    private AddEmailService $emailAdder;
 
     /**
      * Initializes the logger and all the service's sub-services.
@@ -40,12 +41,14 @@ final class RegisterService
         RegisterValidatorServiceInterface $validator,
         GetUserRoleInterface $roleGetter,
         CreateUserInterface $userCreator,
+        AddEmailService $emailAdder,
     ) {
         $this->logger = $logger;
 
         $this->validator = $validator;
         $this->roleGetter = $roleGetter;
         $this->userCreator = $userCreator;
+        $this->emailAdder = $emailAdder;
     }
 
     /**
@@ -65,7 +68,6 @@ final class RegisterService
 
         $createData = new UserCreateDTO(
             $data->username,
-            $data->fullName,
             password_hash($data->password, PASSWORD_DEFAULT),
             $this->roleGetter->getRoleByUsername($data->username),
         );
@@ -77,6 +79,17 @@ final class RegisterService
             );
             return false;
         }
+
+        // ensure fk from emails.username to users.usename is respected
+        if ($data->email) {
+            if (!$this->emailAdder->addEmail($data->username, $data->email)) {
+                $this->logger->error(
+                    LoggerInitiator::CORE,
+                    "Failed to add email {$data->email} for user {$data->username}"
+                );
+            }
+        }
+
         $this->logger->info(
             LoggerInitiator::CORE,
             "Successfully registered a new user with username : "

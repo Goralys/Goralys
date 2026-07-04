@@ -376,6 +376,7 @@ class GoralysKernel
             $this->db,
             new UsernameTable(),
             $this->fileManager,
+            $this->logger
         );
     }
 

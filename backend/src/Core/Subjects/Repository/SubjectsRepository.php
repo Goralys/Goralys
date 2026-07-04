@@ -172,7 +172,10 @@ final class SubjectsRepository implements SubjectsRepositoryInterface
     public function getStudentInfo(string $username): StudentDTO
     {
         $result = $this->db->fetch(
-            "select firstname, lastname, class from student_info where username = ?",
+            "select firstname, lastname, class 
+                   from students_classroom sc
+                   right join users_info ui on ui.username = sc.username
+                   where sc.username = ?",
             "s",
             $username
         );

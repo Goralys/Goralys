@@ -44,8 +44,6 @@ export default function RegisterForm(): ReactElement {
                     autocomplete="username"
                     required
                 />
-                <FloatingInput id="first-name" label="Prénom" autocomplete="given-name" required />
-                <FloatingInput id="last-name" label="Nom de famille" autocomplete="family-name" required />
 
                 <FloatingInput
                     id="password"
@@ -55,6 +53,8 @@ export default function RegisterForm(): ReactElement {
                     password
                     required
                 />
+
+                <FloatingInput id="email" label="Addresse Mail" autocomplete="email" helper="Ce champ est optionnel." email />
 
                 <input type="hidden" name="csrf-token" value={(csrfToken ? csrfToken : "no-token").trim()} />
 

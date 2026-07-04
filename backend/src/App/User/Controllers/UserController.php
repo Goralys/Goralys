@@ -27,6 +27,7 @@ use Goralys\Shared\Exception\User\GoralysUserException;
 use Goralys\Shared\Exception\User\UserNotFoundException;
 use Goralys\Shared\Lib\GoralysLib as Lib;
 use Goralys\Shared\Lib\String\StringCase;
+use Goralys\Shared\User\Data\FullNameDTO;
 
 /**
  * The controller that handles the user logic.
@@ -132,15 +133,15 @@ final class UserController
 
     /**
      * Adds a new admin inside the database.
-     * @param string $name The full name of the admin to add.
+     * @param FullNameDTO $name The full name of the admin to add.
      * @return ?string The admin's username on success, null otherwise.
      * @throws GoralysUserException
      */
-    public function addAdmin(string $name): ?string
+    public function addAdmin(FullNameDTO $name): ?string
     {
         $table = new UsernameTable();
         $username = $table->resolve($name, UserRole::ADMIN);
-        return $this->repo->addAdmin($username) ? $username : null;
+        return ($this->repo->whitelist($username, $name) && $this->repo->addAdmin($username)) ? $username : null;
     }
 
     /**
