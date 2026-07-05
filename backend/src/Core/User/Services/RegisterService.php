@@ -9,6 +9,7 @@ namespace Goralys\Core\User\Services;
 
 use Goralys\Core\User\Data\UserCreateDTO;
 use Goralys\Core\User\Data\UserRegisterDTO;
+use Goralys\Core\User\Interfaces\AddEmailServiceInterface;
 use Goralys\Core\User\Interfaces\CreateUserInterface;
 use Goralys\Core\User\Interfaces\GetUserRoleInterface;
 use Goralys\Core\User\Interfaces\RegisterValidatorServiceInterface;
@@ -24,7 +25,7 @@ final class RegisterService
     private RegisterValidatorServiceInterface $validator;
     private GetUserRoleInterface $roleGetter;
     private CreateUserInterface $userCreator;
-    private AddEmailService $emailAdder;
+    private AddEmailServiceInterface $emailAdder;
 
     /**
      * Initializes the logger and all the service's sub-services.
@@ -41,7 +42,7 @@ final class RegisterService
         RegisterValidatorServiceInterface $validator,
         GetUserRoleInterface $roleGetter,
         CreateUserInterface $userCreator,
-        AddEmailService $emailAdder,
+        AddEmailServiceInterface $emailAdder,
     ) {
         $this->logger = $logger;
 
@@ -85,7 +86,7 @@ final class RegisterService
             if (!$this->emailAdder->addEmail($data->username, $data->email)) {
                 $this->logger->error(
                     LoggerInitiator::CORE,
-                    "Failed to add email {$data->email} for user {$data->username}"
+                    "Failed to add email $data->email for user $data->username"
                 );
             }
         }

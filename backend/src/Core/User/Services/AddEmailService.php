@@ -2,12 +2,13 @@
 
 namespace Goralys\Core\User\Services;
 
+use Goralys\Core\User\Interfaces\AddEmailServiceInterface;
 use Goralys\Core\User\Repository\Interfaces\UserRepositoryInterface;
 
 /**
  * This service is used to add an email to a user on registration.
  */
-final class AddEmailService
+final class AddEmailService implements AddEmailServiceInterface
 {
     private UserRepositoryInterface $repo;
 
@@ -20,7 +21,8 @@ final class AddEmailService
         $this->repo = $repo;
     }
 
-    /** Sets the email for a given user.
+    /**
+     * Sets the email for a given user.
      * @param string $username The username of the user.
      * @param string $email The new email of the user.
      * @return bool Wether the operation was successful or not.
