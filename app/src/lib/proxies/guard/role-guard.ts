@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { UserRole } from "@/app/src/lib/types";
+import { UserRole } from "@goralys/core";
 
 interface RoleGuardOptions {
     allowedRoles: UserRole["role"][];

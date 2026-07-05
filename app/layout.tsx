@@ -8,10 +8,12 @@ import FlashToastListener from "@/app/src/ui/toast/flash-toast-listener";
 import { UserListener } from "@/app/src/lib/auth/user-listerner";
 import { Providers } from "@/app/src/ui/modals/providers";
 import CookieBanner from "@/app/src/ui/basic/cookies-banner";
+import { NavigationListener } from "@/app/src/lib/navigation/navigation-listener";
+import Bootstrap from "@/app/src/ui/bootstrap";
 
 export const metadata: Metadata = {
     title: "Goralys",
-    description: "A cool project.",
+    description: "Un site pour simplifier la gestion du Grand Oral en Terminale.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>): ReactElement {
@@ -28,9 +30,12 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
                     </h1>
                 </div>
 
+                <Bootstrap />
+
                 <Providers>
                     <AuthListener />
                     <UserListener />
+                    <NavigationListener />
                     <FlashToastListener />
                     <div className="flex flex-row min-h-screen">
                         <SideNav />

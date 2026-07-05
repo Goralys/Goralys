@@ -1,7 +1,7 @@
 "use client";
 
 import { ReactElement, useEffect } from "react";
-import { goralysFetchClient } from "@/app/src/lib/fetch/fetch.client";
+import { goralysFetchClient } from "@goralys/core";
 
 export default function TeaPage(): ReactElement {
     useEffect(() => {

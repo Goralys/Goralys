@@ -1,4 +1,4 @@
-import { Subject } from "@/app/src/lib/types";
+import { Subject } from "@goralys/core";
 import { TextArea } from "@/app/src/ui/inputs/text-area";
 import { ChangeEventHandler, ReactElement } from "react";
 import { SubjectTextArea } from "@/app/src/ui/inputs/subject-text-area";

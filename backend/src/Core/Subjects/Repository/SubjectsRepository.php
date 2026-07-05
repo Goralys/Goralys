@@ -7,9 +7,12 @@
 
 namespace Goralys\Core\Subjects\Repository;
 
+use Goralys\App\Topics\Data\StudentDTO;
 use Goralys\Core\Subjects\Data\Enums\SubjectStatus;
 use Goralys\Core\Subjects\Repository\Interfaces\SubjectsRepositoryInterface;
 use Goralys\Platform\DB\Interfaces\DbContainerInterface;
+use Goralys\Shared\Exception\User\UserNotFoundException;
+use Goralys\Shared\User\Data\FullNameDTO;
 use mysqli_result;
 
 /**
@@ -158,6 +161,31 @@ final class SubjectsRepository implements SubjectsRepositoryInterface
             $studentUsername,
             $topic,
         );
+    }
+
+    /**
+     * Retrieves a student's information from the database (classroom and "official" name).
+     * @param string $username The username of the target student.
+     * @return StudentDTO The student's fullname and classroom.
+     * @throws UserNotFoundException If the provided username is invalid.
+     */
+    public function getStudentInfo(string $username): StudentDTO
+    {
+        $result = $this->db->fetch(
+            "select firstname, lastname, class 
+                   from students_classroom sc
+                   right join users_info ui on ui.username = sc.username
+                   where sc.username = ?",
+            "s",
+            $username
+        );
+
+        if ($result->num_rows === 0) {
+            throw new UserNotFoundException("Invalid student username: " . $username);
+        }
+
+        $row = $result->fetch_assoc();
+        return new StudentDTO(new FullNameDTO($row['firstname'], $row['lastname']), $row['class']);
     }
 
     /**

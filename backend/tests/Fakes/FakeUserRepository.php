@@ -7,6 +7,7 @@ use Goralys\Core\User\Data\UserCreateDTO;
 use Goralys\Core\User\Data\UserFullDTO;
 use Goralys\Core\User\Data\UserLoginDTO;
 use Goralys\Core\User\Repository\Interfaces\UserRepositoryInterface;
+use Goralys\Shared\User\Data\FullNameDTO;
 
 class FakeUserRepository implements UserRepositoryInterface
 {
@@ -80,7 +81,7 @@ class FakeUserRepository implements UserRepositoryInterface
         return true;
     }
 
-    public function getFullNameForUsername(string $username): ?string
+    public function getFullNameForUsername(string $username): ?FullNameDTO
     {
         return $this->getResult;
     }
@@ -190,5 +191,10 @@ class FakeUserRepository implements UserRepositoryInterface
     public function getEmail(string $username): ?string
     {
         return $this->getResult;
+    }
+
+    public function whitelist(string $username, FullNameDTO $fullName): bool
+    {
+        return $this->updateResult;
     }
 }

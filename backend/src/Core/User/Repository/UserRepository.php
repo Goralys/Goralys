@@ -18,6 +18,7 @@ use Goralys\Platform\DB\Interfaces\DbContainerInterface;
 use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
 use Goralys\Platform\Logger\Interfaces\LoggerInterface;
 use Goralys\Shared\Exception\User\UserNotFoundException;
+use Goralys\Shared\User\Data\FullNameDTO;
 use mysqli_result;
 
 /**
@@ -50,8 +51,9 @@ final class UserRepository implements UserRepositoryInterface
     public function getByUsername(string $username): UserFullDTO
     {
         $result = $this->db->fetch(
-            "select id, u.username, role, full_name, email from users u
+            "select id, u.username, role, firstname, lastname, email from users u
                    left join emails e on u.username = e.username
+                   right outer join users_info ui on ui.username = u.username
                    where u.username = ?",
             "s",
             $username,
@@ -96,7 +98,7 @@ final class UserRepository implements UserRepositoryInterface
             (int) $row['id'],
             $row['username'],
             UserRole::fromString($row['role']),
-            $row['full_name'],
+            new FullNameDTO($row['firstname'], $row['lastname']),
             $row['email'] ?? "",
         );
     }
@@ -109,10 +111,9 @@ final class UserRepository implements UserRepositoryInterface
     public function save(UserCreateDTO $userData): bool
     {
         return $this->db->run(
-            "insert into users (username, full_name, password_hash, role) values (?, ?, ?, ?)",
-            "ssss",
+            "insert into users (username, password_hash, role) values (?, ?, ?)",
+            "sss",
             $userData->username,
-            $userData->fullName,
             $userData->passwordHash,
             $userData->role->toString(),
         );
@@ -140,14 +141,8 @@ final class UserRepository implements UserRepositoryInterface
     public function isUsernameValid(string $username): bool
     {
         return $this->db->fetch(
-            "select 1
-            where exists(select 1 from student_topics where student_username = ?)
-            or exists(select 1 from topic_teachers where teacher_username = ?)
-            or exists(select 1 from admins_list where username = ?)
-            limit 1",
-            "sss",
-            $username,
-            $username,
+            "select 1 from users_info where username = ? limit 1",
+            "s",
             $username,
         )->num_rows != 0;
     }
@@ -218,12 +213,12 @@ final class UserRepository implements UserRepositoryInterface
     /**
      * Gets the full name of a user.
      * @param string $username The user's username.
-     * @return ?string The user's full name or null if the user does not exist.
+     * @return ?FullNameDTO The user's full name or null if the user does not exist.
      */
-    public function getFullNameForUsername(string $username): ?string
+    public function getFullNameForUsername(string $username): ?FullNameDTO
     {
         $result = $this->db->fetch(
-            "select full_name from users where username = ?
+            "select firstname, lastname from users_info where username = ?
             limit 1",
             "s",
             $username,
@@ -236,8 +231,8 @@ final class UserRepository implements UserRepositoryInterface
             );
             return null;
         }
-
-        return $result->fetch_assoc()['full_name'];
+        $row = $result->fetch_assoc();
+        return new FullNameDTO($row['firstname'], $row['lastname']);
     }
 
     /**
@@ -272,8 +267,9 @@ final class UserRepository implements UserRepositoryInterface
     public function getByPublicId(string $uuid): UserFullDTO
     {
         $result = $this->db->fetch(
-            "select u.id, u.username, u.role, u.full_name, e.email 
+            "select u.id, u.username, u.role, ui.firstname, ui.lastname, e.email 
                    from users u
+                   join users_info ui on ui.username = u.username
                    join public_ids pi on u.username = pi.username
                    left join emails e on u.username = e.username
                    where pi.public_id = ?",
@@ -331,7 +327,12 @@ final class UserRepository implements UserRepositoryInterface
      */
     public function getAll(): array
     {
-        $result = $this->db->fetchNoArgs("select id, username, full_name, role from users where role <> 'admin'");
+        $result = $this->db->fetchNoArgs(
+            "select id, u.username, firstname, lastname, role 
+                   from users u
+                   join users_info ui on ui.username = u.username
+                   where role <> 'admin'"
+        );
         return $this->buildUsersFromResult($result);
     }
 
@@ -501,7 +502,12 @@ final class UserRepository implements UserRepositoryInterface
      */
     public function getAdmins(): array
     {
-        $result = $this->db->fetchNoArgs("select id, username, full_name, role from users where role = 'admin'");
+        $result = $this->db->fetchNoArgs(
+            "select id, u.username, firstname, lastname, role 
+                   from users u
+                   join users_info ui on ui.username = u.username
+                   where role = 'admin'"
+        );
         return $this->buildUsersFromResult($result);
     }
 
@@ -529,7 +535,6 @@ final class UserRepository implements UserRepositoryInterface
         $this->db->beginTransaction();
         try {
             $this->db->run("insert into admins_list (username) values (?)", "s", $username);
-            $this->db->run("insert into public_ids (username, public_id) values (?, uuid())", "s", $username);
 
             $this->db->commit();
             return true;
@@ -603,6 +608,24 @@ final class UserRepository implements UserRepositoryInterface
             "delete from emails where username = ?",
             "s",
             $username,
+        );
+    }
+
+    /**
+     * Whitelists a user by inserting it inside a temporary table (`users_info`).
+     * The user can then be created via the {@see UserRepositoryInterface::save()} method.
+     * @param string $username The username of the user to whitelist.
+     * @param FullNameDTO $fullName The fullname of the user to whitelist.
+     * @return bool If the operation was successful or not.
+     */
+    public function whitelist(string $username, FullNameDTO $fullName): bool
+    {
+        return $this->db->run(
+            "insert ignore into users_info (username, firstname, lastname) values (?, ?, ?)",
+            "sss",
+            $username,
+            $fullName->first,
+            $fullName->last
         );
     }
 }

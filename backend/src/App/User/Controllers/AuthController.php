@@ -12,6 +12,7 @@ use Goralys\Core\User\Data\UserLoginDTO;
 use Goralys\Core\User\Data\UserRegisterDTO;
 use Goralys\Core\User\Repository\Interfaces\UserRepositoryInterface;
 use Goralys\Core\User\Repository\UserRepository;
+use Goralys\Core\User\Services\AddEmailService;
 use Goralys\Core\User\Services\CreateUserService;
 use Goralys\Core\User\Services\GetUserRoleService;
 use Goralys\Core\User\Services\LoginService;
@@ -22,8 +23,6 @@ use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
 use Goralys\Platform\Logger\Interfaces\LoggerInterface;
 use Goralys\Shared\Config\GoralysConfig;
 use Goralys\Shared\Exception\User\UserNotFoundException;
-use Goralys\Shared\Utils\String\Data\StringCase;
-use Goralys\Shared\Utils\UtilitiesManager;
 
 /**
  * The controller that handles the authentification logic (register, login, and logout).
@@ -33,7 +32,6 @@ final class AuthController
     private LoggerInterface $logger;
     private DbContainerInterface $db;
     private UserRepositoryInterface $repo;
-    private UtilitiesManager $utils;
     /**
      * The lifetime of the PHP session, the kernel passes this variable when the controller is constructed.
      * @var int
@@ -60,7 +58,6 @@ final class AuthController
         $this->sessionMultiplier = $sessionLifetimeMultiplier;
 
         $this->repo = new UserRepository($this->logger, $this->db);
-        $this->utils = new UtilitiesManager();
     }
 
     /**
@@ -70,21 +67,19 @@ final class AuthController
      */
     public function register(UserRegisterDTO $userData): bool
     {
-        $userData = new UserRegisterDTO(
-            $this->utils->string->sanitize($userData->username, StringCase::LOWER),
-            $userData->fullName,
-            $userData->password,
-        );
+        $userData->sanitize();
 
         $validator = new RegisterValidatorService($this->repo);
         $roleGetter = new GetUserRoleService($this->repo);
         $userCreator = new CreateUserService($this->repo);
+        $emailAdder = new AddEmailService($this->repo);
 
         $service = new RegisterService(
             $this->logger,
             $validator,
             $roleGetter,
             $userCreator,
+            $emailAdder
         );
         return $service->register($userData);
     }

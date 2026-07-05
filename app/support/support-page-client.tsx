@@ -1,12 +1,12 @@
 "use client";
 
 import { ReactElement, Suspense } from "react";
-import { useSupportTickets } from "@/app/src/hooks/useSupportTickets";
+import { useSupportTicketsWeb } from "@/app/src/hooks/useSupportTicketsWeb";
 import SupportTicketCard from "@/app/src/ui/support/support-ticket-card";
 import SupportTicketCardSkeleton from "@/app/src/ui/skeletons/support/support-ticket-card";
 
 export default function SupportPageClient(): ReactElement {
-    const { supportTickets: tickets } = useSupportTickets();
+    const { supportTickets: tickets } = useSupportTicketsWeb();
 
     const skeletons = Array.from({ length: 3 }, (_, i) => <SupportTicketCardSkeleton key={i} />);
 

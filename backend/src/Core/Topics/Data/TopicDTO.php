@@ -7,6 +7,9 @@
 
 namespace Goralys\Core\Topics\Data;
 
+use Goralys\App\Topics\Data\StudentDTO;
+use Goralys\Shared\User\Data\FullNameDTO;
+
 /**
  * Data Transfer Object representing a Topic.
  */
@@ -16,8 +19,8 @@ final readonly class TopicDTO
      * @param int $id The unique ID of the topic.
      * @param string $name The name of the topic.
      * @param string $code The unique code for the topic.
-     * @param string[] $teachers List of teacher usernames.
-     * @param string[] $students List of student usernames.
+     * @param FullNameDTO[] $teachers List of teacher usernames.
+     * @param StudentDTO[] $students List of students.
      */
     public function __construct(
         public int $id,

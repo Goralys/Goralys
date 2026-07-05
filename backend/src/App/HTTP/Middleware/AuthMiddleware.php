@@ -5,12 +5,12 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace Goralys\App\HTTP\Middleware;
+    namespace Goralys\App\HTTP\Middleware;
 
-use Goralys\App\HTTP\Middleware\Interface\MiddlewareInterface;
-use Goralys\App\Utils\Toast\Data\Enums\ToastType;
-use Goralys\Kernel\GoralysKernel;
-use Goralys\Shared\Config\GoralysConfig;
+    use Goralys\App\HTTP\Middleware\Interface\MiddlewareInterface;
+    use Goralys\App\Utils\Toast\Data\Enums\ToastType;
+    use Goralys\Kernel\GoralysKernel;
+    use Goralys\Shared\Config\GoralysConfig;
 
 /**
  * Middleware that enforces authentication before a route handler is executed.
@@ -30,6 +30,25 @@ final class AuthMiddleware implements MiddlewareInterface
     {
         $this->endpoint = $endpoint;
         $this->options = $params;
+    }
+
+    /**
+     * Returns the middleware binding for strict authentication (redirects on failure).
+     * @return array The middleware descriptor array.
+     */
+    public static function require(): array
+    {
+        return ['auth'];
+    }
+
+    /**
+     * Returns the middleware binding for weak authentication (clears session on failure).
+     * If the auth check fails, it triggers a client redirect to the login page as a side effect.
+     * @return array The middleware descriptor array.
+     */
+    public static function weak(): array
+    {
+        return ['auth', ['weak']];
     }
 
     /**
@@ -57,24 +76,5 @@ final class AuthMiddleware implements MiddlewareInterface
         }
         $kernel->requireAuth($this->endpoint);
         return $next($kernel);
-    }
-
-    /**
-     * Returns the middleware binding for strict authentication (redirects on failure).
-     * @return array The middleware descriptor array.
-     */
-    public static function require(): array
-    {
-        return ['auth'];
-    }
-
-    /**
-     * Returns the middleware binding for weak authentication (clears session on failure).
-     * If the auth check fails, it triggers a client redirect to the login page as a side effect.
-     * @return array The middleware descriptor array.
-     */
-    public static function weak(): array
-    {
-        return ['auth', ['weak']];
     }
 }

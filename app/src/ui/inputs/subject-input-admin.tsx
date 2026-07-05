@@ -1,4 +1,4 @@
-import { getStatusHelper, Subject } from "@/app/src/lib/types";
+import { getStatusHelper, Subject } from "@goralys/core";
 import { SubjectTextArea } from "@/app/src/ui/inputs/subject-text-area";
 import { ChangeEventHandler, ReactElement } from "react";
 

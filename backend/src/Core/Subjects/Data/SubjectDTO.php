@@ -18,7 +18,7 @@ use JsonSerializable;
 final readonly class SubjectDTO implements JsonSerializable
 {
     /**
-     * @param string $studentUsername The username of the student.
+     * @param string $studentName The name of the student.
      * @param string $studentUsernameToken The frontend token used to retrieve the student's username.
      * @param string $subject The subject content.
      * @param SubjectStatus $status The current status of the subject.
@@ -27,13 +27,13 @@ final readonly class SubjectDTO implements JsonSerializable
      * @param DateTime|null $lastUpdatedAt The date and time of the last status update.
      * @param string $topic The name of the topic associated with this subject.
      * @param string $topicCode The code of the topic associated with this subject.
-     * @param string $teacherUsername The username of the assigned teacher.
+     * @param string $teacherName The name of the assigned teacher.
      * @param string $teacherUsernameToken The frontend token used to retrieve the teacher's username.
      * @param bool $interdisciplinary Whether this subject is interdisciplinary.
      * @param bool $hasDraft Whether the student has a uploaded a draft file for this subject.
      */
     public function __construct(
-        public string $studentUsername,
+        public string $studentName,
         public string $studentUsernameToken,
         public string $subject,
         public SubjectStatus $status,
@@ -42,7 +42,7 @@ final readonly class SubjectDTO implements JsonSerializable
         public ?DateTime $lastUpdatedAt,
         public string $topic,
         public string $topicCode,
-        public string $teacherUsername,
+        public string $teacherName,
         public string $teacherUsernameToken,
         public bool $interdisciplinary,
         public bool $hasDraft = false,
@@ -56,14 +56,14 @@ final readonly class SubjectDTO implements JsonSerializable
     public function jsonSerialize(): array
     {
         return [
-            "student" => $this->studentUsername,
+            "student" => $this->studentName,
             "studentToken" => $this->studentUsernameToken,
             "subject" => $this->subject,
             "status" => $this->status->toString(),
             "comment" => $this->comment,
             "lastRejected" => $this->lastRejected,
             "topic" => $this->topic,
-            "teacher" => $this->teacherUsername,
+            "teacher" => $this->teacherName,
             "teacherToken" => $this->teacherUsernameToken,
             "hasDraft" => $this->hasDraft,
             "interdisciplinary" => $this->interdisciplinary,

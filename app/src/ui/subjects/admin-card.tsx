@@ -1,12 +1,19 @@
 "use client";
 
-import { getStatusLabel, Subject, SubjectStatus, SubjectStatusConfig } from "@/app/src/lib/types";
+import {
+    cookiesSet,
+    fetchCsrfClient,
+    getStatusLabel,
+    goralysFetchClient,
+    handleToastRequest,
+    Subject,
+    SubjectStatus,
+    SubjectStatusConfig,
+} from "@goralys/core";
 import { SubjectInputAdmin } from "@/app/src/ui/inputs/subject-input-admin";
 import React, { ReactElement } from "react";
-import { fetchCsrfClient, goralysFetchClient, handleToastRequest } from "@/app/src/lib/fetch/fetch.client";
 import { usePasswordModal } from "@/app/src/ui/modals/password/password-modal-provider";
 import { useToast } from "@/app/src/ui/toast/toast-provider";
-import Cookies from "universal-cookie";
 
 interface SubjectsAdminCardProps {
     subjectData: Subject;
@@ -17,7 +24,6 @@ interface SubjectsAdminCardProps {
 export default function AdminCard({ subjectData, onUpdateAction, syncKey }: SubjectsAdminCardProps): ReactElement {
     const password = usePasswordModal();
     const toast = useToast();
-    const cookies = new Cookies();
 
     const updateStatus = async (status: SubjectStatus): Promise<void> => {
         if (status === subjectData.status) return;
@@ -50,7 +56,7 @@ export default function AdminCard({ subjectData, onUpdateAction, syncKey }: Subj
         const data = await res?.json();
 
         if (data.toastType === "info" && res.ok) {
-            cookies.set(syncKey, "0", { path: "/" });
+            cookiesSet(syncKey, "0");
             onUpdateAction();
         }
     };

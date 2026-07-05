@@ -4,8 +4,10 @@ namespace Goralys\Tests\Unit\Core;
 
 use Goralys\Core\User\Data\Enums\UserRole;
 use Goralys\Core\User\Data\UserRegisterDTO;
+use Goralys\Core\User\Interfaces\AddEmailServiceInterface;
 use Goralys\Core\User\Services\RegisterService;
 use Goralys\Tests\Fakes\FakeCreateUser;
+use Goralys\Tests\Fakes\FakeEmailAddService;
 use Goralys\Tests\Fakes\FakeGetUserRole;
 use Goralys\Tests\Fakes\FakeGoralysLogger;
 use Goralys\Tests\Fakes\FakeRegisterValidatorService;
@@ -18,6 +20,7 @@ class RegisterServiceTest extends TestCase
     private FakeGetUserRole $roleGetter;
     private FakeCreateUser $userCreator;
     private RegisterService $service;
+    private AddEmailServiceInterface $mailAdder;
 
     public function testRegisterInvalidUsername()
     {
@@ -57,12 +60,14 @@ class RegisterServiceTest extends TestCase
         $this->validator = new FakeRegisterValidatorService();
         $this->roleGetter = new FakeGetUserRole();
         $this->userCreator = new FakeCreateUser();
+        $this->mailAdder = new FakeEmailAddService();
 
         $this->service = new RegisterService(
             $this->logger,
             $this->validator,
             $this->roleGetter,
             $this->userCreator,
+            $this->mailAdder,
         );
     }
 
@@ -73,5 +78,6 @@ class RegisterServiceTest extends TestCase
         unset($this->roleGetter);
         unset($this->userCreator);
         unset($this->service);
+        unset($this->mailAdder);
     }
 }

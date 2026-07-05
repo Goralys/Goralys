@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { isFoolsDay } from "@/app/src/lib/fools";
+import { isFoolsDay } from "@goralys/core";
 
 export async function FoolsProxy(request: NextRequest): Promise<NextResponse> {
     const { pathname } = request.nextUrl;

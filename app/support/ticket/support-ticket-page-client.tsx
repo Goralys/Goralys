@@ -1,14 +1,20 @@
 "use client";
 
 import { ReactElement, useState } from "react";
-import { buildApiUrl, fetchCsrfClient, goralysFetchClient, handleToastRequest } from "@/app/src/lib/fetch/fetch.client";
-import { parsePhpDateTime, reasonsConfig, SupportTicket } from "@/app/src/lib/types";
+import {
+    buildApiUrl,
+    cookiesSet,
+    fetchCsrfClient,
+    goralysFetchClient,
+    handleToastRequest,
+    parsePhpDateTime,
+    reasonsConfig,
+    SupportTicket,
+} from "@goralys/core";
 import { Card } from "@/app/src/ui/card";
 import { Button } from "@/app/src/ui/button";
 import { TextArea } from "@/app/src/ui/inputs/text-area";
 import { FloatingInput } from "@/app/src/ui/inputs/floating-input";
-import { setCookie } from "@/app/src/lib/cookies";
-import Cookies from "universal-cookie";
 import { useToast } from "@/app/src/ui/toast/toast-provider";
 
 interface SupportTicketPageClientProps {
@@ -17,7 +23,6 @@ interface SupportTicketPageClientProps {
 
 export default function SupportTicketPageClient({ ticket }: SupportTicketPageClientProps): ReactElement {
     const toast = useToast();
-    const cookies = new Cookies();
     const [message, setMessage] = useState<string>("");
 
     const resolve = async (): Promise<void> => {
@@ -36,7 +41,7 @@ export default function SupportTicketPageClient({ ticket }: SupportTicketPageCli
             { message: message },
         );
 
-        if (res.ok) setCookie(cookies, "support-tickets-synced", "0");
+        if (res.ok) cookiesSet("support-tickets-synced", "0");
         await handleToastRequest(res, toast.showToast);
     };
 

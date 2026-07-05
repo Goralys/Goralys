@@ -49,22 +49,23 @@ echo "[2.5] Checking for Assets backup..."
 
 BACKUP_DIR=~/goralys_backup_backend
 
-echo "[2.5] Checking for Assets backup..."
-
-BACKUP_DIR=~/goralys_backup_backend
-
 if [ -d "$BACKUP_DIR" ]; then
     echo "[INFO] Backup found at $BACKUP_DIR"
 
-    read -r -p "Restore Assets + .env from backup? (Y/n) : " RESTORE
+    read -r -p "Restore Assets + Users + .env from backup? (Y/n) : " RESTORE
 
     if [[ "${RESTORE:-Y}" == "Y" ]]; then
         echo "[INFO] Restoring backup..."
 
         rm -rf ./backend/Assets
+        rm -rf ./backend/Users
 
         if [ -d "$BACKUP_DIR/Assets" ]; then
             cp -r "$BACKUP_DIR/Assets" ./backend/Assets
+        fi
+
+        if [ -d "$BACKUP_DIR/Users" ]; then
+            cp -r "$BACKUP_DIR/Users" ./backend/Users
         fi
 
         if [ -f "$BACKUP_DIR/.env" ]; then

@@ -6,17 +6,23 @@
 "use client";
 
 import { useEffect } from "react";
-import { onUserEvent } from "@/app/src/lib/auth/user-event";
-import { emptyUserCacheClient } from "@/app/src/lib/user/user.client";
+import { emptyUserCacheClient, onUserEvent } from "@goralys/core";
 
 export function UserListener(): null {
     useEffect(() => {
         return onUserEvent((event) => {
             if (event === "logout") {
-                emptyUserCacheClient();
-                setTimeout(() => {
-                    window.location.href = "/user/login";
-                }, 0);
+                (async (): Promise<void> => {
+                    try {
+                        emptyUserCacheClient();
+                    } catch (err) {
+                        console.error("[UserListener] Failed to clear user cache:", err);
+                    } finally {
+                        setTimeout(() => {
+                            window.location.href = "/user/login";
+                        }, 0);
+                    }
+                })();
             }
         });
     }, []);

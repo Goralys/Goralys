@@ -14,9 +14,10 @@ use Goralys\App\HTTP\Middleware\DbMiddleware;
 use Goralys\App\HTTP\Middleware\Interface\MiddlewareInterface;
 use Goralys\App\HTTP\Middleware\RateLimitMiddleware;
 use Goralys\App\HTTP\Middleware\RoleMiddleware;
-use Goralys\App\HTTP\Middleware\ToastMiddleware;
+use Goralys\App\HTTP\Request\Interfaces\RequestInterface;
 use Goralys\App\Router\Data\Route;
 use Goralys\App\Router\Options\InputOptions;
+use Goralys\App\Router\Options\ToastOptions;
 use Goralys\App\Utils\Toast\Data\Enums\ToastType;
 use Goralys\Kernel\GoralysKernel;
 use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
@@ -42,7 +43,6 @@ final class GoralysRouter
     /** @var array<string, class-string<MiddlewareInterface>>  */
     private array $middlewaresMap = [
         'auth' => AuthMiddleware::class,
-        'toast' => ToastMiddleware::class,
         'role' => RoleMiddleware::class,
         'rate-limit' => RateLimitMiddleware::class,
         'csrf' => CSRFMiddleware::class,
@@ -100,7 +100,7 @@ final class GoralysRouter
     }
 
     /**
-     * Registers an PATCH route.
+     * Registers a PATCH route.
      * @param string $route The route path.
      * @param Closure $handler The route handler.
      * @param array ...$options Optional middleware and input option arrays.
@@ -156,19 +156,59 @@ final class GoralysRouter
      */
     public function dispatch(string $method, string $uri): mixed
     {
+        $routes = new Routes()->getAll();
+
         $this->kernel->logger->debug(LoggerInitiator::APP, "DISPATCH: $method $uri");
         $path = trim($uri, "/");
 
-        if (!array_key_exists($method, $this->routes) || !array_key_exists($path, $this->routes[$method])) {
+        if (!array_key_exists($method, $routes) || !array_key_exists($path, $routes[$method])) {
             $this->kernel->logger->error(
                 LoggerInitiator::APP,
-                "Unknow route $path, known:\n" . $this->formatKnownRoutes(),
+                "Unknow route $path, known:\n" . $this->formatKnownRoutes($routes),
             );
             $this->kernel->response(404)->http();
         }
 
-        $route = $this->routes[$method][$path];
+        $route = $routes[$method][$path];
         $request = $this->kernel->request();
+        $middlewares = $this->resolveMiddlewares($route, $path);
+        $this->resolveOptions($route, $request);
+
+        $dest = function () use ($request, $route) {
+            $this->kernel->run(function () use ($route, $request) {
+                return ($route->handler)($this->kernel, $request);
+            });
+        };
+
+        return $this->pipeline($middlewares, $dest);
+    }
+
+    /**
+     * Formates all the router's route into a readable Rest-like format.
+     * @param Route[][] $routesArr All the known routes.
+     * @return string
+     */
+    private function formatKnownRoutes(array $routesArr): string
+    {
+        $formatted = [];
+        foreach ($routesArr as $method => $routes) {
+            $routeNames = array_keys($routes);
+            if (!empty($routeNames)) {
+                $formatted[] = "$method: " . implode(", ", $routeNames);
+            }
+        }
+        return implode("\n", $formatted);
+    }
+
+    /**
+     * Helper to resolve the middlewares of a given route.
+     * @param Route $route The to resolve the middlewares for.
+     * @param string $path The URI of the route.
+     * @return MiddlewareInterface[] The resolved middlewares
+     */
+    private function resolveMiddlewares(Route $route, string $path): array
+    {
+        /** @var MiddlewareInterface[] $resolved */
         $resolved = [];
         foreach ($route->middlewares as $middleware) {
             $class = $this->middlewaresMap[$middleware->name] ?? null;
@@ -182,49 +222,42 @@ final class GoralysRouter
             $resolved[] = new $class($path, ...$middleware->params);
         }
 
-        if (isset($route->options['input']) && is_array($route->options['input'])) {
+        return $resolved;
+    }
+
+    /**
+     * Helper to resolve the options of a given route.
+     * @param Route $route The to resolve the options for.
+     * @param RequestInterface $request The incoming request to the route.
+     * @return void
+     */
+    private function resolveOptions(Route $route, RequestInterface $request): void
+    {
+        if ((bool)($route->options[ToastOptions::MAIN_KEY][ToastOptions::FLASH_KEY] ?? false) === true) {
+            $this->kernel->useFlash();
+        }
+
+        if (isset($route->options[InputOptions::MAIN_KEY]) && is_array($route->options[InputOptions::MAIN_KEY])) {
             try {
-                $request->validate($route->options['input']);
+                $request->validate($route->options[InputOptions::MAIN_KEY]);
             } catch (InvalidInputException) {
                 $this->kernel->deferredResponse(400)->toast( // Bad Request
                     ToastType::WARNING,
                     "Champs invalides",
-                    $route->options['input'][InputOptions::FAIL_MESSAGE_KEY] ?? "Veuillez remplir tous les champs.",
+                    $route->options[InputOptions::MAIN_KEY][InputOptions::FAIL_MESSAGE_KEY]
+                        ?? "Veuillez remplir tous les champs.",
                 )
-                        ->redirect($route->options['input'][InputOptions::FAIL_MESSAGE_KEY] ?? "/")
+                        ->redirect($route->options[InputOptions::MAIN_KEY][InputOptions::FAIL_REDIRECT_KEY] ?? "/")
                         ->send();
             }
         }
-
-        $dest = function () use ($request, $route) {
-            $this->kernel->run(function () use ($route, $request) {
-                return ($route->handler)($this->kernel, $request);
-            });
-        };
-
-        return $this->pipeline($resolved, $dest);
     }
 
     /**
-     * Formates all the router's route into a readable Rest-like format.
-     * @return string
-     */
-    private function formatKnownRoutes(): string
-    {
-        $formatted = [];
-        foreach ($this->routes as $method => $routes) {
-            $routeNames = array_keys($routes);
-            if (!empty($routeNames)) {
-                $formatted[] = "$method: " . implode(", ", $routeNames);
-            }
-        }
-        return implode("\n", $formatted);
-    }
-
-    /**
-     * @param list<MiddlewareInterface> $middlewares
-     * @param callable $destination
-     * @return mixed
+     * Builds the pipeline for a given route by calling all the middlewares and then the route.
+     * @param MiddlewareInterface[] $middlewares The list of middlewares to run for the given route.
+     * @param callable $destination The route's callable function.
+     * @return mixed The final pipeline for the route.
      */
     private function pipeline(array $middlewares, callable $destination): mixed
     {

@@ -5,8 +5,7 @@ import { FloatingInput } from "@/app/src/ui/inputs/floating-input";
 import { Button } from "@/app/src/ui/button";
 import { usePasswordModal } from "@/app/src/ui/modals/password/password-modal-provider";
 import { useToast } from "@/app/src/ui/toast/toast-provider";
-import { fetchCsrfClient, goralysFetchClient, handleToastRequest } from "@/app/src/lib/fetch/fetch.client";
-import Cookies from "universal-cookie";
+import { cookiesSet, fetchCsrfClient, goralysFetchClient, handleToastRequest } from "@goralys/core";
 
 interface CreatAdminElementProps {
     onUpdateAction: () => void;
@@ -20,7 +19,6 @@ export default function CreateAdminElement({ onUpdateAction, syncKey, virtualSyn
 
     const password = usePasswordModal();
     const toast = useToast();
-    const cookies = new Cookies();
 
     const createAdmin = async (): Promise<void> => {
         const pwd = await password.showPasswordModal("la création du nouvel administrateur");
@@ -49,8 +47,8 @@ export default function CreateAdminElement({ onUpdateAction, syncKey, virtualSyn
         const data = await res?.json();
 
         if (data.toastType === "info" && res.ok) {
-            cookies.set(syncKey, "0", { path: "/" });
-            cookies.set(virtualSyncKey, "0", { path: "/" });
+            cookiesSet(syncKey, "0");
+            cookiesSet(virtualSyncKey, "0");
             onUpdateAction();
         }
     };

@@ -1,9 +1,8 @@
-import { getStatusHelper, Subject } from "@/app/src/lib/types";
+import { getStatusHelper, Subject, buildApiUrl } from "@goralys/core";
 import { ArrowDownTrayIcon } from "@heroicons/react/24/outline";
 import { SubjectTextArea } from "@/app/src/ui/inputs/subject-text-area";
 import Checkbox from "@/app/src/ui/inputs/checkbox";
 import React, { ChangeEventHandler, ReactElement } from "react";
-import { buildApiUrl } from "@/app/src/lib/fetch/fetch.client";
 
 interface SubjectInputMultilineProps {
     helper?: string;

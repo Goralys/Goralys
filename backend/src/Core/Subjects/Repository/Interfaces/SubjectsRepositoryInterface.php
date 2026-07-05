@@ -7,6 +7,7 @@
 
 namespace Goralys\Core\Subjects\Repository\Interfaces;
 
+use Goralys\App\Topics\Data\StudentDTO;
 use Goralys\Core\Subjects\Data\Enums\SubjectStatus;
 use mysqli_result;
 
@@ -49,6 +50,13 @@ interface SubjectsRepositoryInterface
      * @return mysqli_result The path to the student's draft for the given subject.
      */
     public function getDraftPath(string $teacherUsername, string $studentUsername, string $topic): mysqli_result;
+
+    /**
+     * Retrieves a student's information from the database (classroom and "official" name).
+     * @param string $username The username of the target student.
+     * @return StudentDTO The student's fullname and classroom.
+     */
+    public function getStudentInfo(string $username): StudentDTO;
 
     // Updates
     /**

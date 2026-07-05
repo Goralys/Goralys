@@ -1,15 +1,12 @@
 "use client";
 
-import { Subject } from "@/app/src/lib/types";
+import { cookiesSet, fetchCsrfClient, goralysFetchClient, handleToastRequest, Subject, SUBJECT_SYNCS } from "@goralys/core";
 import { Button } from "@/app/src/ui/button";
 import { ReactElement, useRef, useState } from "react";
-import { fetchCsrfClient, goralysFetchClient, handleToastRequest } from "@/app/src/lib/fetch/fetch.client";
 import { useToast } from "@/app/src/ui/toast/toast-provider";
 import { useConfirm } from "@/app/src/ui/modals/confirm/confirm-provider";
-import Cookies from "universal-cookie";
 import { SubjectInputTeacher } from "@/app/src/ui/inputs/subject-input-teacher";
 import CommentTeacher from "@/app/src/ui/subjects/comment-teacher";
-import { SUBJECT_SYNCS } from "@/app/src/lib/config";
 
 interface TeacherCardProps {
     subjectData: Subject;
@@ -20,7 +17,6 @@ export default function TeacherCard({ subjectData, onUpdateAction }: TeacherCard
     const toast = useToast();
     const confirm = useConfirm();
     const [comment, setComment] = useState<string | null>(subjectData.comment);
-    const cookies = new Cookies();
     const commentRef = useRef<HTMLTextAreaElement | null>(null);
 
     const rejectSubject = async (): Promise<void> => {
@@ -73,7 +69,7 @@ export default function TeacherCard({ subjectData, onUpdateAction }: TeacherCard
         if (await handleToastRequest(res, toast.showToast, false)) {
             const data = await res.json();
             if (data.toastType === "info" && res.ok) {
-                cookies.set(SUBJECT_SYNCS["teacher"], false, { path: "/" });
+                cookiesSet(SUBJECT_SYNCS["teacher"], "0");
                 onUpdateAction();
             }
         }
@@ -105,7 +101,7 @@ export default function TeacherCard({ subjectData, onUpdateAction }: TeacherCard
         if (await handleToastRequest(res, toast.showToast, false)) {
             const data = await res.json();
             if (data.toastType === "info" && res.ok) {
-                cookies.set(SUBJECT_SYNCS["teacher"], false, { path: "/" });
+                cookiesSet(SUBJECT_SYNCS["teacher"], "0");
                 onUpdateAction();
             }
         }

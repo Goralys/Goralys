@@ -2,6 +2,7 @@
 
 namespace Goralys\Tests\Fakes;
 
+use Goralys\App\Topics\Data\StudentDTO;
 use Goralys\Core\Subjects\Data\Enums\SubjectStatus;
 use Goralys\Core\Subjects\Repository\Interfaces\SubjectsRepositoryInterface;
 use mysqli_result;
@@ -101,5 +102,10 @@ class FakeSubjectsRepository implements SubjectsRepositoryInterface
     public function flushDraftPath(string $teacherUsername, string $studentUsername, string $topic): bool
     {
         return $this->updateResult;
+    }
+
+    public function getStudentInfo(string $username): StudentDTO
+    {
+        return $this->getResult;
     }
 }

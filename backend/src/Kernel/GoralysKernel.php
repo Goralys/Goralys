@@ -7,7 +7,7 @@
  *  \ \_____\\ \_____\\ \_\ \_\\ \_\ \_\\ \_____\\/\_____\\/\_____\
  *   \/_____/ \/_____/ \/_/ /_/ \/_/\/_/ \/_____/ \/_____/ \/_____/
 
- *                         Goralys 2.2.3
+ *                         Goralys 3.1.0
  */
 
 /*
@@ -77,7 +77,7 @@ use Goralys\Shared\Config\GoralysConfig;
 use Goralys\Shared\Exception\DB\GoralysConnectException;
 use Goralys\Shared\Exception\GoralysException;
 use Goralys\Shared\Exception\GoralysRuntimeException;
-use Goralys\Shared\Utils\UtilitiesManager;
+use Goralys\Shared\Lib\GoralysLib;
 use JetBrains\PhpStorm\NoReturn;
 use Throwable;
 
@@ -87,7 +87,7 @@ use Throwable;
 class GoralysKernel
 {
     public EnvService $env;
-    public UtilitiesManager $utils;
+    public GoralysLib $utils;
     public DbContainerInterface $db;
     public MailContainerInterface $mailer;
     public LoggerInterface $logger;
@@ -192,7 +192,7 @@ class GoralysKernel
      */
     private function initUtils(): void
     {
-        $this->utils = new UtilitiesManager();
+        $this->utils = new GoralysLib();
     }
 
     /**
@@ -374,9 +374,9 @@ class GoralysKernel
     {
         $this->topics = new TopicsController(
             $this->db,
-            new UsernameTable($this->utils),
-            $this->utils,
+            new UsernameTable(),
             $this->fileManager,
+            $this->logger
         );
     }
 
@@ -405,6 +405,9 @@ class GoralysKernel
     private function initRateLimiter(): void
     {
         $this->rateLimiter = new RateLimiter($this->logger);
+        if (strtolower($this->env->getByKey("GORALYS_ENVIRONMENT")) === "dev") {
+            $this->rateLimiter->disable();
+        }
     }
 
     /**

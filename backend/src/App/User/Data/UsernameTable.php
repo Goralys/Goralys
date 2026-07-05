@@ -9,17 +9,32 @@ namespace Goralys\App\User\Data;
 
 use Goralys\App\Config\AppConfig;
 use Goralys\Core\User\Data\Enums\UserRole;
+use Goralys\Shared\Config\GoralysConfig as Config;
 use Goralys\Shared\Exception\User\GoralysUserException;
-use Goralys\Shared\Utils\String\Data\StringCase;
-use Goralys\Shared\Utils\UtilitiesManager;
+use Goralys\Shared\Lib\GoralysLib as Lib;
+use Goralys\Shared\Lib\String\StringCase;
 
 final class UsernameTable
 {
     /** @var array<string, string> */
     private array $table = [];
 
-    public function __construct(private readonly UtilitiesManager $utils)
+    public function __construct()
     {
+        if (!file_exists(Config::USER::USERNAME_LIST_PATH)) {
+            mkdir(dirname(Config::USER::USERNAME_LIST_PATH), recursive: true);
+            file_put_contents(Config::USER::USERNAME_LIST_PATH, "");
+            return;
+        }
+
+        $raw = file(Config::USER::USERNAME_LIST_PATH, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        foreach ($raw as $line) {
+            [$fullName, $username] = explode("=", $line);
+            if (is_string($fullName) && is_string($username)) {
+                $suffix = str_contains($username, Config::USER::ADMIN_SUFFIX) ? Config::USER::ADMIN_SUFFIX : "";
+                $this->table[$fullName . $suffix] = $username;
+            }
+        }
     }
 
     /**
@@ -31,14 +46,11 @@ final class UsernameTable
      */
     public function resolve(string $fullName, UserRole $role = UserRole::UNKNOWN): string
     {
-        if (isset($this->table[$fullName])) {
-            return $this->table[$fullName];
+        $suffix = $role === UserRole::ADMIN ? Config::USER::ADMIN_SUFFIX : "";
+        if (isset($this->table[$fullName . $suffix])) {
+            return $this->table[$fullName . $suffix];
         }
-
-        $fullName = trim($fullName);
-        $names = explode(" ", $fullName);
-        $lastNameParts = array_values(array_filter($names, fn($n) => strtoupper($n) === $n));
-        $firstNameParts = array_values(array_filter($names, fn($n) => strtoupper($n) !== $n));
+        [$firstNameParts, $lastNameParts] = Lib::STRING::separateNames($fullName, true);
 
         $firstName = implode("", $firstNameParts);
         $lastName = "";
@@ -49,13 +61,13 @@ final class UsernameTable
             }
         }
 
-        $firstName = $this->utils->string->sanitize($firstName, StringCase::LOWER);
-        $lastName = str_replace(["'"], [""], $this->utils->string->sanitize(
+        $firstName = Lib::STRING::sanitize($firstName, StringCase::LOWER);
+        $lastName = str_replace(["'"], [""], Lib::STRING::sanitize(
             explode("-", $lastName)[0],
             StringCase::LOWER,
         ));
-        $base = $this->utils->string->sanitize(
-            substr($firstName, 0, 1) . "." . $lastName . ($role == UserRole::ADMIN ? ".admin" : ""),
+        $base = Lib::STRING::sanitize(
+            substr($firstName, 0, 1) . "." . $lastName . $suffix,
             StringCase::LOWER,
         );
         $number = rand(0, 9);
@@ -72,8 +84,9 @@ final class UsernameTable
         if (!$found) {
             throw new GoralysUserException("To many users with username base: $base");
         }
-
-        return $this->table[$fullName] = $base . $number;
+        $username = $base . $number;
+        file_put_contents(Config::USER::USERNAME_LIST_PATH, PHP_EOL . $fullName . "=" . $username, FILE_APPEND);
+        return $this->table[$fullName . $suffix] = $username;
     }
 
     /**

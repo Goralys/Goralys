@@ -2,7 +2,7 @@ import { Card } from "@/app/src/ui/card";
 import { FloatingInput } from "@/app/src/ui/inputs/floating-input";
 import { Button } from "@/app/src/ui/button";
 import { ReactElement, useEffect, useRef, useState } from "react";
-import { fetchCsrfClient } from "@/app/src/lib/fetch/fetch.client";
+import { fetchCsrfClient } from "@goralys/core";
 import { useRouter, useSearchParams } from "next/navigation";
 
 export default function RegisterForm(): ReactElement {
@@ -44,8 +44,6 @@ export default function RegisterForm(): ReactElement {
                     autocomplete="username"
                     required
                 />
-                <FloatingInput id="first-name" label="Prénom" autocomplete="given-name" required />
-                <FloatingInput id="last-name" label="Nom de famille" autocomplete="family-name" required />
 
                 <FloatingInput
                     id="password"
@@ -56,9 +54,16 @@ export default function RegisterForm(): ReactElement {
                     required
                 />
 
+                <FloatingInput id="email" label="Addresse Mail" autocomplete="email" helper="Ce champ est optionnel." email />
+
                 <input type="hidden" name="csrf-token" value={(csrfToken ? csrfToken : "no-token").trim()} />
 
-                <Button type="submit" text="Créer mon compte" className="absolute! bottom-0" />
+                <Button
+                    type="submit"
+                    text={csrfToken === null ? "Chargement..." : "Se connecter"}
+                    className="absolute! bottom-0"
+                    disabled={csrfToken === null}
+                />
             </form>
         </Card>
     );
