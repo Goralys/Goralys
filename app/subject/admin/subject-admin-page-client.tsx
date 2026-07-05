@@ -1,27 +1,31 @@
 "use client";
 
 import { useImportTopicsModal } from "@/app/src/ui/modals/import-topics/import-topics-modal-provider";
-import { buildApiUrl, fetchCsrfClient, goralysFetchClient, handleToastRequest } from "@/app/src/lib/fetch/fetch.client";
+import {
+    buildApiUrl,
+    cookiesSet,
+    fetchCsrfClient,
+    goralysFetchClient,
+    handleToastRequest,
+    Subject,
+    SUBJECT_SYNCS,
+    USER_SYNCS,
+} from "@goralys/core";
 import { useToast } from "@/app/src/ui/toast/toast-provider";
 import { Button } from "@/app/src/ui/button";
-import { useSubjects } from "@/app/src/hooks/useSubjects";
+import { useSubjectsWeb } from "@/app/src/hooks/useSubjectsWeb";
 import AdminCard from "@/app/src/ui/subjects/admin-card";
-import { Subject } from "@/app/src/lib/types";
 import { SubjectsSearchBar } from "@/app/src/ui/subjects/subjects-search-bar";
 import { ReactElement, Suspense, useState } from "react";
 import AdminSubjectCardSkeleton from "@/app/src/ui/skeletons/subjects/admin-card";
 import { useConfirm } from "@/app/src/ui/modals/confirm/confirm-provider";
-import Cookies from "universal-cookie";
-import { SUBJECT_SYNCS, USER_SYNCS } from "@/app/src/lib/config";
 
 export default function SubjectAdminPageClient(): ReactElement {
     const modal = useImportTopicsModal();
     const confirm = useConfirm();
     const toast = useToast();
-    const { subjects, refetch, syncKey } = useSubjects("admin");
+    const { subjects, refetch, syncKey } = useSubjectsWeb("admin");
     const [currentSubjects, setCurrentSubjects] = useState<Subject[] | null>(subjects);
-    const cookies = new Cookies();
-
     const sendTopics = async (): Promise<void> => {
         const file = await modal.showImportTopicsModal();
 
@@ -51,9 +55,9 @@ export default function SubjectAdminPageClient(): ReactElement {
             a.download = "utilisateurs.txt";
             a.click();
             URL.revokeObjectURL(url);
-            cookies.set(syncKey, "0", { path: "/" });
-            cookies.set(USER_SYNCS["users-real"], "0", { path: "/" });
-            cookies.set(USER_SYNCS["users-virtual"], "0", { path: "/" });
+            cookiesSet(syncKey, "0");
+            cookiesSet(USER_SYNCS["users-real"], "0");
+            cookiesSet(USER_SYNCS["users-virtual"], "0");
             await refetch();
             setCurrentSubjects(subjects || []);
             return;
@@ -76,7 +80,7 @@ export default function SubjectAdminPageClient(): ReactElement {
         await handleToastRequest(res, toast.showToast, false);
 
         if (res.ok) {
-            cookies.set(syncKey, "0", { path: "/" });
+            cookiesSet(syncKey, "0");
             await refetch();
             setCurrentSubjects(subjects || []);
         }

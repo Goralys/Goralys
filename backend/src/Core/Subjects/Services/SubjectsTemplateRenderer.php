@@ -29,17 +29,13 @@ final class SubjectsTemplateRenderer
     {
         if (count($student->subjects) < 2) {
             throw new InvalidArgumentException(
-                "Student $student->studentName must have at least 2 subjects. Got: "
+                "Student {$student->student->fullName} must have at least 2 subjects. Got: "
                 . print_r($student->subjects, true),
             );
         }
 
         $html = file_get_contents(Config::TEMPLATE_SOURCE_PATH);
         $css = file_get_contents(Config::TEMPLATE_STYLES_PATH);
-
-        $pos = strpos($student->studentName, " ");
-        $firstname = $pos !== false ? substr($student->studentName, 0, $pos) : $student->studentName;
-        $lastname  = $pos !== false ? substr($student->studentName, $pos + 1) : "";
 
         $colMm = [
             'label'  => 22,
@@ -84,8 +80,8 @@ final class SubjectsTemplateRenderer
             ";
 
         $vars = [
-            'nom'    => $lastname,
-            'prénom' => $firstname,
+            'nom'    => $student->student->fullName->last,
+            'prénom' => $student->student->fullName->first,
             'série'  => $pathway,
             'year'   => date("Y"),
         ];

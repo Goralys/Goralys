@@ -1,16 +1,16 @@
 "use client";
 
 import StudentCard from "@/app/src/ui/subjects/student-card";
-import { useSubjects } from "@/app/src/hooks/useSubjects";
-import Cookies from "universal-cookie";
+import { useSubjectsWeb } from "@/app/src/hooks/useSubjectsWeb";
 import { ReactElement, Suspense } from "react";
 import StudentCardSkeleton from "@/app/src/ui/skeletons/subjects/student-card";
+import { cookiesSet } from "@goralys/core";
 
 export default function SubjectStudentPageClient(): ReactElement {
-    const { subjects, refetch, syncKey } = useSubjects("student");
-    const cookies = new Cookies();
+    const { subjects, refetch, syncKey } = useSubjectsWeb("student");
+
     const updateSubjects = async (): Promise<void> => {
-        cookies.set(syncKey, "0", { path: "/" });
+        cookiesSet(syncKey, "0");
         await refetch();
     };
 

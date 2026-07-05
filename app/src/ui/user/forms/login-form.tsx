@@ -2,7 +2,7 @@ import { Card } from "@/app/src/ui/card";
 import { FloatingInput } from "@/app/src/ui/inputs/floating-input";
 import { Button } from "@/app/src/ui/button";
 import { ReactElement, useEffect, useState } from "react";
-import { fetchCsrfClient } from "@/app/src/lib/fetch/fetch.client";
+import { fetchCsrfClient } from "@goralys/core";
 
 export default function LoginForm(): ReactElement {
     const [csrfToken, setCsrfToken] = useState<string | null>(null);
@@ -25,7 +25,12 @@ export default function LoginForm(): ReactElement {
 
                 <input type="hidden" name="csrf-token" value={(csrfToken ? csrfToken : "no-token").trim()} />
 
-                <Button type="submit" text="Se connecter" className="absolute! bottom-0" />
+                <Button
+                    type="submit"
+                    text={csrfToken === null ? "Chargement..." : "Se connecter"}
+                    className="absolute! bottom-0"
+                    disabled={csrfToken === null}
+                />
             </form>
         </Card>
     );

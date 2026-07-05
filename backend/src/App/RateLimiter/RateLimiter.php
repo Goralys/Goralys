@@ -23,6 +23,7 @@ final class RateLimiter
 {
     private const string ALGO = "sha256";
     private LoggerInterface $logger;
+    private bool $disabled = false;
 
     /**
      * @param LoggerInterface $logger The injected logger.
@@ -30,6 +31,11 @@ final class RateLimiter
     public function __construct(LoggerInterface $logger)
     {
         $this->logger = $logger;
+    }
+
+    public function disable(): void
+    {
+        $this->disabled = true;
     }
 
     /**
@@ -42,6 +48,10 @@ final class RateLimiter
      */
     public function forwardRequest(string $endpoint): bool
     {
+        if ($this->disabled) {
+            return true;
+        }
+
         $rate = RateLimiterConfig::getRateLimits()[$endpoint] ?? null;
 
         $filename = AppConfig::BASE_STORAGE_DIR

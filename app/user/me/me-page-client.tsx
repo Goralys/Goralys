@@ -1,29 +1,36 @@
 "use client";
 
 import { Button } from "@/app/src/ui/button";
-import { buildApiUrl, fetchCsrfClient, goralysFetchClient, handleToastRequest } from "@/app/src/lib/fetch/fetch.client";
+import {
+    buildApiUrl,
+    cacheUserDataClient,
+    cookiesGet,
+    EMAIL_KEY,
+    emitUserEvent,
+    fetchCsrfClient,
+    FULL_NAME_KEY,
+    goralysFetchClient,
+    handleToastRequest,
+    USERNAME_KEY,
+} from "@goralys/core";
 import { useToast } from "@/app/src/ui/toast/toast-provider";
-import { emitUserEvent } from "@/app/src/lib/auth/user-event";
 import { Card } from "@/app/src/ui/card";
 import { FloatingInput } from "@/app/src/ui/inputs/floating-input";
-import Cookies from "universal-cookie";
 import { ReactElement, useState } from "react";
-import { cacheUserDataClient } from "@/app/src/lib/user/user.client";
 import { useEmailModal } from "@/app/src/ui/modals/email/email-modal-provider";
-import { EMAIL_KEY, FULL_NAME_KEY, USERNAME_KEY } from "@/app/src/lib/config";
 
 export default function MePageClient(): ReactElement {
     const { showToast } = useToast();
     const { showEmailModal } = useEmailModal();
-    const cookies = new Cookies();
-    const [email, setEmail] = useState<string>(cookies.get(EMAIL_KEY) ?? "");
-    const [username, setUsername] = useState<string>(cookies.get(USERNAME_KEY) ?? "");
-    const [fullName, setFullName] = useState<string>(cookies.get(FULL_NAME_KEY) ?? " ");
+
+    const [email, setEmail] = useState<string>((cookiesGet(EMAIL_KEY) ?? "") as string);
+    const [username, setUsername] = useState<string>((cookiesGet(USERNAME_KEY) ?? "") as string);
+    const [fullName, setFullName] = useState<string>((cookiesGet(FULL_NAME_KEY) ?? " ") as string);
     const updateUserData = async (): Promise<void> => {
         await cacheUserDataClient();
-        setUsername(new Cookies().get(USERNAME_KEY) ?? "");
-        setFullName(new Cookies().get(FULL_NAME_KEY) ?? " ");
-        setEmail(new Cookies().get(EMAIL_KEY) ?? "");
+        setUsername((cookiesGet(EMAIL_KEY) ?? "") as string);
+        setFullName((cookiesGet(USERNAME_KEY) ?? "") as string);
+        setEmail((cookiesGet(FULL_NAME_KEY) ?? " ") as string);
     };
     const logout = async (): Promise<void> => {
         const payload = { "csrf-token": await fetchCsrfClient("logout") };

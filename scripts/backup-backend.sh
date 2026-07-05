@@ -24,6 +24,7 @@ fi
 mkdir -p "$BACKUP_DIR"
 
 cp -r backend/Assets "$BACKUP_DIR/Assets"
+cp -r backend/Users "$BACKUP_DIR/Users"
 cp backend/.env "$BACKUP_DIR/.env"
 
 echo "Successfully created backup at $BACKUP_DIR"

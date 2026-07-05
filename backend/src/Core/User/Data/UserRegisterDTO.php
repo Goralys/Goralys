@@ -7,20 +7,31 @@
 
 namespace Goralys\Core\User\Data;
 
+use Goralys\Shared\Lib\GoralysLib as Lib;
+
 /**
  * The DTO used to register a user
  */
-final readonly class UserRegisterDTO
+final class UserRegisterDTO
 {
     /**
      * @param string $username The desired username for the new account.
-     * @param string $fullName The full name of the registering user.
      * @param string $password The plain-text password (to be hashed before storage).
+     * @param ?string $email The email of the user (optionnal).
      */
     public function __construct(
-        public string $username,
-        public string $fullName,
-        public string $password,
+        private(set) string $username,
+        public readonly string $password,
+        public readonly ?string $email,
     ) {
+    }
+
+    /**
+     * This helper sanitizes the data inside the DTO as they come from user input.
+     * @return void
+     */
+    public function sanitize(): void
+    {
+        $this->username = Lib::STRING::sanitize($this->username);
     }
 }

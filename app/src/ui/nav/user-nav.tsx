@@ -1,13 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import Cookies from "universal-cookie";
 import { ReactElement, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { onUserEvent } from "@/app/src/lib/auth/user-event";
+import { cookiesGet, cookiesRemove, FULL_NAME_KEY, onUserEvent, ROLE_KEY, USERNAME_KEY } from "@goralys/core";
 import { UserCircleIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
-import { FULL_NAME_KEY, ROLE_KEY, USERNAME_KEY } from "@/app/src/lib/config";
 
 export function UserNav(): ReactElement {
     const [text, setText] = useState<string | null>(null);
@@ -18,13 +16,11 @@ export function UserNav(): ReactElement {
     const isActive = current === targetUrl || current.startsWith(`${targetUrl}/`);
 
     useEffect(() => {
-        const cookies = new Cookies();
-
         const run = (): void => {
-            const isLoggedIn = !!cookies.get(USERNAME_KEY);
+            const isLoggedIn = !!cookiesGet(USERNAME_KEY);
             setLoggedIn(isLoggedIn);
 
-            let name = isLoggedIn ? (cookies.get(FULL_NAME_KEY) ?? "") : "Se connecter";
+            let name = isLoggedIn ? ((cookiesGet(FULL_NAME_KEY) ?? "") as string) : "Se connecter";
             if (name.length > 20) name = name.substring(0, 19) + "...";
             setText(name);
         };
@@ -34,18 +30,17 @@ export function UserNav(): ReactElement {
 
     useEffect(() => {
         const unsubscribe = onUserEvent((event) => {
-            const cookies = new Cookies();
             const isLoggedIn = event === "login";
 
             if (!isLoggedIn) {
-                cookies.remove(FULL_NAME_KEY);
-                cookies.remove(ROLE_KEY);
-                cookies.remove(USERNAME_KEY);
+                cookiesRemove(FULL_NAME_KEY);
+                cookiesRemove(ROLE_KEY);
+                cookiesRemove(USERNAME_KEY);
             }
 
             setLoggedIn(isLoggedIn);
 
-            let name = isLoggedIn ? (cookies.get(FULL_NAME_KEY) ?? "") : "Se connecter";
+            let name = isLoggedIn ? ((cookiesGet(FULL_NAME_KEY) ?? "") as string) : "Se connecter";
             if (name.length > 25) name = name.substring(0, 22) + "...";
             setText(name);
         });

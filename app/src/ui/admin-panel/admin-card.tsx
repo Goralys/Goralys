@@ -1,15 +1,23 @@
 "use client";
 
-import { HttpMethod, User } from "@/app/src/lib/types";
+import {
+    buildApiUrl,
+    cookiesGet,
+    cookiesSet,
+    fetchCsrfClient,
+    goralysFetchClient,
+    handleToastRequest,
+    HttpMethod,
+    PUB_ID_KEY,
+    User,
+    USER_SYNCS,
+} from "@goralys/core";
 import { Card } from "@/app/src/ui/card";
 import { Button } from "@/app/src/ui/button";
 import { ShieldExclamationIcon } from "@heroicons/react/24/outline";
 import { usePasswordModal } from "@/app/src/ui/modals/password/password-modal-provider";
 import { useToast } from "@/app/src/ui/toast/toast-provider";
-import { buildApiUrl, fetchCsrfClient, goralysFetchClient, handleToastRequest } from "@/app/src/lib/fetch/fetch.client";
-import Cookies from "universal-cookie";
 import { ReactElement } from "react";
-import { PUB_ID_KEY, USER_SYNCS } from "@/app/src/lib/config";
 
 interface AdminCardProps {
     admin: User;
@@ -20,7 +28,6 @@ interface AdminCardProps {
 export default function AdminCard({ admin, onUpdateAction, syncKey }: AdminCardProps): ReactElement {
     const password = usePasswordModal();
     const toast = useToast();
-    const cookies = new Cookies();
 
     const fetchAdmin = async (route: string, method: HttpMethod, action: string, confirm?: string): Promise<void> => {
         const pwd = await password.showPasswordModal(confirm);
@@ -50,11 +57,11 @@ export default function AdminCard({ admin, onUpdateAction, syncKey }: AdminCardP
         const data = await res?.json();
 
         if (data.toastType === "info" && res.ok) {
-            cookies.set(syncKey, "0", { path: "/" });
+            cookiesSet(syncKey, "0");
 
             // Invalidate caches
-            cookies.set(USER_SYNCS["admins-real"], "0", { path: "/" });
-            cookies.set(USER_SYNCS["admins-virtual"], "0", { path: "/" });
+            cookiesSet(USER_SYNCS["admins-real"], "0");
+            cookiesSet(USER_SYNCS["admins-virtual"], "0");
             onUpdateAction();
         }
     };
@@ -71,7 +78,7 @@ export default function AdminCard({ admin, onUpdateAction, syncKey }: AdminCardP
                     </strong>
                 </div>
                 <div className="flex flex-row w-100 gap-1 justify-end">
-                    {cookies.get(PUB_ID_KEY) === admin.publicId ? (
+                    {cookiesGet(PUB_ID_KEY) === admin.publicId ? (
                         <p className="ml-auto">(vous)</p>
                     ) : (
                         <Button color="red" className="w-50!" type="button" text="Révoquer l'accès" onClick={revokeAccess} />

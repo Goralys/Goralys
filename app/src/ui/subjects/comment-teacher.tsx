@@ -1,4 +1,4 @@
-import { Subject } from "@/app/src/lib/types";
+import { Subject } from "@goralys/core";
 import { TextArea } from "@/app/src/ui/inputs/text-area";
 import { ChangeEventHandler, ReactElement, RefObject } from "react";
 import { ChevronRightIcon } from "@heroicons/react/24/outline";

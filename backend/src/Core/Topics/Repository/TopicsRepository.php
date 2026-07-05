@@ -57,20 +57,17 @@ final class TopicsRepository implements TopicsRepositoryInterface
             "is",
             $topicId,
             $teacherUsername,
-        ) && $this->db->run(
-            "insert ignore into public_ids (username, public_id) values (?, uuid());",
-            "s",
-            $teacherUsername,
         );
     }
 
     /**
      * Associates a student with a topic in the 'student_topics' table.
-     * @param int $topicId The ID of the topic.
-     * @param string $studentUsername The username of the student.
+     * @param int $topicId The ID of the topic to attach the student to.
+     * @param string $studentUsername The student's username.
+     * @param string $classroom The student's classroom.
      * @return bool If the insertion succeeded.
      */
-    public function insertStudent(int $topicId, string $studentUsername): bool
+    public function insertStudent(int $topicId, string $studentUsername, string $classroom): bool
     {
         return $this->db->run(
             "insert into student_topics 
@@ -80,9 +77,10 @@ final class TopicsRepository implements TopicsRepositoryInterface
             $studentUsername,
             $topicId,
         ) && $this->db->run(
-            "insert ignore into public_ids (username, public_id) values (?, uuid());",
-            "s",
+            "insert ignore into students_classroom (username, class) values (?, ?)",
+            "ss",
             $studentUsername,
+            $classroom
         );
     }
 
@@ -94,11 +92,15 @@ final class TopicsRepository implements TopicsRepositoryInterface
     {
         $tables = [
             "student_topics",
+            "student_info",
             "topic_teachers",
             "topics",
         ];
 
-        $this->db->runNoArgs("set FOREIGN_KEY_CHECKS = 0");
+        $this->db->runNoArgs(
+        /** @lang SQL */
+            "set foreign_key_checks = 0"
+        );
         try {
             foreach ($tables as $table) {
                 $this->db->runNoArgs(
@@ -107,7 +109,10 @@ final class TopicsRepository implements TopicsRepositoryInterface
                 );
             }
         } finally {
-            $this->db->runNoArgs("set FOREIGN_KEY_CHECKS = 1");
+            $this->db->runNoArgs(
+            /** @lang SQL */
+                "set foreign_key_checks = 0"
+            );
         }
 
         return true;

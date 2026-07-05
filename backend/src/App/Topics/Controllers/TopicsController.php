@@ -9,6 +9,7 @@ namespace Goralys\App\Topics\Controllers;
 
 use Goralys\App\HTTP\Files\Data\UploadedFileDTO;
 use Goralys\App\HTTP\Files\GoralysFileManager;
+use Goralys\App\Topics\Data\StudentDTO;
 use Goralys\App\User\Data\UsernameTable;
 use Goralys\Core\Topics\Config\TopicsImportConfig;
 use Goralys\Core\Topics\Data\TopicDescriptorDTO;
@@ -16,10 +17,14 @@ use Goralys\Core\Topics\Data\TopicDTO;
 use Goralys\Core\Topics\Repository\Interfaces\TopicsRepositoryInterface;
 use Goralys\Core\Topics\Repository\TopicsRepository;
 use Goralys\Core\Topics\Services\BuildFromCSVService;
+use Goralys\Core\User\Repository\Interfaces\UserRepositoryInterface;
+use Goralys\Core\User\Repository\UserRepository;
 use Goralys\Platform\DB\Interfaces\DbContainerInterface;
+use Goralys\Platform\Logger\Interfaces\LoggerInterface;
 use Goralys\Shared\Exception\GoralysRuntimeException;
 use Goralys\Shared\Exception\User\GoralysUserException;
-use Goralys\Shared\Utils\UtilitiesManager;
+use Goralys\Shared\Lib\GoralysLib as Lib;
+use Goralys\Shared\User\Data\FullNameDTO;
 
 /**
  * Controller for managing topic-related operations, including CSV/ZIP imports and persistence.
@@ -29,6 +34,7 @@ final class TopicsController
     private DbContainerInterface $db;
     private TopicsImportConfig $config;
     private TopicsRepositoryInterface $repo;
+    private UserRepositoryInterface $users;
     private BuildFromCSVService $CSVBuilder;
     private GoralysFileManager $files;
     private UsernameTable $usernames;
@@ -37,14 +43,13 @@ final class TopicsController
     /**
      * @param DbContainerInterface $db The injected DB.
      * @param UsernameTable $usernames The injected username table.
-     * @param UtilitiesManager $utils The injected utility manager.
      * @param GoralysFileManager $files The injected file manager.
      */
     public function __construct(
         DbContainerInterface $db,
         UsernameTable $usernames,
-        UtilitiesManager $utils,
         GoralysFileManager $files,
+        LoggerInterface $logger,
     ) {
         $this->usernames = $usernames;
 
@@ -52,7 +57,8 @@ final class TopicsController
         $this->config = new TopicsImportConfig();
 
         $this->repo = new TopicsRepository($this->db);
-        $this->CSVBuilder = new BuildFromCSVService($utils, $this->config);
+        $this->users = new UserRepository($logger, $this->db);
+        $this->CSVBuilder = new BuildFromCSVService($this->config);
         $this->nextId = 0;
         $this->files = $files;
     }
@@ -76,7 +82,8 @@ final class TopicsController
         }
 
         if (
-            array_any($topic->teachers, fn($t) => !$this->repo->insertTeacher(
+            array_any($topic->teachers, fn(FullNameDTO $t) => $this->users->whitelist($this->usernames->resolve($t), $t)
+            && !$this->repo->insertTeacher(
                 $topic->id,
                 $this->usernames->resolve($t),
             ))
@@ -84,10 +91,16 @@ final class TopicsController
             return false;
         }
 
-        return array_all($topic->students, fn($s) => $this->repo->insertStudent(
-            $topic->id,
-            $this->usernames->resolve($s),
-        ));
+        return array_all($topic->students, fn(StudentDTO $s) =>
+                $this->users->whitelist(
+                    $this->usernames->resolve($s->fullName),
+                    $s->fullName
+                )
+                && $this->repo->insertStudent(
+                    $topic->id,
+                    $this->usernames->resolve($s->fullName),
+                    $s->classroom
+                ));
     }
 
     /**
@@ -200,7 +213,7 @@ final class TopicsController
      * Creates a new TopicDTO instance.
      * @param string $name The name of the topic.
      * @param string $code The code (ID) of the topic.
-     * @param string[] $students A list of student names or usernames.
+     * @param StudentDTO[] $students A list of student names or usernames.
      * @param string[] $teachers A list of teacher names or usernames.
      * @return TopicDTO The topic.
      */
@@ -211,7 +224,7 @@ final class TopicsController
             $this->nextId,
             $name,
             $code,
-            $teachers,
+            array_map(fn (string $t) => new FullNameDTO(...Lib::STRING::separateNames($t)), $teachers),
             $students,
         );
     }
@@ -236,7 +249,7 @@ final class TopicsController
 
             $out .= "Élèves:" . PHP_EOL;
             foreach ($topic->students as $student) {
-                $out .= "    - " . $student . ": " . $this->usernames->resolve($student) . PHP_EOL;
+                $out .= "    - " . $student->fullName . ": " . $this->usernames->resolve($student->fullName) . PHP_EOL;
             }
 
             $out .= str_repeat("-", strlen($head)) . PHP_EOL;

@@ -2,31 +2,26 @@
 
 import { NavLink } from "@/app/src/ui/nav/nav-link";
 import { UserNav } from "@/app/src/ui/nav/user-nav";
-import Cookies from "universal-cookie";
 import { ReactElement, useEffect, useState } from "react";
-import { buildArray, USER_ROLES, UserRole } from "@/app/src/lib/types";
+import { buildArray, cookiesGet, cookiesOnChange, ROLE_KEY, USER_ROLES, UserRole } from "@goralys/core";
 import Image from "next/image";
-import { ROLE_KEY } from "@/app/src/lib/config";
 
 export function SideNav(): ReactElement {
     const [role, setRole] = useState<UserRole["role"]>("none");
 
     useEffect(() => {
-        const cookies = new Cookies();
-
         const run = (): void => {
-            const current: string = cookies.get(ROLE_KEY) ?? "none";
+            const current: string | boolean | number = cookiesGet(ROLE_KEY) ?? "none";
             setRole(USER_ROLES.includes(current as UserRole["role"]) ? (current as UserRole["role"]) : "none");
         };
 
         const onChange = (): void => {
-            const role: string = cookies.get(ROLE_KEY) ?? "none";
+            const role: string | boolean | number = cookiesGet(ROLE_KEY) ?? "none";
             setRole(USER_ROLES.includes(role as UserRole["role"]) ? (role as UserRole["role"]) : "none");
         };
 
         run();
-        cookies.addChangeListener(onChange);
-        return (): void => cookies.removeChangeListener(onChange);
+        return cookiesOnChange(onChange);
     }, []);
 
     function getSubjectLinkText(): string {

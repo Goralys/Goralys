@@ -1,7 +1,7 @@
 "use client";
 
 import React, { ChangeEventHandler, ReactElement } from "react";
-import { getStatusHelper, Subject } from "@/app/src/lib/types";
+import { getStatusHelper, Subject } from "@goralys/core";
 import { SubjectTextArea } from "@/app/src/ui/inputs/subject-text-area";
 import Checkbox from "@/app/src/ui/inputs/checkbox";
 

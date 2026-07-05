@@ -1,9 +1,8 @@
 "use client";
 
-import { reasonsConfig, SupportTicket } from "@/app/src/lib/types";
+import { reasonsConfig, SupportTicket, buildApiUrl } from "@goralys/core";
 import React, { ReactElement } from "react";
 import { TextArea } from "@/app/src/ui/inputs/text-area";
-import { buildApiUrl } from "@/app/src/lib/fetch/fetch.client";
 import { Button } from "@/app/src/ui/button";
 
 interface SupportTicketCardProps {

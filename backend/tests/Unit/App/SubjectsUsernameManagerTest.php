@@ -6,6 +6,7 @@ use Goralys\Core\User\Data\Enums\UserRole;
 use Goralys\Core\User\Data\UserFullDTO;
 use Goralys\Core\User\Services\UsernameManager;
 use Goralys\Shared\Exception\GoralysRuntimeException;
+use Goralys\Shared\User\Data\FullNameDTO;
 use Goralys\Tests\Fakes\FakeUserRepository;
 use PHPUnit\Framework\TestCase;
 
@@ -39,7 +40,13 @@ class SubjectsUsernameManagerTest extends TestCase
     {
         $this->repo->setUser(
             "uuid-1",
-            new UserFullDTO(1, "e.martin", UserRole::STUDENT, "Emma Martin", "emma.martin@exemplemail.com"),
+            new UserFullDTO(
+                1,
+                "e.martin",
+                UserRole::STUDENT,
+                new FullNameDTO("Emma", "Martin"),
+                "emma.martin@exemplemail.com"
+            ),
         );
 
         $result = $this->service->get("uuid-1");
@@ -52,7 +59,7 @@ class SubjectsUsernameManagerTest extends TestCase
         $this->repo->setPublicId("j.doe", "uuid-1");
         $this->repo->setUser(
             "uuid-1",
-            new UserFullDTO(1, "j.doe", UserRole::STUDENT, "John Doe", "jhon.doe@exemplemail.com"),
+            new UserFullDTO(1, "j.doe", UserRole::STUDENT, new FullNameDTO("John", "Doe"), "jhon.doe@exemplemail.com"),
         );
 
         $token = $this->service->resolve("j.doe");
@@ -68,21 +75,21 @@ class SubjectsUsernameManagerTest extends TestCase
                 1,
                 "j.doe",
                 UserRole::STUDENT,
-                "John Doe",
+                new FullNameDTO("John", "Doe"),
                 "jhon.doe@exemplemail.com"
             )],
             "a.smith" => ["uuid-2", new UserFullDTO(
                 2,
                 "a.smith",
                 UserRole::TEACHER,
-                "Alice Smith",
+                new FullNameDTO("Alice", "Smith"),
                 "alice.smith@exemplemail.com"
             )],
             "e.martin" => ["uuid-3", new UserFullDTO(
                 3,
                 "e.martin",
                 UserRole::STUDENT,
-                "Emma Martin",
+                new FullNameDTO("Emma", "Martin"),
                 "emma.martin@exemplemail.com"
             )],
         ];

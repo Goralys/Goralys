@@ -2,23 +2,13 @@
 
 namespace Goralys\Tests\Unit\Core;
 
-use Goralys\Shared\Utils\String\Data\StringCase;
-use Goralys\Shared\Utils\String\StringUtils;
+use Goralys\Shared\Lib\String\StringCase;
+use Goralys\Shared\Lib\String\StringUtils;
 use PHPUnit\Framework\TestCase;
 
 class StringUtilsTest extends TestCase
 {
     private StringUtils $utils;
-
-    protected function setUp(): void
-    {
-        $this->utils = new StringUtils();
-    }
-
-    protected function tearDown(): void
-    {
-        unset($this->utils);
-    }
 
     public function testSanitizeTrimsWhitespace(): void
     {
@@ -72,5 +62,15 @@ class StringUtilsTest extends TestCase
             $this->utils->sanitize("abc ABC 123"),
             "Expected plain ASCII string to remain unchanged",
         );
+    }
+
+    protected function setUp(): void
+    {
+        $this->utils = new StringUtils();
+    }
+
+    protected function tearDown(): void
+    {
+        unset($this->utils);
     }
 }

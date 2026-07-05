@@ -31,9 +31,14 @@ interface TopicsRepositoryInterface
     /**
      * @param int $topicId The ID of the topic to attach the student to.
      * @param string $studentUsername The student's username.
+     * @param string $classroom The student's classroom (e.g. TA, TB, TF, etc.)
      * @return bool If the insertion was successful or not.
      */
-    public function insertStudent(int $topicId, string $studentUsername): bool;
+    public function insertStudent(
+        int $topicId,
+        string $studentUsername,
+        string $classroom
+    ): bool;
 
     /**
      * Removes all topics and their associated records from the database.

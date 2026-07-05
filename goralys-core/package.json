@@ -1,0 +1,45 @@
+{
+    "name": "@goralys/core",
+    "version": "1.2.2",
+    "license": "LGPL-2.1-or-later",
+    "description": "Shared business logic for the Goralys web application",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/SAMSAM-55/Goralys",
+        "directory": "goralys-core"
+    },
+    "type": "module",
+    "main": "./dist/index.js",
+    "module": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js"
+        }
+    },
+    "files": [
+        "dist",
+        "LICENSE",
+        "README.md"
+    ],
+    "publishConfig": {
+        "access": "public"
+    },
+    "scripts": {
+        "build": "tsup",
+        "typeCheck": "tsgo --noEmit",
+        "dev": "tsup --watch"
+    },
+    "peerDependencies": {
+        "react": ">=18"
+    },
+    "devDependencies": {
+        "@typescript/native-preview": "7.0.0-dev.20260705.1",
+        "barrelsby": "^2.8.1",
+        "esbuild-plugin-tsconfig-paths": "^1.0.2",
+        "react": "^18.0.0",
+        "tsup": "^8.0.0",
+        "typescript": "^5.0.0"
+    }
+}

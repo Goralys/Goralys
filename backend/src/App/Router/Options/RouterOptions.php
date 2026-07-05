@@ -13,4 +13,5 @@ namespace Goralys\App\Router\Options;
 final class RouterOptions
 {
     public static string $INPUT = InputOptions::class;
+    public static string $TOAST = ToastOptions::class;
 }
