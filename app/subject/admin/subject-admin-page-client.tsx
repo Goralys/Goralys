@@ -19,7 +19,6 @@ import { SubjectsSearchBar } from "@/app/src/ui/subjects/subjects-search-bar";
 import { ReactElement, Suspense, useState } from "react";
 import AdminSubjectCardSkeleton from "@/app/src/ui/skeletons/subjects/admin-card";
 import { useConfirm } from "@/app/src/ui/modals/confirm/confirm-provider";
-import Cookies from "universal-cookie";
 
 export default function SubjectAdminPageClient(): ReactElement {
     const modal = useImportTopicsModal();
@@ -27,7 +26,6 @@ export default function SubjectAdminPageClient(): ReactElement {
     const toast = useToast();
     const { subjects, refetch, syncKey } = useSubjectsWeb("admin");
     const [currentSubjects, setCurrentSubjects] = useState<Subject[] | null>(subjects);
-    new Cookies();
     const sendTopics = async (): Promise<void> => {
         const file = await modal.showImportTopicsModal();
 

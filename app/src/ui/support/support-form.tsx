@@ -1,15 +1,13 @@
 import { Card } from "@/app/src/ui/card";
 import { Button } from "@/app/src/ui/button";
 import React, { ReactElement, useEffect, useState } from "react";
-import { fetchCsrfClient, reasonsConfig, SupportReasons, EMAIL_KEY } from "@goralys/core";
+import { cookiesGet, EMAIL_KEY, fetchCsrfClient, reasonsConfig, SupportReasons } from "@goralys/core";
 import { TextArea } from "@/app/src/ui/inputs/text-area";
 import { FloatingInput } from "@/app/src/ui/inputs/floating-input";
-import Cookies from "universal-cookie";
 
 export default function SupportForm(): ReactElement {
     const [csrfToken, setCsrfToken] = useState<string | null>(null);
     const requestUrl = `${process.env.NEXT_PUBLIC_API_DOMAIN}/support/contact`;
-    const cookie = new Cookies();
 
     const [reason, setReason] = useState<SupportReasons>("password-forgot");
 
@@ -28,7 +26,7 @@ export default function SupportForm(): ReactElement {
                     id="user-email"
                     label="Votre email"
                     helper="Votre email sera simplement utilisé pour vous répondre."
-                    defaultValue={cookie.get(EMAIL_KEY) ?? ""}
+                    defaultValue={(cookiesGet(EMAIL_KEY) ?? "") as string}
                     autocomplete="email"
                     required
                     email

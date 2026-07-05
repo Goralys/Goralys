@@ -10,7 +10,7 @@ import {
     HttpMethod,
     PUB_ID_KEY,
     User,
-    USER_SYNCS
+    USER_SYNCS,
 } from "@goralys/core";
 import { Card } from "@/app/src/ui/card";
 import { Button } from "@/app/src/ui/button";

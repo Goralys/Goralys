@@ -1,10 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import Cookies from "universal-cookie";
 import { ReactElement, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { cookiesGet, FULL_NAME_KEY, onUserEvent, ROLE_KEY, USERNAME_KEY } from "@goralys/core";
+import { cookiesGet, cookiesRemove, FULL_NAME_KEY, onUserEvent, ROLE_KEY, USERNAME_KEY } from "@goralys/core";
 import { UserCircleIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 
@@ -31,13 +30,12 @@ export function UserNav(): ReactElement {
 
     useEffect(() => {
         const unsubscribe = onUserEvent((event) => {
-            const cookies = new Cookies();
             const isLoggedIn = event === "login";
 
             if (!isLoggedIn) {
-                cookies.remove(FULL_NAME_KEY);
-                cookies.remove(ROLE_KEY);
-                cookies.remove(USERNAME_KEY);
+                cookiesRemove(FULL_NAME_KEY);
+                cookiesRemove(ROLE_KEY);
+                cookiesRemove(USERNAME_KEY);
             }
 
             setLoggedIn(isLoggedIn);
