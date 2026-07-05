@@ -4,6 +4,7 @@ import { Button } from "@/app/src/ui/button";
 import {
     buildApiUrl,
     cacheUserDataClient,
+    cookiesGet,
     EMAIL_KEY,
     emitUserEvent,
     fetchCsrfClient,
@@ -22,10 +23,10 @@ import { useEmailModal } from "@/app/src/ui/modals/email/email-modal-provider";
 export default function MePageClient(): ReactElement {
     const { showToast } = useToast();
     const { showEmailModal } = useEmailModal();
-    const cookies = new Cookies();
-    const [email, setEmail] = useState<string>(cookies.get(EMAIL_KEY) ?? "");
-    const [username, setUsername] = useState<string>(cookies.get(USERNAME_KEY) ?? "");
-    const [fullName, setFullName] = useState<string>(cookies.get(FULL_NAME_KEY) ?? " ");
+
+    const [email, setEmail] = useState<string>(cookiesGet(EMAIL_KEY) ?? "");
+    const [username, setUsername] = useState<string>(cookiesGet(USERNAME_KEY) ?? "");
+    const [fullName, setFullName] = useState<string>(cookiesGet(FULL_NAME_KEY) ?? " ");
     const updateUserData = async (): Promise<void> => {
         await cacheUserDataClient();
         setUsername(new Cookies().get(USERNAME_KEY) ?? "");

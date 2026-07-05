@@ -5,9 +5,10 @@
 
 "use client";
 
-import { removeCookie, setCookie } from "@/app/src/lib/cookies";
-import Cookies from "universal-cookie";
 import {
+    cookiesGetAll,
+    cookiesRemove,
+    cookiesSet,
     EMAIL_KEY,
     FULL_NAME_KEY,
     goralysFetchClient,
@@ -15,6 +16,7 @@ import {
     PERSISTANT_LOCALS,
     PUB_ID_KEY,
     ROLE_KEY,
+    storageRemove,
     UserData,
     USERNAME_KEY,
 } from "@goralys/core";
@@ -28,32 +30,24 @@ export async function cacheUserDataClientWeb(): Promise<void> {
 
     const data = (await res.json())["data"] as UserData;
 
-    const cookie = new Cookies();
-
-    setCookie(cookie, USERNAME_KEY, data.username, 1.5 * 60 * 60);
-    setCookie(cookie, FULL_NAME_KEY, data.full_name, 1.5 * 60 * 60);
-    setCookie(cookie, ROLE_KEY, data.role, 1.5 * 60 * 60);
-    setCookie(cookie, PUB_ID_KEY, data.public_id, 1.5 * 60 * 60);
-    if (data?.email) setCookie(cookie, EMAIL_KEY, data.email, 1.5 * 60 * 60);
-    else removeCookie(cookie, EMAIL_KEY, 1.5 * 60 * 60);
-
-    cookie.update();
+    cookiesSet(USERNAME_KEY, data.username, "/", 1.5 * 60 * 60);
+    cookiesSet(FULL_NAME_KEY, data.full_name, "/", 1.5 * 60 * 60);
+    cookiesSet(ROLE_KEY, data.role, "/", 1.5 * 60 * 60);
+    cookiesSet(PUB_ID_KEY, data.public_id, "/", 1.5 * 60 * 60);
+    if (data?.email) cookiesSet(EMAIL_KEY, data.email, "/", 1.5 * 60 * 60);
+    else cookiesRemove(EMAIL_KEY);
 }
 
 export function emptyUserCacheClientWeb(): void {
     // Invalidate old local cache
     for (let i: number = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i)!; // 'i' must be a valid index (see loop above)
-        if (!PERSISTANT_LOCALS.includes(key)) localStorage.removeItem(key);
+        if (!PERSISTANT_LOCALS.includes(key)) storageRemove(key);
     }
 
-    const cookies = new Cookies();
-
-    Object.keys(cookies.getAll()).forEach((name) => {
+    Object.keys(cookiesGetAll()).forEach((name) => {
         if (PERSISTANT_COOKIES.includes(name.trim())) return; // do not delete persistant cookies
         if (name.startsWith("__next")) return; // do not delete Next.js cookies
-        cookies.remove(name, { path: "/" });
+        cookiesRemove(name);
     });
-
-    cookies.update();
 }

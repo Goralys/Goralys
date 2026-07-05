@@ -10,6 +10,7 @@ import { SupportTicket } from "@/types/support";
 import { buildApiUrl, fetchCsrfClient, goralysFetchClient, handleToastRequest } from "@/lib/fetch/fetch.client";
 import { SUPPORT_TICKET_CACHE, SUPPORT_TICKET_SYNC } from "@/lib/config";
 import { storageGet, storageRemove, storageSet } from "@/lib/storage/storage-adapter";
+import { cookiesGet, cookiesOnChange, cookiesSet } from "@/lib/storage/cookies-adapter";
 import { ToastFn } from "@/types/toast";
 import { isAuthenticated } from "@/lib/auth/check-auth";
 
@@ -46,13 +47,13 @@ export function useSupportTickets(showToast: ToastFn): {
         });
 
         try {
-            const syncValue = (await storageGet(syncKey)) ?? "0";
+            const syncValue = cookiesGet(syncKey);
 
             if (syncValue == "1") {
-                const raw = await storageGet(cacheKey);
+                const raw = storageGet(cacheKey);
                 if (raw === null || raw === undefined) {
-                    await storageSet(syncKey, "0");
-                    await storageRemove(cacheKey);
+                    cookiesSet(syncKey, "0");
+                    storageRemove(cacheKey);
                     await fetchSupportTickets();
                     return;
                 }
@@ -71,9 +72,8 @@ export function useSupportTickets(showToast: ToastFn): {
             if (res) await handleToastRequest(res, showToastRef.current, false);
             const data = await res?.json();
 
-            await storageSet(syncKey, "1");
-            await storageSet(cacheKey, JSON.stringify(data));
-            console.log("[useSupportTickets] set syncKey and cached to localStorage");
+            cookiesSet(syncKey, "1");
+            storageSet(cacheKey, JSON.stringify(data));
 
             const result = Array.isArray(data) ? data : null;
             setSupportTickets((prev) => {
@@ -84,7 +84,18 @@ export function useSupportTickets(showToast: ToastFn): {
             inFlightRef.current = null;
             resolve!();
         }
-    }, []);
+    }, [showToastRef]);
+
+    useEffect(() => {
+        const onChange = (): void => {
+            if (inFlightRef.current) return;
+            if (cookiesGet(SUPPORT_TICKET_SYNC) != "1") {
+                void fetchSupportTickets();
+            }
+        };
+
+        return cookiesOnChange(onChange);
+    }, [fetchSupportTickets]);
 
     useEffect(() => {
         void fetchSupportTickets();
@@ -94,7 +105,7 @@ export function useSupportTickets(showToast: ToastFn): {
         () => ({
             supportTickets,
             refetch: fetchSupportTickets,
-            syncKey: `support-tickets-synced`,
+            syncKey: SUPPORT_TICKET_SYNC,
         }),
         [supportTickets, fetchSupportTickets],
     );

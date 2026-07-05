@@ -1,4 +1,4 @@
-type CheckAuthImpl = () => boolean;
+export type CheckAuthImpl = () => boolean;
 
 let checkAuthImpl: CheckAuthImpl;
 

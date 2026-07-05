@@ -4,9 +4,9 @@
  */
 
 export interface StorageAdapter {
-    getItem(key: string): string | null | Promise<string | null>;
-    setItem(key: string, value: string): void | Promise<void>;
-    removeItem(key: string): void | Promise<void>;
+    getItem(key: string): string | null;
+    setItem(key: string, value: string): void;
+    removeItem(key: string): void;
 }
 
 let adapter: StorageAdapter | null = null;
@@ -22,14 +22,14 @@ function getAdapter(): StorageAdapter {
     return adapter;
 }
 
-export async function storageGet(key: string): Promise<string | null> {
+export function storageGet(key: string): string | null {
     return getAdapter().getItem(key);
 }
 
-export async function storageSet(key: string, value: string): Promise<void> {
-    await getAdapter().setItem(key, value);
+export function storageSet(key: string, value: string): void {
+    getAdapter().setItem(key, value);
 }
 
-export async function storageRemove(key: string): Promise<void> {
-    await getAdapter().removeItem(key);
+export function storageRemove(key: string): void {
+    getAdapter().removeItem(key);
 }

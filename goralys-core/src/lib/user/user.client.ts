@@ -10,7 +10,7 @@ import { buildApiUrl, fetchCsrfClient, goralysFetchClient } from "@/lib/fetch/fe
 let cacheUserClient: () => Promise<void>;
 let emptyCacheUserClient: () => void;
 
-export function configUserCacheCallbacks(cache: () => Promise<void>, empty: () => void): void {
+export function configureUserCacheCallbacks(cache: () => Promise<void>, empty: () => void): void {
     cacheUserClient = cache;
     emptyCacheUserClient = empty;
 }

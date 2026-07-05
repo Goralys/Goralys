@@ -1,12 +1,20 @@
 "use client";
 
-import { HttpMethod, User, buildApiUrl, fetchCsrfClient, goralysFetchClient, handleToastRequest, USER_SYNCS } from "@goralys/core";
+import {
+    buildApiUrl,
+    cookiesSet,
+    fetchCsrfClient,
+    goralysFetchClient,
+    handleToastRequest,
+    HttpMethod,
+    User,
+    USER_SYNCS,
+} from "@goralys/core";
 import { Card } from "@/app/src/ui/card";
 import { Button } from "@/app/src/ui/button";
 import { AcademicCapIcon, BookOpenIcon } from "@heroicons/react/24/outline";
 import { usePasswordModal } from "@/app/src/ui/modals/password/password-modal-provider";
 import { useToast } from "@/app/src/ui/toast/toast-provider";
-import Cookies from "universal-cookie";
 import ReplaceTeacherElement from "./replace-teacher-element";
 import { ReactElement } from "react";
 import { useConfirm } from "@/app/src/ui/modals/confirm/confirm-provider";
@@ -23,7 +31,6 @@ export default function UserCard({ user, type, onUpdateAction, syncKey, virtualS
     const password = usePasswordModal();
     const confirmCtx = useConfirm();
     const toast = useToast();
-    const cookies = new Cookies();
 
     const fetchAdmin = async (
         route: string,
@@ -65,12 +72,12 @@ export default function UserCard({ user, type, onUpdateAction, syncKey, virtualS
         const data = await res?.json();
 
         if (data.toastType === "info" && res.ok) {
-            cookies.set(syncKey, "0", { path: "/" });
-            cookies.set(virtualSyncKey, "0", { path: "/" });
+            cookiesSet(syncKey, "0");
+            cookiesSet(virtualSyncKey, "0");
 
             // Invalidate caches
-            cookies.set(USER_SYNCS["users-real"], "0", { path: "/" });
-            cookies.set(USER_SYNCS["users-virtual"], "0", { path: "/" });
+            cookiesSet(USER_SYNCS["users-real"], "0");
+            cookiesSet(USER_SYNCS["users-virtual"], "0");
             onUpdateAction();
         }
     };

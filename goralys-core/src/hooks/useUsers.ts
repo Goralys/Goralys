@@ -6,8 +6,9 @@ import { fetchAdminsClient, fetchUsersClient, fetchVirtualAdminsClient, fetchVir
 import { handleToastRequest } from "@/lib/fetch/fetch.client";
 import { USER_CACHES, USER_SYNCS, UserType } from "@/lib/config";
 import { ToastFn } from "@/types/toast";
-import { storageGet, storageSet } from "@/lib/storage/storage-adapter";
+import { storageGet, storageRemove, storageSet } from "@/lib/storage/storage-adapter";
 import { isAuthenticated } from "@/lib/auth/check-auth";
+import { cookiesGet, cookiesOnChange, cookiesSet } from "@/lib/storage/cookies-adapter";
 
 function useUserCollection(
     fetchFn: () => Promise<Response | undefined>,
@@ -42,8 +43,17 @@ function useUserCollection(
         });
 
         try {
-            if ((await storageGet(syncKey)) == "1") {
-                const cached = JSON.parse((await storageGet(cacheKey)) ?? "null");
+            const syncValue = cookiesGet(syncKey);
+
+            if (syncValue == "1") {
+                const raw = storageGet(cacheKey);
+                if (raw === null || raw === undefined) {
+                    cookiesSet(syncKey, "0");
+                    storageRemove(cacheKey);
+                    await fetchUsers();
+                    return;
+                }
+                const cached = JSON.parse(raw ?? "null");
                 setUsers((prev) => {
                     if (JSON.stringify(prev) === JSON.stringify(cached)) return prev;
                     return cached;
@@ -56,8 +66,8 @@ function useUserCollection(
             const data = await res?.json();
 
             if (res?.ok) {
-                await storageSet(syncKey, "1");
-                await storageSet(cacheKey, JSON.stringify(data));
+                cookiesSet(syncKey, "1");
+                storageSet(cacheKey, JSON.stringify(data));
             }
 
             const result = Array.isArray(data) ? (data as User[]) : null;
@@ -70,6 +80,16 @@ function useUserCollection(
             resolve!();
         }
     }, [fetchFn, cacheKey, syncKey]);
+
+    useEffect(() => {
+        const onChange = (): void => {
+            if (inFlightRef.current) return;
+            if (cookiesGet(syncKey) != "1") {
+                void fetchUsers();
+            }
+        };
+        return cookiesOnChange(onChange);
+    }, [fetchUsers, syncKey]);
 
     useEffect(() => {
         void fetchUsers();

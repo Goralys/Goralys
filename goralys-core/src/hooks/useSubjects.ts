@@ -14,6 +14,7 @@ import { isAuthenticated } from "@/lib/auth/check-auth";
 import { storageGet, storageRemove, storageSet } from "@/lib/storage/storage-adapter";
 import { ToastFn } from "@/types/toast";
 import { Subject } from "@/types/subjects";
+import { cookiesGet, cookiesOnChange, cookiesSet } from "@/lib/storage/cookies-adapter";
 
 export function useSubjects(
     role: UserRole["role"],
@@ -53,13 +54,13 @@ export function useSubjects(
         });
 
         try {
-            const syncValue = await storageGet(syncKey);
+            const syncValue = cookiesGet(syncKey);
 
             if (syncValue == "1") {
-                const raw = await storageGet(cacheKey);
+                const raw = storageGet(cacheKey);
                 if (raw === null || raw === undefined) {
-                    await storageSet(syncKey, "0");
-                    await storageRemove(cacheKey);
+                    cookiesSet(syncKey, "0");
+                    storageRemove(cacheKey);
                     await fetchSubjects();
                     return;
                 }
@@ -75,8 +76,8 @@ export function useSubjects(
             if (res) await handleToastRequest(res, showToastRef.current, false);
             const data = await res?.json();
 
-            await storageSet(syncKey, "1");
-            await storageSet(cacheKey, JSON.stringify(data));
+            cookiesSet(syncKey, "1");
+            storageSet(cacheKey, JSON.stringify(data));
             console.log("[useSubjects] set syncKey and cached to localStorage");
 
             const result = Array.isArray(data) ? data : null;
@@ -88,7 +89,18 @@ export function useSubjects(
             inFlightRef.current = null;
             resolve!();
         }
-    }, [role]);
+    }, [role, showToastRef]);
+
+    useEffect(() => {
+        const onChange = (): void => {
+            if (inFlightRef.current) return;
+            if (cookiesGet(SUBJECT_SYNCS[role]) != "1") {
+                void fetchSubjects();
+            }
+        };
+
+        return cookiesOnChange(onChange);
+    }, [fetchSubjects, role]);
 
     useEffect(() => {
         void fetchSubjects();

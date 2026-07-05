@@ -1,12 +1,11 @@
 "use client";
 
-import { Subject, fetchCsrfClient, goralysFetchClient, handleToastRequest, SUBJECT_SYNCS } from "@goralys/core";
+import { cookiesSet, fetchCsrfClient, goralysFetchClient, handleToastRequest, Subject, SUBJECT_SYNCS } from "@goralys/core";
 import { SubjectInputStudent } from "@/app/src/ui/inputs/subject-input-student";
 import { Button } from "@/app/src/ui/button";
 import { ReactElement, useState } from "react";
 import CommentStudent from "@/app/src/ui/subjects/comment-student";
 import { useToast } from "@/app/src/ui/toast/toast-provider";
-import Cookies from "universal-cookie";
 import { useDraftModal } from "@/app/src/ui/modals/drafts/draft-modal-provider";
 import { useConfirm } from "@/app/src/ui/modals/confirm/confirm-provider";
 
@@ -21,7 +20,6 @@ export default function StudentCard({ subjectData, onUpdateAction }: StudentCard
     const [subject, setSubject] = useState<string | null>(subjectData.subject);
     const [isInterdisciplinary, setIsInterdisciplinary] = useState<boolean>(subjectData.interdisciplinary);
     const modal = useDraftModal();
-    const cookies = new Cookies();
 
     const saveDraft = async (): Promise<void> => {
         if (!subject || subject.trim() == "") {
@@ -48,7 +46,7 @@ export default function StudentCard({ subjectData, onUpdateAction }: StudentCard
         const data = await res.json();
 
         if (data.toastType === "info" && res.ok) {
-            cookies.set(SUBJECT_SYNCS["student"], "0", { path: "/" });
+            cookiesSet(SUBJECT_SYNCS["student"], "0");
             onUpdateAction();
         }
     };
@@ -111,7 +109,7 @@ export default function StudentCard({ subjectData, onUpdateAction }: StudentCard
         if (await handleToastRequest(res, toast.showToast, false)) {
             const data = await res.json();
             if (data.toastType === "info" && res.ok) {
-                cookies.set(SUBJECT_SYNCS["student"], "0", { path: "/" });
+                cookiesSet(SUBJECT_SYNCS["student"], "0");
                 onUpdateAction();
             }
         }

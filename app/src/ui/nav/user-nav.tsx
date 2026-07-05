@@ -4,7 +4,7 @@ import Link from "next/link";
 import Cookies from "universal-cookie";
 import { ReactElement, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { onUserEvent, FULL_NAME_KEY, ROLE_KEY, USERNAME_KEY } from "@goralys/core";
+import { cookiesGet, FULL_NAME_KEY, onUserEvent, ROLE_KEY, USERNAME_KEY } from "@goralys/core";
 import { UserCircleIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 
@@ -17,13 +17,11 @@ export function UserNav(): ReactElement {
     const isActive = current === targetUrl || current.startsWith(`${targetUrl}/`);
 
     useEffect(() => {
-        const cookies = new Cookies();
-
         const run = (): void => {
-            const isLoggedIn = !!cookies.get(USERNAME_KEY);
+            const isLoggedIn = !!cookiesGet(USERNAME_KEY);
             setLoggedIn(isLoggedIn);
 
-            let name = isLoggedIn ? (cookies.get(FULL_NAME_KEY) ?? "") : "Se connecter";
+            let name = isLoggedIn ? ((cookiesGet(FULL_NAME_KEY) ?? "") as string) : "Se connecter";
             if (name.length > 20) name = name.substring(0, 19) + "...";
             setText(name);
         };
@@ -44,7 +42,7 @@ export function UserNav(): ReactElement {
 
             setLoggedIn(isLoggedIn);
 
-            let name = isLoggedIn ? (cookies.get(FULL_NAME_KEY) ?? "") : "Se connecter";
+            let name = isLoggedIn ? ((cookiesGet(FULL_NAME_KEY) ?? "") as string) : "Se connecter";
             if (name.length > 25) name = name.substring(0, 22) + "...";
             setText(name);
         });

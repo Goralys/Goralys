@@ -7,7 +7,6 @@
 
 import { useToast } from "@/app/src/ui/toast/toast-provider";
 import { Subject, UserRole, useSubjects } from "@goralys/core";
-import { useCrossTabSync } from "@/app/src/hooks/utils";
 
 export function useSubjectsWeb(role: UserRole["role"]): {
     subjects: Subject[] | null;
@@ -15,7 +14,5 @@ export function useSubjectsWeb(role: UserRole["role"]): {
     syncKey: string;
 } {
     const { showToast } = useToast();
-    const core = useSubjects(role, showToast);
-    useCrossTabSync(core.refetch, core.syncKey);
-    return core;
+    return useSubjects(role, showToast);
 }

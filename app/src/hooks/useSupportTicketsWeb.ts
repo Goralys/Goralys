@@ -7,7 +7,6 @@
 
 import { SupportTicket, useSupportTickets } from "@goralys/core";
 import { useToast } from "@/app/src/ui/toast/toast-provider";
-import { useCrossTabSync } from "@/app/src/hooks/utils";
 
 export function useSupportTicketsWeb(): {
     supportTickets: SupportTicket[] | null;
@@ -15,7 +14,5 @@ export function useSupportTicketsWeb(): {
     syncKey: string;
 } {
     const { showToast } = useToast();
-    const core = useSupportTickets(showToast);
-    useCrossTabSync(core.refetch, core.syncKey);
-    return core;
+    return useSupportTickets(showToast);
 }

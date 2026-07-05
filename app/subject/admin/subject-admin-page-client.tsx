@@ -1,7 +1,16 @@
 "use client";
 
 import { useImportTopicsModal } from "@/app/src/ui/modals/import-topics/import-topics-modal-provider";
-import { buildApiUrl, fetchCsrfClient, goralysFetchClient, handleToastRequest, Subject, SUBJECT_SYNCS, USER_SYNCS } from "@goralys/core";
+import {
+    buildApiUrl,
+    cookiesSet,
+    fetchCsrfClient,
+    goralysFetchClient,
+    handleToastRequest,
+    Subject,
+    SUBJECT_SYNCS,
+    USER_SYNCS,
+} from "@goralys/core";
 import { useToast } from "@/app/src/ui/toast/toast-provider";
 import { Button } from "@/app/src/ui/button";
 import { useSubjectsWeb } from "@/app/src/hooks/useSubjectsWeb";
@@ -18,8 +27,7 @@ export default function SubjectAdminPageClient(): ReactElement {
     const toast = useToast();
     const { subjects, refetch, syncKey } = useSubjectsWeb("admin");
     const [currentSubjects, setCurrentSubjects] = useState<Subject[] | null>(subjects);
-    const cookies = new Cookies();
-
+    new Cookies();
     const sendTopics = async (): Promise<void> => {
         const file = await modal.showImportTopicsModal();
 
@@ -49,9 +57,9 @@ export default function SubjectAdminPageClient(): ReactElement {
             a.download = "utilisateurs.txt";
             a.click();
             URL.revokeObjectURL(url);
-            cookies.set(syncKey, "0", { path: "/" });
-            cookies.set(USER_SYNCS["users-real"], "0", { path: "/" });
-            cookies.set(USER_SYNCS["users-virtual"], "0", { path: "/" });
+            cookiesSet(syncKey, "0");
+            cookiesSet(USER_SYNCS["users-real"], "0");
+            cookiesSet(USER_SYNCS["users-virtual"], "0");
             await refetch();
             setCurrentSubjects(subjects || []);
             return;
@@ -74,7 +82,7 @@ export default function SubjectAdminPageClient(): ReactElement {
         await handleToastRequest(res, toast.showToast, false);
 
         if (res.ok) {
-            cookies.set(syncKey, "0", { path: "/" });
+            cookiesSet(syncKey, "0");
             await refetch();
             setCurrentSubjects(subjects || []);
         }
