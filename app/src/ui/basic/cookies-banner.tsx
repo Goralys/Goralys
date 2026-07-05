@@ -4,13 +4,13 @@ import Link from "next/link";
 import { ReactElement, useEffect, useState } from "react";
 import { CookieIcon } from "@sidekickicons/react/24/outline";
 import { XMarkIcon } from "@heroicons/react/24/outline";
-import { cookiesGet, cookiesSet } from "@goralys/core";
+import { COOKIES_DISMISSED_KEY, cookiesGet, cookiesSet } from "@goralys/core";
 
 export default function CookieBanner(): ReactElement | null {
     const [visible, setVisible] = useState(false);
 
     useEffect(() => {
-        if (!cookiesGet("cookie-banner-dismissed")) {
+        if (!cookiesGet(COOKIES_DISMISSED_KEY)) {
             // eslint-disable-next-line react-hooks/set-state-in-effect
             setVisible(true);
         }
@@ -19,7 +19,7 @@ export default function CookieBanner(): ReactElement | null {
     if (!visible) return null;
 
     const discard = (): void => {
-        cookiesSet("cookie-banner-dismissed", "1", "/", 60 * 60 * 24 * 365); // expires in 1 year
+        cookiesSet(COOKIES_DISMISSED_KEY, "1", "/", 60 * 60 * 24 * 365); // expires in 1 year
         setVisible(false);
     };
 

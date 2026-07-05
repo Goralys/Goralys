@@ -1,12 +1,11 @@
 import { CookieValue } from "@/types/utils";
-import { storageSet } from "@/lib/storage/storage-adapter";
 
 export interface CookiesAdapter {
     onChange(callback: () => void): () => void;
     getCookies(key: string): CookieValue;
     getAll(): Record<string, CookieValue>;
     setCookies(key: string, value: CookieValue, path: string, maxAge: number): void;
-    removeCookies(key: string): void;
+    removeCookies(key: string, path: string): void;
 }
 
 let adapter: CookiesAdapter | null = null;
@@ -22,26 +21,17 @@ function getAdapter(): CookiesAdapter {
     return adapter;
 }
 
-export function cookiesGet(key: string): CookieValue {
-    return getAdapter().getCookies(key);
-}
+export const cookiesGet = (key: string): CookieValue => getAdapter().getCookies(key);
 
-export function cookiesGetAll(): Record<string, CookieValue> {
-    return getAdapter().getAll();
-}
+export const cookiesGetAll = (): Record<string, CookieValue> => getAdapter().getAll();
 
-export function cookiesSet(key: string, value: string, path: string = "/", maxAge: number = 1.5 * 60): void {
+export const cookiesSet = (key: string, value: string, path: string = "/", maxAge: number = 1.5 * 60): void =>
     getAdapter().setCookies(key, value, path, maxAge);
-}
 
-export function cookiesRemove(key: string): void {
-    getAdapter().removeCookies(key);
-}
+export const cookiesRemove = (key: string, path: string = "/"): void => getAdapter().removeCookies(key, path);
 
-export function cookiesOnChange(callback: () => void): () => void {
-    return getAdapter().onChange(callback);
-}
+export const cookiesOnChange = (callback: () => void): (() => void) => getAdapter().onChange(callback);
 
-export function setCookiesExpire(duration: number): void {
-    storageSet("goralys-cookies-expire", String(Date.now() + duration * 1000)); // ignore promise
-}
+// export function setCookiesExpire(duration: number): void {
+//     storageSet("goralys-cookies-expire", String(Date.now() + duration * 1000)); // ignore promise
+// }

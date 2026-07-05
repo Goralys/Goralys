@@ -13,7 +13,7 @@
         "check": "npm-run-all lint phpcs"
     },
     "dependencies": {
-        "@goralys/core": "^1.2.0",
+        "@goralys/core": "^1.2.1",
         "@heroicons/react": "^2.2.0",
         "@sidekickicons/react": "^0.15.0",
         "clsx": "^2.1.1",

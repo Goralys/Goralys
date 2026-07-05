@@ -5,7 +5,8 @@
 
 import { UserRole } from "@/types/user";
 
-export const PERSISTANT_COOKIES: string[] = ["cookie-banner-dismissed"];
+export const COOKIES_DISMISSED_KEY = "cookie-banner-dismissed";
+export const PERSISTANT_COOKIES: string[] = [COOKIES_DISMISSED_KEY, "rate_limit_token"];
 export const PERSISTANT_LOCALS: string[] = ["goralys-cookies-expire", "flash_toast"];
 
 /* Caches cookies config */
