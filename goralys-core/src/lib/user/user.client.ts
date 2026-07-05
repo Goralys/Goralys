@@ -7,15 +7,7 @@
 
 import { buildApiUrl, fetchCsrfClient, goralysFetchClient } from "@/lib/fetch/fetch.client";
 import { UserData } from "@/types/user";
-import {
-    EMAIL_KEY,
-    FULL_NAME_KEY,
-    PERSISTANT_COOKIES,
-    PERSISTANT_LOCALS,
-    PUB_ID_KEY,
-    ROLE_KEY,
-    USERNAME_KEY
-} from "@/lib/config";
+import { EMAIL_KEY, FULL_NAME_KEY, PERSISTANT_COOKIES, PERSISTANT_LOCALS, PUB_ID_KEY, ROLE_KEY, USERNAME_KEY } from "@/lib/config";
 import { storageKeyAt, storageRemove, storageSize } from "@/lib/storage/storage-adapter";
 import { cookiesGetAll, cookiesRemove, cookiesSet } from "@/lib/storage/cookies-adapter";
 
