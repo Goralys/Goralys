@@ -32,7 +32,7 @@ export default function RegisterForm(): ReactElement {
     }, []);
 
     return (
-        <Card className="flex-col h-79 bg-sky-200">
+        <Card className="flex-col h-79 bg-sky-200 order-1 sm:order-2">
             <h1 className="text-xl">Créez votre compte chez Goralys</h1>
 
             <form className="relative flex flex-col h-full" method="POST" action={requestUrl} autoComplete="on">

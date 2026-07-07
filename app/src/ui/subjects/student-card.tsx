@@ -1,6 +1,14 @@
 "use client";
 
-import { cookiesSet, fetchCsrfClient, goralysFetchClient, handleToastRequest, Subject, SUBJECT_SYNCS } from "@goralys/core";
+import {
+    cookiesSet,
+    fetchCsrfClient,
+    getShortFromLong,
+    goralysFetchClient,
+    handleToastRequest,
+    Subject,
+    SUBJECT_SYNCS,
+} from "@goralys/core";
 import { SubjectInputStudent } from "@/app/src/ui/inputs/subject-input-student";
 import { Button } from "@/app/src/ui/button";
 import { ReactElement, useState } from "react";
@@ -8,6 +16,7 @@ import CommentStudent from "@/app/src/ui/subjects/comment-student";
 import { useToast } from "@/app/src/ui/toast/toast-provider";
 import { useDraftModal } from "@/app/src/ui/modals/drafts/draft-modal-provider";
 import { useConfirm } from "@/app/src/ui/modals/confirm/confirm-provider";
+import { useMediaQuery } from "@/app/src/hooks/use-media-query";
 
 interface StudentCardProps {
     subjectData: Subject;
@@ -17,6 +26,7 @@ interface StudentCardProps {
 export default function StudentCard({ subjectData, onUpdateAction }: StudentCardProps): ReactElement {
     const toast = useToast();
     const confirm = useConfirm();
+    const isDesktop = useMediaQuery("(min-width:640px)");
     const [subject, setSubject] = useState<string | null>(subjectData.subject);
     const [isInterdisciplinary, setIsInterdisciplinary] = useState<boolean>(subjectData.interdisciplinary);
     const modal = useDraftModal();
@@ -78,20 +88,26 @@ export default function StudentCard({ subjectData, onUpdateAction }: StudentCard
             return;
         }
 
-        const result = await modal.showDraftModal();
+        const formData = new FormData();
+        if (isDesktop) {
+            const result = await modal.showDraftModal();
 
-        if (result.type === "closed") return;
+            if (result.type === "closed") return;
 
-        if (result.type == "withDraft" && !result.file) {
-            toast.showToast({
-                type: "warning",
-                title: "Envoi",
-                message: "Veuillez choisir un brouillon ou envoyer la question seule.",
-            });
-            return;
+            if (result.type == "withDraft" && !result.file) {
+                toast.showToast({
+                    type: "warning",
+                    title: "Envoi",
+                    message: "Veuillez choisir un brouillon ou envoyer la question seule.",
+                });
+                return;
+            }
+
+            if (result.type == "withDraft") {
+                formData.append("draft-file", result.file ?? "");
+            }
         }
 
-        const formData = new FormData();
         const csrfToken = await fetchCsrfClient("submit-subject");
         formData.append("teacher", subjectData.teacherToken);
         formData.append("student", subjectData.studentToken);
@@ -99,10 +115,6 @@ export default function StudentCard({ subjectData, onUpdateAction }: StudentCard
         formData.append("subject", subject ?? "");
         formData.append("csrf-token", csrfToken ?? "");
         formData.append("interdisciplinary", isInterdisciplinary ? "1" : "0");
-
-        if (result.type == "withDraft") {
-            formData.append("draft-file", result.file ?? "");
-        }
 
         const res = await goralysFetchClient("POST", "subjects/submit", formData);
 
@@ -117,10 +129,10 @@ export default function StudentCard({ subjectData, onUpdateAction }: StudentCard
 
     const key = subjectData.teacher + subjectData.topic;
     return (
-        <div className="h-fit w-200 flex flex-col bg-sky-200 gap-1 p-1 mb-1 mt-1">
+        <div className="h-fit sm:w-200 w-96 flex flex-col bg-sky-200 gap-1 p-1 mb-1 mt-1">
             <div className="flex flex-row w-full justify-between">
-                <strong>{subjectData.topic}</strong>
-                <strong>{subjectData.teacher}</strong>
+                <strong>{isDesktop ? subjectData.topic : getShortFromLong(subjectData.topic)}</strong>
+                {isDesktop && <strong>{subjectData.teacher}</strong>}
             </div>
 
             <SubjectInputStudent

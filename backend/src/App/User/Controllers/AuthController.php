@@ -8,6 +8,7 @@
 namespace Goralys\App\User\Controllers;
 
 use Goralys\App\User\Data\Enums\UserAuthStatus;
+use Goralys\Core\User\Data\Enums\UserRole;
 use Goralys\Core\User\Data\UserLoginDTO;
 use Goralys\Core\User\Data\UserRegisterDTO;
 use Goralys\Core\User\Repository\Interfaces\UserRepositoryInterface;
@@ -21,7 +22,7 @@ use Goralys\Core\User\Services\RegisterValidatorService;
 use Goralys\Platform\DB\Interfaces\DbContainerInterface;
 use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
 use Goralys\Platform\Logger\Interfaces\LoggerInterface;
-use Goralys\Shared\Config\GoralysConfig;
+use Goralys\Shared\Config\GoralysConfig as Config;
 use Goralys\Shared\Exception\User\UserNotFoundException;
 
 /**
@@ -29,6 +30,12 @@ use Goralys\Shared\Exception\User\UserNotFoundException;
  */
 final class AuthController
 {
+    /**
+     * @var UserRole[] This constant is used to block certain mobile users because their interface has no responsive
+     * support yet.
+     */
+    public const array MOBILE_FORBIDDEN_ROLES = [UserRole::TEACHER, UserRole::ADMIN];
+
     private LoggerInterface $logger;
     private DbContainerInterface $db;
     private UserRepositoryInterface $repo;
@@ -101,12 +108,12 @@ final class AuthController
             session_regenerate_id(true);
             $sessionData = $this->repo->getByUsername($userData->username);
 
-            $_SESSION[GoralysConfig::SESSION::ID] = $sessionData->id;
-            $_SESSION[GoralysConfig::SESSION::FULL_NAME] = $sessionData->fullName;
-            $_SESSION[GoralysConfig::SESSION::USERNAME] = $sessionData->username;
-            $_SESSION[GoralysConfig::SESSION::PUBLIC_ID] = $this->repo->getPublicIdForUsername($sessionData->username);
-            $_SESSION[GoralysConfig::SESSION::ROLE] = $sessionData->role->toString();
-            $_SESSION[GoralysConfig::SESSION::EMAIL] = $sessionData->email;
+            $_SESSION[Config::SESSION::ID] = $sessionData->id;
+            $_SESSION[Config::SESSION::FULL_NAME] = $sessionData->fullName;
+            $_SESSION[Config::SESSION::USERNAME] = $sessionData->username;
+            $_SESSION[Config::SESSION::PUBLIC_ID] = $this->repo->getPublicIdForUsername($sessionData->username);
+            $_SESSION[Config::SESSION::ROLE] = $sessionData->role->toString();
+            $_SESSION[Config::SESSION::EMAIL] = $sessionData->email;
 
             $_SESSION['ua'] = hash("sha256", $_SERVER['HTTP_USER_AGENT']);
             $_SESSION['regen_time'] = time();
@@ -118,7 +125,7 @@ final class AuthController
     }
 
     /**
-     * Logs the user out.
+     * Logs the user out and destroys the session.
      * @return bool If the logout was successful or not.
      */
     public function logout(): bool
@@ -138,6 +145,30 @@ final class AuthController
     }
 
     /**
+     * Logs the user out but preserves the session.
+     * @return bool If the logout was successful or not.
+     */
+    public function softLogout(): bool
+    {
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            return false; // already logged out, do nothing
+        }
+
+        unset(
+            $_SESSION[Config::SESSION::ID],
+            $_SESSION[Config::SESSION::FULL_NAME],
+            $_SESSION[Config::SESSION::USERNAME],
+            $_SESSION[Config::SESSION::PUBLIC_ID],
+            $_SESSION[Config::SESSION::ROLE],
+            $_SESSION[Config::SESSION::EMAIL],
+        );
+
+        session_regenerate_id(true);
+
+        return true;
+    }
+
+    /**
      * Checks if the user is authenticated.
      * The authentification cookie expires after an hour.
      * @param int $sinceLastConnection The time elapsed since the last user connection
@@ -145,7 +176,7 @@ final class AuthController
      */
     public function getAuthStatus(int $sinceLastConnection): UserAuthStatus
     {
-        if (!isset($_SESSION) || !isset($_SESSION[GoralysConfig::SESSION::ID])) {
+        if (!isset($_SESSION) || !isset($_SESSION[Config::SESSION::ID])) {
             return UserAuthStatus::NOT_AUTHENTICATED;
         } elseif (
             $sinceLastConnection > $this->sessionMultiplier * $this->sessionLifetime

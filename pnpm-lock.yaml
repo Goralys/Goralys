@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@goralys/core':
-        specifier: ^1.2.1
-        version: 1.2.1(react@19.2.1)
+        specifier: ^1.2.3
+        version: 1.2.3(react@19.2.1)
       '@heroicons/react':
         specifier: ^2.2.0
         version: 2.2.0(react@19.2.1)
@@ -370,8 +370,8 @@ packages:
     resolution: {integrity: sha512-43/qtrDUokr7LJqoF2c3+RInu/t4zfrpYdoSDfYyhg52rwLV6TnOvdG4fXm7IkSB3wErkcmJS9iEhjVtOSEjjA==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
-  '@goralys/core@1.2.1':
-    resolution: {integrity: sha512-j3ElP+hNWcEiYmE3yBse7erqPHEvEIGaDN6pFCAp1LdJkqLRZegSZ6YsLXa4k2oT/YFASIEcY695aNmivkEgqA==}
+  '@goralys/core@1.2.3':
+    resolution: {integrity: sha512-jjKEDLUCtPy9t589TW8jutPapal2r+XSsTUPA1zpxiVO6pKwdYuGJoCmPG3/Ggo2/oHQnzJg6+pxJt58vp2AXg==}
     peerDependencies:
       react: '>=18'
 
@@ -3033,7 +3033,7 @@ snapshots:
       '@eslint/core': 0.17.0
       levn: 0.4.1
 
-  '@goralys/core@1.2.1(react@19.2.1)':
+  '@goralys/core@1.2.3(react@19.2.1)':
     dependencies:
       react: 19.2.1
 

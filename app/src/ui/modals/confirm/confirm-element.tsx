@@ -22,7 +22,7 @@ export default function ConfirmElement({ title, message, visible, onConfirmActio
         <div
             ref={modalRef}
             className={clsx(
-                "fixed flex flex-col gap-2 p-3 w-115 bg-sky-200 rounded shadow overflow-hidden left-1/2 -translate-x-1/2 top-1 ",
+                "fixed flex flex-col gap-2 p-3 sm:w-115 w-96 bg-sky-200 rounded shadow overflow-hidden left-1/2 -translate-x-1/2 top-1 ",
                 "after:absolute after:left-0 after:top-0 after:h-full after:w-1.25 after:content-[''] after:bg-blue-500",
                 "transition-all duration-500 z-50 ",
                 {

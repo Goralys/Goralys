@@ -6,7 +6,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { emptyUserCacheClient, onUserEvent } from "@goralys/core";
+import { emptyUserCacheClient, fetchCsrfClient, goralysFetchClient, onUserEvent } from "@goralys/core";
 
 export function UserListener(): null {
     useEffect(() => {
@@ -15,6 +15,8 @@ export function UserListener(): null {
                 (async (): Promise<void> => {
                     try {
                         emptyUserCacheClient();
+                        const payload = { "csrf-token": await fetchCsrfClient("logout") };
+                        await goralysFetchClient("POST", "user/logout", payload);
                     } catch (err) {
                         console.error("[UserListener] Failed to clear user cache:", err);
                     } finally {

@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { useToast } from "@/app/src/ui/toast/toast-provider";
-import { goralysFetchClient, storageGet, storageRemove, Toast } from "@goralys/core";
+import { FLASH_TOAST_KEY, goralysFetchClient, storageGet, storageRemove, Toast } from "@goralys/core";
 
 export default function FlashToastListener(): null {
     const { showToast } = useToast();
@@ -17,10 +17,10 @@ export default function FlashToastListener(): null {
         let cancelled = false;
 
         const showCachedToast = (): void => {
-            const raw = storageGet("flash_toast");
+            const raw = storageGet(FLASH_TOAST_KEY);
             if (!raw) return;
 
-            storageRemove("flash_toast");
+            storageRemove(FLASH_TOAST_KEY);
 
             try {
                 const parsed: Toast = JSON.parse(raw);
@@ -45,7 +45,7 @@ export default function FlashToastListener(): null {
 
                 if (data?.toast) {
                     // Server returned a toast — clear cache to avoid double-showing
-                    storageRemove("flash_toast");
+                    storageRemove(FLASH_TOAST_KEY);
                     showToastRef.current({
                         type: data.toast.toastType,
                         title: data.toast.toastTitle,

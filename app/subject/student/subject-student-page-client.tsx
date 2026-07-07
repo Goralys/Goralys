@@ -17,7 +17,7 @@ export default function SubjectStudentPageClient(): ReactElement {
     const skeletons = Array.from({ length: 2 }, (_, i) => <StudentCardSkeleton key={i} />);
 
     return (
-        <div className="relative flex flex-col grow h-fit items-center top-10">
+        <div className="relative flex flex-col grow h-fit items-center top-10 min-h-screen">
             <div className="h-auto w-fit p-2">
                 <p className="underline text-2xl self-start mb-3">Vos questions :</p>
                 <Suspense fallback={<div className="flex flex-col gap-2">{skeletons}</div>}>

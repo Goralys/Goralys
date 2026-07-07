@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { ReactElement, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { cookiesGet, cookiesRemove, FULL_NAME_KEY, onUserEvent, ROLE_KEY, USERNAME_KEY } from "@goralys/core";
+import { cookiesGet, emptyUserCacheClient, FULL_NAME_KEY, onUserEvent, USERNAME_KEY } from "@goralys/core";
 import { UserCircleIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 
-export function UserNav(): ReactElement {
+export default function UserNav(): ReactElement {
     const [text, setText] = useState<string | null>(null);
     const [loggedIn, setLoggedIn] = useState<boolean>(false);
     const current = usePathname();
@@ -33,9 +33,7 @@ export function UserNav(): ReactElement {
             const isLoggedIn = event === "login";
 
             if (!isLoggedIn) {
-                cookiesRemove(FULL_NAME_KEY);
-                cookiesRemove(ROLE_KEY);
-                cookiesRemove(USERNAME_KEY);
+                emptyUserCacheClient();
             }
 
             setLoggedIn(isLoggedIn);

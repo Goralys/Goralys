@@ -13,13 +13,16 @@ use Goralys\App\HTTP\Middleware\RateLimitMiddleware;
 use Goralys\App\HTTP\Request\Interfaces\RequestInterface;
 use Goralys\App\Router\Options\RouterOptions;
 use Goralys\App\Router\Routes;
+use Goralys\App\User\Controllers\AuthController;
 use Goralys\App\Utils\Toast\Data\Enums\ToastType;
+use Goralys\Core\User\Data\Enums\UserRole;
 use Goralys\Core\User\Data\UserLoginDTO;
 use Goralys\Core\User\Data\UserRegisterDTO;
 use Goralys\Kernel\GoralysKernel;
 use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
 use Goralys\Platform\Mail\Config\MailerConfig;
 use Goralys\Shared\Config\GoralysConfig;
+use Goralys\Shared\Config\GoralysConfig as Config;
 use Goralys\Shared\Exception\User\GoralysUserException;
 use Goralys\Shared\Lib\GoralysLib as Lib;
 use Goralys\Shared\Lib\String\StringCase;
@@ -60,7 +63,6 @@ Routes::get('user/role', function (GoralysKernel $kernel) {
         LoggerInitiator::APP,
         "Accessed data of user: " . $_SESSION[GoralysConfig::SESSION::USERNAME],
     );
-
 
     $kernel->response()->json(
         [
@@ -158,13 +160,26 @@ Routes::post('user/login', function (GoralysKernel $kernel, RequestInterface $re
     );
 
     if (!$kernel->auth->login($userData)) {
-        $kernel->deferredResponse(401)->toast(
+        $kernel->deferredResponse(401)->toast( // Unauthorized
             ToastType::ERROR,
             "Connexion",
             "Mot de passe ou identifiant incorrect.",
         )
             ->redirect("/user/login")
             ->send();
+    }
+
+    if ($request->param("client_context") === "mobile") {
+        if (in_array(UserRole::fromString($_SESSION[Config::SESSION::ROLE]), AuthController::MOBILE_FORBIDDEN_ROLES)) {
+            $kernel->auth->softLogout();
+            $kernel->deferredResponse(401)->toast( // Unauthorized
+                ToastType::INFO,
+                "Plateforme invalide",
+                "Veuillez vous connecter sur un ordinateur."
+            )
+                ->redirect("/")
+                ->send();
+        }
     }
 
     $kernel->deferredResponse()->toast(
@@ -175,7 +190,7 @@ Routes::post('user/login', function (GoralysKernel $kernel, RequestInterface $re
         ->redirect("/subject")
         ->action("login-success")
         ->send();
-}, ...RouterOptions::$INPUT::require("username", "password"),
+}, ...RouterOptions::$INPUT::require("username", "password", "client_context"),
    ...RouterOptions::$TOAST::flash())
     ->middleware(...RateLimitMiddleware::for(
         'login',

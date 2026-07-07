@@ -5,9 +5,8 @@ import { clsx } from "clsx";
 import { usePathname } from "next/navigation";
 import { ReactElement } from "react";
 
-export function NavLink({ name, url, exact = false }: { name: string; url: string; exact?: boolean }): ReactElement {
+export default function NavLink({ name, url, exact = false }: { name: string; url: string; exact?: boolean }): ReactElement {
     const current = usePathname();
-
     const isActive = exact || url === "/" ? current === url : current === url || current.startsWith(`${url}/`);
 
     return (

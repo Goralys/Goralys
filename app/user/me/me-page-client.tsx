@@ -33,9 +33,6 @@ export default function MePageClient(): ReactElement {
         setEmail((cookiesGet(FULL_NAME_KEY) ?? " ") as string);
     };
     const logout = async (): Promise<void> => {
-        const payload = { "csrf-token": await fetchCsrfClient("logout") };
-
-        await goralysFetchClient("POST", "user/logout", payload);
         emitUserEvent("logout");
 
         showToast({

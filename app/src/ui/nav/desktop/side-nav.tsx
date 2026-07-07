@@ -1,7 +1,7 @@
 "use client";
 
-import { NavLink } from "@/app/src/ui/nav/nav-link";
-import { UserNav } from "@/app/src/ui/nav/user-nav";
+import NavLink from "@/app/src/ui/nav/desktop/nav-link";
+import UserNav from "@/app/src/ui/nav/desktop/user-nav";
 import { ReactElement, useEffect, useState } from "react";
 import { buildArray, cookiesGet, cookiesOnChange, ROLE_KEY, USER_ROLES, UserRole } from "@goralys/core";
 import Image from "next/image";
