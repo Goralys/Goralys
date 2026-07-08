@@ -30,13 +30,15 @@ class HttpFileResponder implements FileResponder
         }
 
         $baseDir = realpath(__DIR__ . "/../../../../../Assets");
+        $tmpDir = realpath(sys_get_temp_dir());
         if ($baseDir === false) {
             throw new GoralysRuntimeException("Base directory could not be resolved");
         }
 
         if (
             !str_starts_with($realpath, $baseDir . DIRECTORY_SEPARATOR)
-            && pathinfo($path, PATHINFO_EXTENSION) !== "tmp"
+            && !((pathinfo($path, PATHINFO_EXTENSION) === "tmp")
+                  || str_starts_with($path, $tmpDir . DIRECTORY_SEPARATOR))
         ) {
             throw new GoralysRuntimeException("Unauthorized file access");
         }
