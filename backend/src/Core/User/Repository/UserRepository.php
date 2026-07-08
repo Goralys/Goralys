@@ -249,6 +249,12 @@ final class UserRepository implements UserRepositoryInterface
                        union
                        select username from admins_list)",
             );
+            $this->db->runNoArgs(
+                "delete from users_info where username not in (
+                       select username from users where role = 'admin'
+                       union
+                       select username from admins_list)",
+            );
             $this->db->runNoArgs("delete from users where role <> 'admin'");
             $this->db->commit();
             return true;
