@@ -43,7 +43,7 @@ final class CSRFService
     public function getForForm(string $formId): string
     {
         $tokens = $_SESSION["csrf-tokens-table"][$formId] ?? [];
-        return $tokens ? end($tokens) : "";
+        return $tokens ? end($tokens)["token"] : "";
     }
 
     /**

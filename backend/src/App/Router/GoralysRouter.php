@@ -193,6 +193,6 @@ final class GoralysRouter implements RouterInterface
                 }
             }
         }
-        return array_keys($this->knownFormIds);
+        return $this->knownFormIds;
     }
 }
