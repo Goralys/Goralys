@@ -7,7 +7,6 @@
 
 namespace Goralys\App\Router;
 
-use Closure;
 use Goralys\App\HTTP\Middleware\AuthMiddleware;
 use Goralys\App\HTTP\Middleware\CSRFMiddleware;
 use Goralys\App\HTTP\Middleware\DbMiddleware;
@@ -16,6 +15,7 @@ use Goralys\App\HTTP\Middleware\RateLimitMiddleware;
 use Goralys\App\HTTP\Middleware\RoleMiddleware;
 use Goralys\App\HTTP\Request\Interfaces\RequestInterface;
 use Goralys\App\Router\Data\Route;
+use Goralys\App\Router\Interfaces\RouterInterface;
 use Goralys\App\Router\Options\InputOptions;
 use Goralys\App\Router\Options\ToastOptions;
 use Goralys\App\Utils\Toast\Data\Enums\ToastType;
@@ -28,18 +28,10 @@ use Goralys\Shared\Exception\Request\InvalidInputException;
  * Registers routes per HTTP method and dispatches incoming requests through
  * a middleware pipeline before invoking the route handler.
  */
-final class GoralysRouter
+final class GoralysRouter implements RouterInterface
 {
     private GoralysKernel $kernel; // router should be the only class with this dependency.
-    /** @var array<string, array<string, Route>> */
-    private array $routes = [
-        'POST' => [],
-        'GET' => [],
-        'PATCH' => [],
-        'DELETE' => [],
-        'BREW' => [],
-        'WHEN' => [],
-    ];
+
     /** @var array<string, class-string<MiddlewareInterface>>  */
     private array $middlewaresMap = [
         'auth' => AuthMiddleware::class,
@@ -49,102 +41,14 @@ final class GoralysRouter
         'db' => DbMiddleware::class,
     ];
 
+    private ?array $knownFormIds = null;
+
     /**
      * @param GoralysKernel $kernel The application kernel (sole owner of this dependency).
      */
     public function __construct(GoralysKernel $kernel)
     {
         $this->kernel = $kernel;
-    }
-
-    /**
-     * Registers a POST route.
-     * @param string $route The route path.
-     * @param Closure $handler The route handler.
-     * @param array ...$options Optional middleware and input option arrays.
-     * @return Route The registered route.
-     */
-    public function post(string $route, Closure $handler, array ...$options): Route
-    {
-        return $this->add('POST', $route, $handler, ...$options);
-    }
-
-    /**
-     * Registers a route for the given HTTP method.
-     * @param string $method The HTTP method (e.g., 'POST', 'GET').
-     * @param string $route The route path.
-     * @param Closure $handler The route handler.
-     * @param array ...$options Optional middleware and input option arrays.
-     * @return Route The registered route.
-     */
-    public function add(string $method, string $route, Closure $handler, array ...$options): Route
-    {
-        return $this->routes[$method][$route] = new Route(
-            $route,
-            $method,
-            $handler,
-            empty($options) ? [] : array_merge_recursive(...array_values($options)),
-        );
-    }
-
-    /**
-     * Registers a GET route.
-     * @param string $route The route path.
-     * @param Closure $handler The route handler.
-     * @param array ...$options Optional middleware and input option arrays.
-     * @return Route The registered route.
-     */
-    public function get(string $route, Closure $handler, array ...$options): Route
-    {
-        return $this->add('GET', $route, $handler, ...$options);
-    }
-
-    /**
-     * Registers a PATCH route.
-     * @param string $route The route path.
-     * @param Closure $handler The route handler.
-     * @param array ...$options Optional middleware and input option arrays.
-     * @return Route The registered route.
-     */
-    public function patch(string $route, Closure $handler, array ...$options): Route
-    {
-        return $this->add('PATCH', $route, $handler, ...$options);
-    }
-
-    /**
-     * Registers a PUT route.
-     * @param string $route The route path.
-     * @param Closure $handler The route handler.
-     * @param array ...$options Optional middleware and input option arrays.
-     * @return Route The registered route.
-     */
-    public function put(string $route, Closure $handler, array ...$options): Route
-    {
-        return $this->add('PUT', $route, $handler, ...$options);
-    }
-
-    /**
-     * Registers a DELETE route.
-     * @param string $route The route path.
-     * @param Closure $handler The route handler.
-     * @param array ...$options Optional middleware and input option arrays.
-     * @return Route The registered route.
-     */
-    public function delete(string $route, Closure $handler, array ...$options): Route
-    {
-        return $this->add('DELETE', $route, $handler, ...$options);
-    }
-
-    /**
-     * Registers a BREW route.
-     * @param string $route The route path.
-     * @param Closure $handler The route handler.
-     * @param array ...$options Optional middleware and input option arrays.
-     * @return Route The registered route.
-     */
-    public function brew(string $route, Closure $handler, array ...$options): Route
-    {
-        return $this->add('BREW', $route, $handler, ...$options);
     }
 
     /**
@@ -184,7 +88,7 @@ final class GoralysRouter
     }
 
     /**
-     * Formates all the router's route into a readable Rest-like format.
+     * Formats all the router's route into a readable Rest-like format.
      * @param Route[][] $routesArr All the known routes.
      * @return string
      */
@@ -268,5 +172,27 @@ final class GoralysRouter
         }, $destination);
 
         return $p();
+    }
+
+    /**
+     * Returns the list of known form IDs to strengthen CSRF protection.
+     * @return list<string> The list of known form IDs.
+     */
+    public function getKnownFormIds(): array
+    {
+        if ($this->knownFormIds === null) {
+            $this->knownFormIds = [];
+            foreach (new Routes()->getAll() as $routes) {
+                foreach ($routes as $route) {
+                    foreach ($route->middlewares as $middleware) {
+                        if ($middleware->name === 'csrf') {
+                            // CSRFMiddleware params: [formId, ?redirect]
+                            $this->knownFormIds[$middleware->params[0]] = true;
+                        }
+                    }
+                }
+            }
+        }
+        return array_keys($this->knownFormIds);
     }
 }

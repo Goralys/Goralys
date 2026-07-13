@@ -50,6 +50,8 @@ use Goralys\App\HTTP\Response\ImmediateResponse;
 use Goralys\App\HTTP\Response\Interfaces\DeferredResponseInterface;
 use Goralys\App\HTTP\Response\Interfaces\ImmediateResponseInterface;
 use Goralys\App\RateLimiter\RateLimiter;
+use Goralys\App\Router\GoralysRouter;
+use Goralys\App\Router\Interfaces\RouterInterface;
 use Goralys\App\Security\CSRF\Services\CSRFService;
 use Goralys\App\Subjects\Controllers\SubjectsController;
 use Goralys\App\Support\Controllers\SupportController;
@@ -110,6 +112,7 @@ class GoralysKernel
     private AppContext $context;
     private RequestInterface $request;
     private DomPdfExporter $exporter;
+    private RouterInterface $router;
     private int $sessionLifetime;
     /**
      * Multiplier applied to the base session lifetime to determine the upper bound
@@ -155,6 +158,7 @@ class GoralysKernel
         $this->sessionLifetime = $this->env->getByKey("PHP_SESSION_LIFETIME");
         $this->sessionLifetimeMultiplier = $this->env->getByKey("PHP_SESSION_LIFETIME_MULTIPLIER");
         $this->startSession();
+        $this->initRouter();
 
         // Initializes toast before the DB to be able to provide user feedback if the connection to the DB fails.
         $this->initToast();
@@ -236,6 +240,15 @@ class GoralysKernel
 
             $_SESSION['LAST_ACTIVITY'] = time();
         }
+    }
+
+    /**
+     * Initializes the router used by the API via the kernel
+     * @return void
+     */
+    private function initRouter(): void
+    {
+        $this->router = new GoralysRouter($this);
     }
 
     /**
@@ -386,7 +399,7 @@ class GoralysKernel
      */
     private function initCSRF(): void
     {
-        $this->csrf = new CSRFService($this->logger);
+        $this->csrf = new CSRFService($this->logger, $this->router);
     }
 
     /**
@@ -411,7 +424,8 @@ class GoralysKernel
     }
 
     /**
-     * Sets the exceptions and errors handlers to be the ones from the `GoralysKernel`.
+     * Sets the exceptions and errors handlers to be the ones from the kernel.
+     * This is done to ensure that the kernel's error handling is used instead of the default PHP error handler.
      * @return void
      */
     public function setHandlers(): void
@@ -590,7 +604,7 @@ class GoralysKernel
     }
 
     /**
-     * Helper to check if the user is authenticated
+     * Helper to check if the user is authenticated. Destroys the session on failure.
      * @param string $endpoint The endpoint the authentification is required in.
      * @return void
      */
@@ -608,7 +622,7 @@ class GoralysKernel
                 );
 
                 $this->response(401)->json(["authEvent" => "expired"]); // Unauthorized
-                // no break
+            // no break
             case UserAuthStatus::NOT_AUTHENTICATED:
                 $this->destroySession();
                 $this->logger->warning(
@@ -617,7 +631,7 @@ class GoralysKernel
                 );
 
                 $this->response(401)->json(["authEvent" => "unauthenticated"]); // Unauthorized
-                // no break
+            // no break
             case UserAuthStatus::AUTHENTICATED:
                 break;
         }
@@ -644,7 +658,7 @@ class GoralysKernel
     }
 
     /**
-     * Helper to check if the user is authenticated
+     * Helper to check if the user is authenticated. Preserves the session on failure.
      * @return bool If the user is authenticated
      */
     public function checkAuth(): bool
@@ -706,14 +720,14 @@ class GoralysKernel
         if (!$pass) {
             $this->logger->warning(
                 LoggerInitiator::KERNEL,
-                "Tried to perform forbidden action with role " . $currentRole->toString(
-                ) . "(required " . ($strict ? "==" : "=<") . " " . $role->toString() . ")"
+                "Tried to perform forbidden action with role " . $currentRole->toString() . "(required " .
+                ($strict ? "==" : "=<") . " " . $role->toString() . ")"
             );
             $this->deferredResponse(403)->error( // Forbidden
                 "Il semblerait que vous n'ayez pas les permissions nécéssaires . ",
             )
-                    ->redirect("/user/login")
-                    ->send();
+                ->redirect("/user/login")
+                ->send();
         }
     }
 
@@ -724,5 +738,14 @@ class GoralysKernel
     public function useFlash(): void
     {
         $this->context->mode = ToastMode::FLASH;
+    }
+
+    /**
+     * Gets the kernel's router.
+     * @return RouterInterface
+     */
+    public function getRouter(): RouterInterface
+    {
+        return $this->router;
     }
 }

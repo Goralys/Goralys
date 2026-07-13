@@ -9,6 +9,7 @@ namespace Goralys\App\Security\CSRF\Services;
 
 use Goralys\App\Config\AppConfig;
 use Goralys\App\HTTP\Request\Interfaces\RequestInterface;
+use Goralys\App\Router\Interfaces\RouterInterface;
 use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
 use Goralys\Platform\Logger\Interfaces\LoggerInterface;
 use Random\RandomException;
@@ -19,15 +20,19 @@ use Random\RandomException;
 final class CSRFService
 {
     private LoggerInterface $logger;
+    private RouterInterface $router;
 
     /**
      * Initializes the logger for the service.
      * @param LoggerInterface $logger The injected logger.
+     * @param RouterInterface $router The injected router.
      */
     public function __construct(
         LoggerInterface $logger,
+        RouterInterface $router,
     ) {
         $this->logger = $logger;
+        $this->router = $router;
     }
 
     /**
@@ -48,10 +53,21 @@ final class CSRFService
      */
     public function create(string $formId): bool
     {
+        if (!isset($this->router->getKnownFormIds()[$formId])) {
+            $this->logger->error(
+                LoggerInitiator::APP,
+                "Unknown form id encountered : " . $formId,
+            );
+            return false;
+        }
+
         try {
             $token = bin2hex(random_bytes(AppConfig::CSRF_TOKENS_SIZE));
             $_SESSION["csrf-tokens-table"][$formId] ??= [];
-            $_SESSION["csrf-tokens-table"][$formId][] = $token;
+            $_SESSION["csrf-tokens-table"][$formId][] = [
+                "token" => $token,
+                "expires_at" => time() + 60 * 10
+            ];
 
             if (count($_SESSION["csrf-tokens-table"][$formId]) > AppConfig::MAX_CSRF_TOKENS) {
                 array_shift($_SESSION["csrf-tokens-table"][$formId]);
@@ -85,7 +101,20 @@ final class CSRFService
             return false;
         }
 
-        if (!in_array($token, $_SESSION["csrf-tokens-table"][$formId])) {
+        $key = null;
+
+        foreach ($_SESSION["csrf-tokens-table"][$formId] as $k => $storedToken) {
+            if (!is_array($storedToken)) {
+                continue;
+            }
+
+            if (hash_equals($storedToken["token"], $token)) {
+                $key = $k;
+                break;
+            }
+        }
+
+        if ($key === null) {
             $this->logger->error(
                 LoggerInitiator::APP,
                 "Failed to validate token for form : " . $formId . "(" . $token . ")",
@@ -93,8 +122,17 @@ final class CSRFService
             return false;
         }
 
-        $k = array_search($token, $_SESSION['csrf-tokens-table'][$formId]);
-        unset($_SESSION["csrf-tokens-table"][$formId][$k]);
+        $matchedToken = $_SESSION["csrf-tokens-table"][$formId][$key];
+        if ($matchedToken["expires_at"] < time()) {
+            $this->logger->error(
+                LoggerInitiator::APP,
+                "Token expired for form : " . $formId . "(overshoot: " . time() - $token["expires_at"] . "s)",
+            );
+            unset($_SESSION["csrf-tokens-table"][$formId][$key]);
+            return false;
+        }
+
+        unset($_SESSION["csrf-tokens-table"][$formId][$key]);
         return true;
     }
 }
