@@ -17,9 +17,10 @@ interface DbContainerInterface
 {
     /**
      * Establishes the connection to the database.
+     * @param string $dbName The name of the database to connect to.
      * @return bool Whether the connection was successfully established.
      */
-    public function connect(): bool;
+    public function connect(string $dbName): bool;
 
     /* Transactions */
 

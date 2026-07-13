@@ -31,6 +31,7 @@
 namespace Goralys\Kernel;
 
 use ErrorException;
+use Exception;
 use Goralys\App\Config\RateLimiterConfig;
 use Goralys\App\Context\AppContext;
 use Goralys\App\Context\Data\ToastMode;
@@ -70,6 +71,7 @@ use Goralys\Platform\DB\Facade\DbContainer;
 use Goralys\Platform\DB\Interfaces\DbContainerInterface;
 use Goralys\Platform\Doc\PDF\DomPdfExporter;
 use Goralys\Platform\Loader\Services\EnvService;
+use Goralys\Platform\Loader\Services\HighSchoolsService;
 use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
 use Goralys\Platform\Logger\GoralysLogger;
 use Goralys\Platform\Logger\Interfaces\LoggerInterface;
@@ -89,6 +91,7 @@ use Throwable;
 class GoralysKernel
 {
     public EnvService $env;
+    public HighSchoolsService $highSchools;
     public GoralysLib $utils;
     public DbContainerInterface $db;
     public MailContainerInterface $mailer;
@@ -103,6 +106,7 @@ class GoralysKernel
     public GuardInterface $guard;
     public CSRFService $csrf;
     public UsernameManager $usernames;
+    private(set) RouterInterface $router;
     private string $rootPath;
     private RateLimiter $rateLimiter;
     /**
@@ -112,7 +116,6 @@ class GoralysKernel
     private AppContext $context;
     private RequestInterface $request;
     private DomPdfExporter $exporter;
-    private RouterInterface $router;
     private int $sessionLifetime;
     /**
      * Multiplier applied to the base session lifetime to determine the upper bound
@@ -153,6 +156,7 @@ class GoralysKernel
         $this->rootPath = $rootPath;
 
         $this->initEnv();
+        $this->initHighSchools();
         $this->initUtils();
         $this->initLogger();
         $this->sessionLifetime = $this->env->getByKey("PHP_SESSION_LIFETIME");
@@ -188,6 +192,15 @@ class GoralysKernel
     {
         $this->env = new EnvService();
         $this->env->load($this->rootPath);
+    }
+
+    /**
+     * Initializes the high schools service.
+     * @return void
+     */
+    private function initHighSchools(): void
+    {
+        $this->highSchools = new HighSchoolsService();
     }
 
     /**
@@ -556,13 +569,15 @@ class GoralysKernel
     {
         try {
             if (!$this->connect()) {
+                $this->logger->warning(LoggerInitiator::KERNEL, "Could not connect to the database");
                 $this->deferredResponse(500)->error( // Internal server error
                     "Une erreur interne est survenue lors de la connexion, veuillez réessayer ultérieurement.",
                 )
                     ->redirect("/")
                     ->send();
             }
-        } catch (Throwable) {
+        } catch (Throwable $e) {
+            $this->logger->warning(LoggerInitiator::KERNEL, "Could not connect to the database: " . $e->getMessage());
             $this->deferredResponse(500)->error( // Internal server error
                 "Une erreur interne est survenue lors de la connexion, veuillez réessayer ultérieurement.",
             )
@@ -580,7 +595,12 @@ class GoralysKernel
         if (!isset($this->db)) {
             $this->db = new DbContainer($this->logger);
         }
-        return $this->db->connect();
+
+        try {
+            return $this->db->connect($this->highSchools->getDbForSchool($this->request->param("high-school-token")));
+        } catch (Exception $e) {
+            throw new GoralysConnectException("Could not connect to the database: " . $e->getMessage());
+        }
     }
 
     /**
@@ -738,14 +758,5 @@ class GoralysKernel
     public function useFlash(): void
     {
         $this->context->mode = ToastMode::FLASH;
-    }
-
-    /**
-     * Gets the kernel's router.
-     * @return RouterInterface
-     */
-    public function getRouter(): RouterInterface
-    {
-        return $this->router;
     }
 }

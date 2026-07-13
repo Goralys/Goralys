@@ -9,14 +9,14 @@ namespace Goralys\Platform\DB\Facade;
 
 use Goralys\Platform\DB\Data\DbDto;
 use Goralys\Platform\DB\Data\StmtDto;
+use Goralys\Platform\DB\Interfaces\DbContainerInterface;
 use Goralys\Platform\DB\Services\ConnectService;
 use Goralys\Platform\DB\Services\PrepareService;
-use Goralys\Platform\DB\Interfaces\DbContainerInterface;
 use Goralys\Platform\Loader\Services\EnvService;
 use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
 use Goralys\Platform\Logger\Interfaces\LoggerInterface;
-use Goralys\Shared\Exception\DB\GoralysPrepareException;
 use Goralys\Shared\Exception\DB\GoralysConnectException;
+use Goralys\Shared\Exception\DB\GoralysPrepareException;
 use Goralys\Shared\Exception\DB\GoralysQueryException;
 use mysqli;
 use mysqli_result;
@@ -47,17 +47,18 @@ final class DbContainer implements DbContainerInterface
     /**
      * Establish the connection to the database using the credentials inside `.env`.
      * Note that it will never return false as it throws an exception if the connection fails.
+     * @param string $dbName The name of the database to connect to.
      * @return bool If the connection succeeded, true.
      * @throws GoralysConnectException Only thrown when the connection could not be established.
      */
-    public function connect(): bool
+    public function connect(string $dbName): bool
     {
         $env = new EnvService();
         $service = new ConnectService($this->logger);
 
         $this->conn = $service->connectToDatabase(new DbDto(
             $env->getByKey("DATABASE_HOST"),
-            $env->getByKey("DATABASE_NAME"),
+            $dbName,
             $env->getByKey("DATABASE_ID"),
             $env->getByKey("DATABASE_PASSWORD"),
         ));

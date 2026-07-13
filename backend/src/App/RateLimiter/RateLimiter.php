@@ -7,12 +7,11 @@
 
 namespace Goralys\App\RateLimiter;
 
-use Goralys\App\Config\AppConfig;
 use Goralys\App\Config\Data\RateLimitTimeMethod;
 use Goralys\App\Config\RateLimiterConfig;
 use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
 use Goralys\Platform\Logger\Interfaces\LoggerInterface;
-use Goralys\Shared\Config\GoralysConfig;
+use Goralys\Shared\Config\GoralysConfig as Config;
 use Random\RandomException;
 
 /**
@@ -54,10 +53,7 @@ final class RateLimiter
 
         $rate = RateLimiterConfig::getRateLimits()[$endpoint] ?? null;
 
-        $filename = AppConfig::BASE_STORAGE_DIR
-            . "RateLimiter/"
-            . hash(self::ALGO, $endpoint)
-            . ".txt";
+        $filename = Config::DIRECTORIES::RATE_LIMITER . hash(self::ALGO, $endpoint) . ".txt";
 
         if (!is_dir(dirname($filename))) {
             mkdir(dirname($filename), 0o777, true);
@@ -153,11 +149,11 @@ final class RateLimiter
                 return null;
             }
 
-            $token = $_COOKIE[GoralysConfig::COOKIES::RATE_LIMITER_TOKEN] ?? null;
+            $token = $_COOKIE[Config::COOKIES::RATE_LIMITER_TOKEN] ?? null;
 
             if (!$token) {
                 $token = bin2hex(random_bytes(16));
-                setcookie(GoralysConfig::COOKIES::RATE_LIMITER_TOKEN, $token, [
+                setcookie(Config::COOKIES::RATE_LIMITER_TOKEN, $token, [
                     'expires' => time() + 86400 * 30,
                     'httponly' => true,
                     'secure' => true,

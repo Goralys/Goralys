@@ -27,6 +27,7 @@ export default function LoginForm(): ReactElement {
 
                 <input type="hidden" name="csrf-token" value={(csrfToken ? csrfToken : "no-token").trim()} />
                 <input type="hidden" name="client_context" value={isDesktop ? "desktop" : "mobile"} />
+                <input type="hidden" name="high-school-token" value={process.env.NEXT_PUBLIC_API_TOKEN} />
 
                 <Button
                     type="submit"

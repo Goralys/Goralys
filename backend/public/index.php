@@ -4,7 +4,7 @@ require __DIR__ . "/../vendor/autoload.php";
 require __DIR__ . "/../src/Kernel/bootstrap.php";
 
 $kernel = bootKernel();
-$router = $kernel->getRouter();
+$router = $kernel->router;
 
 (require __DIR__ . "/../API/api.php")();
 

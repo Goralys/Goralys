@@ -8,19 +8,18 @@
 namespace Goralys\Core\Subjects\Config;
 
 use Goralys\Core\Subjects\Data\PathwayDTO;
+use Goralys\Shared\Config\DirConfig as Config;
 
 /**
  * Configuration class for the subject export process.
  */
 final class SubjectsExportConfig
 {
-    public const string ASSETS_PATH = __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . '..'
-        . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'Assets' . DIRECTORY_SEPARATOR
-        . 'Template' . DIRECTORY_SEPARATOR;
+    public const string ASSETS_PATH = Config::ASSETS . DIRECTORY_SEPARATOR . 'Template' . DIRECTORY_SEPARATOR;
     public const string TEMPLATE_SOURCE_PATH = self::ASSETS_PATH . 'main.html';
     public const string TEMPLATE_STYLES_PATH = self::ASSETS_PATH . 'style.css';
-    public const string EXPORT_BASE_NAME     = 'FICHE_GO-';
-    public const string EXPORT_BASE_DIR     = self::ASSETS_PATH . 'Exports' . DIRECTORY_SEPARATOR;
+    public const string EXPORT_BASE_NAME = 'FICHE_GO-';
+    public const string EXPORT_BASE_DIR = self::ASSETS_PATH . 'Exports' . DIRECTORY_SEPARATOR;
     public const string EXPORT_BROKEN_TEACHER_DIR = 'Manquants-Prof' . DIRECTORY_SEPARATOR;
     public const string EXPORT_BROKEN_STUDENT_DIR = 'Manquants-Élève' . DIRECTORY_SEPARATOR;
     public const string EXPORT_BROKEN_BOTH_DIR = 'Manquants-Prof&Élève' . DIRECTORY_SEPARATOR;

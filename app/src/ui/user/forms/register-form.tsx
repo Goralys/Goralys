@@ -57,6 +57,7 @@ export default function RegisterForm(): ReactElement {
                 <FloatingInput id="email" label="Addresse Mail" autocomplete="email" helper="Ce champ est optionnel." email />
 
                 <input type="hidden" name="csrf-token" value={(csrfToken ? csrfToken : "no-token").trim()} />
+                <input type="hidden" name="high-school-token" value={process.env.NEXT_PUBLIC_API_TOKEN} />
 
                 <Button
                     type="submit"

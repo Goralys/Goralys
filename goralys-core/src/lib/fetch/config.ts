@@ -5,6 +5,7 @@
 
 export interface GoralysClientConfig {
     apiDomain: string;
+    schoolToken: string;
 }
 
 let config: GoralysClientConfig | null = null;

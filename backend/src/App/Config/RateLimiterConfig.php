@@ -40,6 +40,8 @@ final class RateLimiterConfig
             'delete-topics' => new RateLimit(1, 60 * 5, RateLimitTimeMethod::CONSTANT),
 
             'delete-users' => new RateLimit(1, 60 * 5, RateLimitTimeMethod::CONSTANT),
+
+            'get-high-school-token' => new RateLimit(5, 60 * 5, RateLimitTimeMethod::CONSTANT),
         ];
     }
 }

@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { useToast } from "@/app/src/ui/toast/toast-provider";
-import { FLASH_TOAST_KEY, goralysFetchClient, storageGet, storageRemove, Toast } from "@goralys/core";
+import { buildApiUrl, FLASH_TOAST_KEY, goralysFetchClient, storageGet, storageRemove, Toast } from "@goralys/core";
 
 export default function FlashToastListener(): null {
     const { showToast } = useToast();
@@ -35,7 +35,7 @@ export default function FlashToastListener(): null {
 
         const run = async (): Promise<void> => {
             try {
-                const res = await goralysFetchClient("GET", "toast/flash", undefined, {
+                const res = await goralysFetchClient("GET", buildApiUrl("toast/flash", {}), undefined, {
                     cache: "no-store",
                 });
 
