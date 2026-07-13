@@ -1,12 +1,21 @@
 "use client";
 
-import { cookiesSet, fetchCsrfClient, goralysFetchClient, handleToastRequest, Subject, SUBJECT_SYNCS } from "@goralys/core";
+import {
+    cookiesSet,
+    fetchCsrfClient,
+    getShortFromLong,
+    goralysFetchClient,
+    handleToastRequest,
+    Subject,
+    SUBJECT_SYNCS,
+} from "@goralys/core";
 import { Button } from "@/app/src/ui/button";
 import { ReactElement, useRef, useState } from "react";
 import { useToast } from "@/app/src/ui/toast/toast-provider";
 import { useConfirm } from "@/app/src/ui/modals/confirm/confirm-provider";
 import { SubjectInputTeacher } from "@/app/src/ui/inputs/subject-input-teacher";
 import CommentTeacher from "@/app/src/ui/subjects/comment-teacher";
+import { useMediaQuery } from "@/app/src/hooks/use-media-query";
 
 interface TeacherCardProps {
     subjectData: Subject;
@@ -18,6 +27,7 @@ export default function TeacherCard({ subjectData, onUpdateAction }: TeacherCard
     const confirm = useConfirm();
     const [comment, setComment] = useState<string | null>(subjectData.comment);
     const commentRef = useRef<HTMLTextAreaElement | null>(null);
+    const isDesktop = useMediaQuery("(min-width: 640px)");
 
     const rejectSubject = async (): Promise<void> => {
         if (comment?.trim() === "" || !comment) {
@@ -108,10 +118,10 @@ export default function TeacherCard({ subjectData, onUpdateAction }: TeacherCard
     };
 
     return (
-        <div className="h-fit w-200 flex flex-col bg-sky-200 gap-1 p-1 mb-1 mt-1">
+        <div className="h-fit sm:w-200 w-96 flex flex-col bg-sky-200 gap-1 p-1 mb-1 mt-1">
             <div className="flex flex-row w-full justify-between">
                 <strong>{subjectData.student}</strong>
-                <strong>{subjectData.topic}</strong>
+                <strong>{isDesktop ? subjectData.topic : getShortFromLong(subjectData.topic)}</strong>
             </div>
             <SubjectInputTeacher
                 id={subjectData.studentToken + subjectData.teacherToken + "-comment"}

@@ -34,7 +34,7 @@ final class AuthController
      * @var UserRole[] This constant is used to block certain mobile users because their interface has no responsive
      * support yet.
      */
-    public const array MOBILE_FORBIDDEN_ROLES = [UserRole::TEACHER, UserRole::ADMIN];
+    public const array MOBILE_FORBIDDEN_ROLES = [UserRole::ADMIN];
 
     private LoggerInterface $logger;
     private DbContainerInterface $db;

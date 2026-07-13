@@ -60,7 +60,7 @@ export default function RegisterForm(): ReactElement {
 
                 <Button
                     type="submit"
-                    text={csrfToken === null ? "Chargement..." : "Se connecter"}
+                    text={csrfToken === null ? "Chargement..." : "Créer mon compte"}
                     className="absolute! bottom-0"
                     disabled={csrfToken === null}
                 />

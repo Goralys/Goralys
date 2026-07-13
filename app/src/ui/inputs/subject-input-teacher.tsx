@@ -1,4 +1,4 @@
-import { getStatusHelper, Subject, buildApiUrl } from "@goralys/core";
+import { buildApiUrl, getStatusHelper, Subject } from "@goralys/core";
 import { ArrowDownTrayIcon } from "@heroicons/react/24/outline";
 import { SubjectTextArea } from "@/app/src/ui/inputs/subject-text-area";
 import Checkbox from "@/app/src/ui/inputs/checkbox";
@@ -39,7 +39,7 @@ export function SubjectInputTeacher({ id, label, helper, subjectData, onChangeAc
     };
 
     return (
-        <div className="relative mt-2 group min-w-50 mb-0">
+        <div className="relative mt-2 group min-w-50 mb-0 flex sm:block flex-col">
             <div className="flex flex-row">
                 <SubjectTextArea
                     id={id}
@@ -68,7 +68,7 @@ export function SubjectInputTeacher({ id, label, helper, subjectData, onChangeAc
             <div className="flex flex-row content-between w-full">
                 <Checkbox
                     id={`interdisciplinary-teacher-${subjectData.studentToken}-${subjectData.teacherToken}`}
-                    className="ml-auto -mt-7.5 mb-2.5 self-center"
+                    className="m-0 sm:ml-auto sm:-mt-7.5 mb-2.5 self-center"
                     label="Question transversale"
                     setValueAction={() => {}}
                     defaultValue={subjectData.interdisciplinary}
