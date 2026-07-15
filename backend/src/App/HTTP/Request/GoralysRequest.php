@@ -54,6 +54,16 @@ final class GoralysRequest implements RequestInterface
     }
 
     /**
+     * Gets the header of the request.
+     * @param string $key The name of the header.
+     * @return ?string The headers of the request.
+     */
+    public function header(string $key): ?string
+    {
+        return $_SERVER[$key] ?? null;
+    }
+
+    /**
      * Check if a request's input is valid.
      * @param array $rules The rules to apply for the validation.
      * @return array The validated inputs' data.

@@ -344,8 +344,7 @@ Routes::patch('users/reset', function (GoralysKernel $kernel, RequestInterface $
     $message = "Le compte a bien été réinitialisé, l'utilisateur peut maintenant le recréer.";
 
     if ($email) {
-        $registerLink = $kernel->env->getByKey("ORIGIN_DOMAIN")
-                        . "/user/register?id=" . $kernel->usernames->get($target);
+        $registerLink = $kernel->getOriginDomain() . "/user/register?id=" . $kernel->usernames->get($target);
         $kernel->mailer->sendMail(
             MailerConfig::BASE_ALIAS,
             "Goralys - Réinitialisation du compte",

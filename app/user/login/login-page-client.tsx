@@ -7,7 +7,6 @@ import LoginForm from "@/app/src/ui/user/forms/login-form";
 import { ReactElement, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useToast } from "@/app/src/ui/toast/toast-provider";
-import { emitUserEvent } from "@goralys/core";
 
 export default function LoginPageClient(): ReactElement {
     const searchParams = useSearchParams();
@@ -39,8 +38,6 @@ export default function LoginPageClient(): ReactElement {
             });
             return;
         }
-
-        emitUserEvent("logout");
 
         router.replace("/user/login");
     }, [searchParams, router, showToast]); // The toast dependency is ignored to avoid render loop.

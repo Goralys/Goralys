@@ -90,7 +90,7 @@ final class DeferredResponse implements Interfaces\DeferredResponseInterface
      */
     public function redirect(string $path): self
     {
-        $destination = $this->context->originDomain . trim($path, "/") . "/";
+        $destination = trim($this->context->originDomain, "/") . "/" . trim($path, "/") . "/";
         $this->toast->redirect = $destination;
         return $this;
     }
@@ -124,6 +124,7 @@ final class DeferredResponse implements Interfaces\DeferredResponseInterface
         if ($this->context->mode === ToastMode::FLASH) {
             http_response_code(302);
             $this->controller->responder->sendToast($this->toast, $this->action ?? "");
+            error_log("KERNEL - 3: redirecting to: " . $this->toast->redirect);
             header('Location: ' . $this->toast->redirect);
             exit;
         }

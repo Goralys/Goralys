@@ -4,7 +4,7 @@
     "private": true,
     "license": "AGPL-3.0-or-later",
     "scripts": {
-        "dev": "next dev",
+        "dev": "cross-env NODE_TLS_REJECT_UNAUTHORIZED=0 next dev",
         "build": "next build",
         "start": "next start",
         "lint": "eslint app",
@@ -31,6 +31,7 @@
         "@types/node": "^20.19.43",
         "@types/react": "^19.2.17",
         "@types/react-dom": "^19.2.3",
+        "cross-env": "^10.1.0",
         "eslint": "^9.39.4",
         "eslint-config-next": "16.0.10",
         "tailwindcss": "^4.3.2",

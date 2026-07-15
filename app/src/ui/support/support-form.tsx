@@ -7,7 +7,7 @@ import { FloatingInput } from "@/app/src/ui/inputs/floating-input";
 
 export default function SupportForm(): ReactElement {
     const [csrfToken, setCsrfToken] = useState<string | null>(null);
-    const requestUrl = `${process.env.NEXT_PUBLIC_API_DOMAIN}/support/contact`;
+    const requestUrl = `${process.env.NEXT_PUBLIC_API_DOMAIN}/support/contact?high-school-token=${process.env.NEXT_PUBLIC_API_TOKEN}`;
 
     const [reason, setReason] = useState<SupportReasons>("password-forgot");
 

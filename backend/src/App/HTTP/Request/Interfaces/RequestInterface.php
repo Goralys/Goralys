@@ -22,6 +22,13 @@ interface RequestInterface
     public function param(string $key): int|float|string|bool|null;
 
     /**
+     * Gets the header of the request.
+     * @param string $key The name of the header.
+     * @return ?string The headers of the request.
+     */
+    public function header(string $key): ?string;
+
+    /**
      * Validates a given input from the request.
      * @param array $rules The rules to apply for the validation.
      * @return array The list of the validated inputs.

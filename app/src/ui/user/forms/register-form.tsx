@@ -24,7 +24,7 @@ export default function RegisterForm(): ReactElement {
     }, [searchParams, router]);
 
     const [csrfToken, setCsrfToken] = useState<string | null>(null);
-    const requestUrl = `${process.env.NEXT_PUBLIC_API_DOMAIN}/user/register`;
+    const requestUrl = `${process.env.NEXT_PUBLIC_API_DOMAIN}/user/register?high-school-token=${process.env.NEXT_PUBLIC_API_TOKEN}`;
     useEffect(() => {
         const run = async (): Promise<void> => setCsrfToken(await fetchCsrfClient("register"));
 
@@ -57,7 +57,6 @@ export default function RegisterForm(): ReactElement {
                 <FloatingInput id="email" label="Addresse Mail" autocomplete="email" helper="Ce champ est optionnel." email />
 
                 <input type="hidden" name="csrf-token" value={(csrfToken ? csrfToken : "no-token").trim()} />
-                <input type="hidden" name="high-school-token" value={process.env.NEXT_PUBLIC_API_TOKEN} />
 
                 <Button
                     type="submit"

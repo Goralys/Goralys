@@ -161,12 +161,16 @@ class GoralysKernel
         $this->initLogger();
         $this->sessionLifetime = $this->env->getByKey("PHP_SESSION_LIFETIME");
         $this->sessionLifetimeMultiplier = $this->env->getByKey("PHP_SESSION_LIFETIME_MULTIPLIER");
+        $this->context = new AppContext(
+            ToastMode::DEFAULT,
+            trim($this->getOriginDomain()),
+            $this->env->getByKey("GORALYS_ENVIRONMENT") === "dev"
+        );
         $this->startSession();
         $this->initRouter();
 
         // Initializes toast before the DB to be able to provide user feedback if the connection to the DB fails.
         $this->initToast();
-        $this->context = new AppContext(ToastMode::DEFAULT, trim($this->env->getByKey("ORIGIN_DOMAIN")));
 
         $this->initDb();
         $this->initMailer();
@@ -223,6 +227,42 @@ class GoralysKernel
         $this->logger->rotate();
     }
 
+    public function getOriginDomain(): ?string
+    {
+        $token = $this->request()->header("HTTP_X_HIGH_SCHOOL_TOKEN") ?? $this->request()->param("high-school-token");
+
+        if ($token === null) {
+            $this->response(400)->http(); // Bad Request
+        }
+
+        return $this->highSchools->getDomainForSchool($token);
+    }
+
+    /**
+     * Gets the kernel's current HTTP request
+     * @return RequestInterface The request.
+     */
+    public function request(): RequestInterface
+    {
+        if (!isset($this->request)) {
+            $this->request = new GoralysRequest();
+        }
+
+        return $this->request;
+    }
+
+    /**
+     * Generate a new HTTP response.
+     * @param int $code The response's code (default = 200).
+     * @return ImmediateResponseInterface The response.
+     */
+    public function response(int $code = 200): ImmediateResponseInterface
+    {
+        $files = new HttpFileResponder();
+        $json = new HttpJsonResponder();
+        return new ImmediateResponse($code, $this->logger, $files, $json);
+    }
+
     /**
      * Starts the PHP session if it is not already started.
      * @return void
@@ -230,17 +270,17 @@ class GoralysKernel
     private function startSession(): void
     {
         if (session_status() !== PHP_SESSION_ACTIVE) {
-            ini_set('session.gc_maxlifetime', $this->sessionLifetime);
-            ini_set('session.cookie_lifetime', $this->sessionLifetime);
-
+            ini_set('session.gc_maxlifetime', $this->getSessionLifetime());
+            ini_set('session.cookie_lifetime', $this->getSessionLifetime());
+            error_log("SESSION - domain used: '" . ($this->env->getByKey("COOKIES_DOMAIN") ?? 'NULL/EMPTY') . "'");
             session_set_cookie_params([
                 // Ensure the session expiration logic works as intended. Refer to variable docs for more info.
-                'lifetime' => $this->sessionLifetime * $this->sessionLifetimeMultiplier,
+                'lifetime' => $this->getSessionLifetime(),
                 'path' => '/',
                 'domain' => $this->env->getByKey("COOKIES_DOMAIN"),
                 'secure' => true,
                 'httponly' => true,
-                'samesite' => 'Lax',
+                'samesite' => $this->context->isDev ? 'None' : 'Lax',
             ]);
 
             session_name("GORALYSSESSID");
@@ -253,6 +293,11 @@ class GoralysKernel
 
             $_SESSION['LAST_ACTIVITY'] = time();
         }
+    }
+
+    public function getSessionLifetime(): float
+    {
+        return $this->sessionLifetime * $this->sessionLifetimeMultiplier;
     }
 
     /**
@@ -499,7 +544,7 @@ class GoralysKernel
     public function run(callable $callback): void
     {
         try {
-            $callback($this, $this->request);
+            $callback($this, $this->request());
 
             if (session_status() == PHP_SESSION_ACTIVE) {
                 session_write_close();
@@ -597,7 +642,9 @@ class GoralysKernel
         }
 
         try {
-            return $this->db->connect($this->highSchools->getDbForSchool($this->request->param("high-school-token")));
+            $token = $this->request()->header("HTTP_X_HIGH_SCHOOL_TOKEN")
+                   ?? $this->request()->param("high-school-token");
+            return $this->db->connect($this->highSchools->getDbForSchool($token));
         } catch (Exception $e) {
             throw new GoralysConnectException("Could not connect to the database: " . $e->getMessage());
         }
@@ -666,18 +713,6 @@ class GoralysKernel
     }
 
     /**
-     * Generate a new HTTP response.
-     * @param int $code The response's code (default = 200).
-     * @return ImmediateResponseInterface The response.
-     */
-    public function response(int $code = 200): ImmediateResponseInterface
-    {
-        $files = new HttpFileResponder();
-        $json = new HttpJsonResponder();
-        return new ImmediateResponse($code, $this->logger, $files, $json);
-    }
-
-    /**
      * Helper to check if the user is authenticated. Preserves the session on failure.
      * @return bool If the user is authenticated
      */
@@ -705,19 +740,6 @@ class GoralysKernel
                 ->redirect($redirect ?? "/")
                 ->send();
         }
-    }
-
-    /**
-     * Gets the kernel's current HTTP request
-     * @return RequestInterface The request.
-     */
-    public function request(): RequestInterface
-    {
-        if (!isset($this->request)) {
-            $this->request = new GoralysRequest();
-        }
-
-        return $this->request;
     }
 
     /**

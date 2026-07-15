@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
 };
 
 module.exports = {
-    allowedDevOrigins: ["relight-unashamed-scrambled.ngrok-free.dev"],
+    allowedDevOrigins: ["0492061z.goralys.test"],
 };
 
 export default nextConfig;

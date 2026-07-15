@@ -126,7 +126,7 @@ final class CSRFService
         if ($matchedToken["expires_at"] < time()) {
             $this->logger->error(
                 LoggerInitiator::APP,
-                "Token expired for form : " . $formId . "(overshoot: " . time() - $token["expires_at"] . "s)",
+                "Token expired for form : " . $formId . "(overshoot: " . time() - $matchedToken["expires_at"] . "s)",
             );
             unset($_SESSION["csrf-tokens-table"][$formId][$key]);
             return false;

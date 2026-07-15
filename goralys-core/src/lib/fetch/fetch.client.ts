@@ -20,20 +20,11 @@ export async function goralysFetchClient(
 ): Promise<Response> {
     const { apiDomain, schoolToken } = getGoralysClientConfig();
 
-    let finalPayload: undefined | Record<string, string | number | boolean | null> | FormData = payload;
-
-    if (payload instanceof FormData) {
-        payload.append("high-school-token", schoolToken ?? "");
-        finalPayload = payload;
-    } else if (payload !== undefined) {
-        finalPayload = { ...payload, "high-school-token": schoolToken };
-    }
-
     const res = await fetch(`${apiDomain}/${input}`, {
         credentials: "include",
         method: method === "BREW" ? "POST" : method,
-        headers: method === "BREW" ? { "X-HTTP-Method-Override": method } : {},
-        body: finalPayload ? (finalPayload instanceof FormData ? finalPayload : JSON.stringify(finalPayload)) : undefined,
+        headers: { ...(method === "BREW" ? { "X-HTTP-Method-Override": method } : {}), "X-High-School-Token": schoolToken },
+        body: payload ? (payload instanceof FormData ? payload : JSON.stringify(payload)) : undefined,
         ...requestOptions,
     });
 
@@ -69,9 +60,9 @@ export async function fetchCsrfClient(formId: string): Promise<string | null> {
     const { apiDomain, schoolToken } = getGoralysClientConfig();
     const res = await fetch(`${apiDomain}/csrf`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-High-School-Token": schoolToken },
         credentials: "include",
-        body: JSON.stringify({ form: formId, "high-school-token": schoolToken }),
+        body: JSON.stringify({ form: formId }),
     });
     if (!res.ok) return null;
     const json = await res.json();
@@ -86,10 +77,9 @@ function buildQueryString(params: Record<string, string | null>): string {
 }
 
 export function buildApiUrl(endpoint: string, params: Record<string, string | null>, domain: boolean = false): string {
-    const { apiDomain, schoolToken } = getGoralysClientConfig();
+    const { apiDomain } = getGoralysClientConfig();
     const queryString = buildQueryString(params);
-    return `${domain ? apiDomain + "/" : ""}${endpoint + "?high-school-token=" + encodeURIComponent(schoolToken)}
-            ${queryString ? `&${queryString}` : ""}`;
+    return `${domain ? apiDomain + "/" : ""}${endpoint}${queryString ? `?${queryString}` : ""}`;
 }
 
 export async function handleToastRequest(

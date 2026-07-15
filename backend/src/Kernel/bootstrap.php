@@ -6,12 +6,133 @@
  */
 
 use Goralys\Kernel\GoralysKernel;
+use Goralys\Platform\Loader\Services\HighSchoolsService;
 use Goralys\Shared\Config\GoralysConfig;
 
+// loads the .env file into the environment before the kernel is initialized
+function loadPreBootEnv(): void
+{
+    $envPath = __DIR__ . "/../../.env";
+    if (file_exists($envPath)) {
+        foreach (parse_ini_file($envPath) as $key => $value) {
+            putenv("$key=$value");
+        }
+    }
+}
+
 // ----------- API bootstrap method ---------- //
+
 /**
- * Sets CORS headers, handles OPTIONS preflight requests, and validates the session user-agent.
- * Also triggers session ID regeneration every 15 minutes for active sessions.
+ * Checks whether a given origin is allowed to talk to the API.
+ * Relies solely on MASTER_DOMAIN (and the ALLOWED_DOMAINS fallback) — never on the
+ * high-school-token, since preflight (OPTIONS) requests never carry it.
+ * @param string $origin The Origin header sent by the browser.
+ * @return bool
+ */
+function isAllowedOrigin(string $origin): bool
+{
+    if ($origin === '') {
+        return false;
+    }
+
+    $masterDomain = getenv("MASTER_DOMAIN") ?: '';
+
+    if ($masterDomain !== '') {
+        $escapedDomain = preg_quote($masterDomain, '/');
+
+        // http(s)://[sous-domaine.]master-domain[:port]
+        $pattern = '/^https?:\/\/([a-z0-9]+\.)?' . $escapedDomain . '(:\d+)?$/i';
+
+        if (preg_match($pattern, $origin)) {
+            return true;
+        }
+    }
+
+    // Fallback
+    $extra = array_map('trim', explode(",", getenv("ALLOWED_DOMAINS") ?: ''));
+    return in_array($origin, $extra, true);
+}
+
+/**
+ * Sets CORS headers based on the request Origin.
+ * Must run before any token/kernel resolution, so that preflight (OPTIONS) requests —
+ * which never carry the high-school-token — still get a valid CORS response.
+ * @return void
+ */
+function setCorsHeaders(): void
+{
+    $origin = $_SERVER['HTTP_ORIGIN'] ?? ($_SERVER['HTTP_X_FORWARDED_ORIGIN'] ?? '');
+
+    error_log("CORS - 1: request origin=" . ($origin !== '' ? $origin : 'none'));
+
+    if (isAllowedOrigin($origin)) {
+        error_log("CORS - 2: origin ALLOWED");
+        header("Access-Control-Allow-Origin: $origin");
+        header('Access-Control-Allow-Credentials: true');
+        header('Vary: Origin');
+    } else {
+        error_log("CORS - 2: origin REJECTED");
+    }
+
+    header('Access-Control-Allow-Methods: GET, POST, OPTIONS, DELETE, PATCH, PUT, BREW, WHEN');
+    header('Access-Control-Max-Age: 86400'); // 1 day
+    header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With,'
+            . 'X-HTTP-Method-Override, X-High-School-Token');
+
+    error_log("CORS - 3: headers set (unconditional Allow-Methods/Allow-Headers included)");
+}
+
+/**
+ * Short-circuits OPTIONS preflight requests with a 204.
+ * Must run AFTER setCorsHeaders(), so the preflight response actually carries the CORS headers.
+ * @return void
+ */
+function handlePreflight(): void
+{
+    if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+        error_log("CORS - 4: OPTIONS preflight, responding 204");
+        http_response_code(204); // No content, but OK
+        exit;
+    }
+}
+
+/**
+ * Reads the high-school-token from either the X-High-School-Token header (used by fetch-based
+ * calls) or the high-school-token query param (fallback for native form navigations, which
+ * cannot set custom headers).
+ * @return ?string
+ */
+function getHighSchoolToken(): ?string
+{
+    $token = $_SERVER['HTTP_X_HIGH_SCHOOL_TOKEN'] ?? $_GET['high-school-token'] ?? null;
+    error_log("KERNEL - 1: token=" . ($token ?? 'none'));
+    return $token;
+}
+
+/**
+ * Resolves the origin domain (front URL) for a given high-school-token.
+ * Lightweight: only reads the lycees.ini file, no DB connection.
+ * @param ?string $token
+ * @return ?string
+ */
+function resolveOriginDomain(?string $token): ?string
+{
+    if ($token === null) {
+        error_log("KERNEL - 2: no token provided, origin resolution skipped");
+        return null;
+    }
+
+    $schools = new HighSchoolsService();
+    $domain = $schools->getDomainForSchool($token);
+
+    error_log("KERNEL - 3: resolved domain=" . ($domain ?? 'null (unknown token)'));
+
+    return $domain;
+}
+
+/**
+ * Validates the session user-agent and triggers session ID regeneration every 15 minutes for
+ * active sessions. CORS is handled earlier, in bootKernel(), before the kernel is constructed.
  * @param GoralysKernel $kernel The initialized application kernel.
  * @return void
  */
@@ -24,32 +145,9 @@ function bootstrapAPI(GoralysKernel $kernel): void
 
     error_log("BOOTSTRAP - 1: " . $_SERVER['REQUEST_METHOD'] . " " . $_SERVER['REQUEST_URI']);
 
-    $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
-    $forwardedOrigin = $_SERVER['HTTP_X_FORWARDED_ORIGIN'] ?? '';
-
-    $effectiveOrigin = $origin !== '' ? $origin : $forwardedOrigin;
-    $allowed = array_map('trim', explode(",", $kernel->env->getByKey("ALLOWED_DOMAINS")));
-
-    if (in_array($effectiveOrigin, $allowed)) {
-        header("Access-Control-Allow-Origin: $effectiveOrigin");
-        header('Access-Control-Allow-Credentials: true');
-        header('Vary: Origin');
-    }
-
-    header('Access-Control-Allow-Methods: GET, POST, OPTIONS, DELETE, PATCH, PUT, BREW, WHEN');
-    header('Access-Control-Max-Age: 86400'); // 1 day
-    header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, X-HTTP-Method-Override');
-
-    // Preflight requests
-    error_log("BOOTSTRAP - 2: preflight check, method=" . $_SERVER['REQUEST_METHOD']);
-    if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-        http_response_code(204); // No content, but OK
-        exit;
-    }
-
     // Check if the user agent from the client is valid
-    error_log("BOOTSTRAP - 3: UA check, current_id=" . ($_SESSION[GoralysConfig::SESSION::ID] ?? 'none')
-            . ", UA=" . ($_SERVER['HTTP_USER_AGENT'] ?? 'none'));
+    error_log("BOOTSTRAP - 2: UA check, current_id=" . ($_SESSION[GoralysConfig::SESSION::ID] ?? 'none')
+        . ", UA=" . ($_SERVER['HTTP_USER_AGENT'] ?? 'none'));
     $whiteListUA = ["node"];
     if (isset($_SESSION[GoralysConfig::SESSION::ID])) {
         $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? null;
@@ -70,19 +168,19 @@ function bootstrapAPI(GoralysKernel $kernel): void
             if (!$ua || $uaHash !== $ua) {
                 session_unset();
                 session_destroy();
-                http_response_code(401);
-                exit;
+                $kernel->response(401)->http();
             }
         }
-        error_log("BOOTSTRAP - 4: Regen check "
-                . (!isset($_SESSION['regen_time']) || time() - $_SESSION['regen_time'] > 900 ? 'true' : 'false'));
-        if (!isset($_SESSION['regen_time']) || time() - $_SESSION['regen_time'] > 900) {
+        error_log("BOOTSTRAP - 3: Regen check "
+            . (!isset($_SESSION['regen_time']) || time() - $_SESSION['regen_time'] > $kernel->getSessionLifetime()
+            ? 'true' : 'false'));
+        if (!isset($_SESSION['regen_time']) || time() - $_SESSION['regen_time'] > $kernel->getSessionLifetime()) {
             session_regenerate_id(true);
             $_SESSION['regen_time'] = time();
         }
     }
 
-    error_log("BOOTSTRAP - 5: Done");
+    error_log("BOOTSTRAP - 4: Done");
 }
 
 // --------------- Kernel Init --------------- //
@@ -92,8 +190,27 @@ function bootstrapAPI(GoralysKernel $kernel): void
  */
 function bootKernel(): GoralysKernel
 {
+    loadPreBootEnv();
+    error_log("KERNEL - 0: bootKernel start, method=" . ($_SERVER['REQUEST_METHOD'] ?? 'unknown')
+        . ", uri=" . ($_SERVER['REQUEST_URI'] ?? 'unknown'));
+
+    setCorsHeaders();
+    handlePreflight();
+
+    $token = getHighSchoolToken();
+    $resolvedOrigin = resolveOriginDomain($token);
+
+    if ($resolvedOrigin === null) {
+        error_log("KERNEL - 4: aborting, missing or invalid token");
+        http_response_code(400);
+        echo json_encode(["success" => false, "error" => "Missing or invalid high-school-token"]);
+        exit;
+    }
+
+    error_log("KERNEL - 5: constructing GoralysKernel");
     $kernel = new GoralysKernel(__DIR__ . "/../../");
     $kernel->setHandlers();
     bootstrapAPI($kernel);
+    error_log("KERNEL - 6: boot complete");
     return $kernel;
 }

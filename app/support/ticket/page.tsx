@@ -20,6 +20,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Pag
         headers: {
             "Content-Type": "application/json",
             cookie: sessionCookie ? `GORALYSSESSID=${sessionCookie}` : "",
+            "X-High-School-Token": process.env.NEXT_PUBLIC_API_TOKEN ?? "",
         },
         body: JSON.stringify({ form: "get-ticket" }),
     });
@@ -33,7 +34,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<Pag
 
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_DOMAIN}/support/ticket?t=${id}&csrf-token=${csrfToken}`, {
         headers: {
-            cookie: sessionCookie ? `GORALYSSESSID=${sessionCookie}` : "", // ← PASSE LA SESSION
+            cookie: sessionCookie ? `GORALYSSESSID=${sessionCookie}` : "",
+            "X-High-School-Token": process.env.NEXT_PUBLIC_API_TOKEN ?? "",
         },
     });
 

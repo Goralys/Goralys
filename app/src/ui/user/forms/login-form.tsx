@@ -8,7 +8,7 @@ import { useMediaQuery } from "@/app/src/hooks/use-media-query";
 export default function LoginForm(): ReactElement {
     const isDesktop = useMediaQuery("(min-width: 640px)");
     const [csrfToken, setCsrfToken] = useState<string | null>(null);
-    const requestUrl = `${process.env.NEXT_PUBLIC_API_DOMAIN}/user/login/`;
+    const requestUrl = `${process.env.NEXT_PUBLIC_API_DOMAIN}/user/login?high-school-token=${process.env.NEXT_PUBLIC_API_TOKEN}`;
 
     useEffect(() => {
         const run = async (): Promise<void> => setCsrfToken(await fetchCsrfClient("login"));
@@ -27,7 +27,6 @@ export default function LoginForm(): ReactElement {
 
                 <input type="hidden" name="csrf-token" value={(csrfToken ? csrfToken : "no-token").trim()} />
                 <input type="hidden" name="client_context" value={isDesktop ? "desktop" : "mobile"} />
-                <input type="hidden" name="high-school-token" value={process.env.NEXT_PUBLIC_API_TOKEN} />
 
                 <Button
                     type="submit"

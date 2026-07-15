@@ -10,10 +10,10 @@ use Goralys\Shared\Exception\GoralysRuntimeException;
  * It is used to determine which database to use.
  * It reads the data from the `Assets/schools_list` file (INI format).
  */
-class HighSchoolsService
+final class HighSchoolsService
 {
     private array $schools;
-    private array $tokenToDb = [];
+    private array $tokenToSchool = [];
 
     /**
      * @throws GoralysRuntimeException
@@ -29,24 +29,38 @@ class HighSchoolsService
         $this->schools = $result;
 
         foreach ($this->schools as $school) {
-            $this->tokenToDb[$school["TOKEN"]] = $school["DB"];
+            $this->tokenToSchool[$school["TOKEN"]] = [
+                "NAME" => $school["NAME"],
+                "DOMAIN" => $school["DOMAIN"],
+                "DB" => $school["DB"],
+            ];
         }
     }
 
     /**
      * Gets the database name for a given school.
-     * @param string $token The secret token of the school to get the database for.
+     * @param string $token The public token of the school to get the database for.
      * @return ?string The name of the database to use for the given school.
      */
     public function getDbForSchool(string $token): ?string
     {
-        return $this->tokenToDb[$token] ?? null;
+        return $this->tokenToSchool[$token]["DB"] ?? null;
     }
 
     /**
-     * Gets the secret token for a given school.
+     * Gets the domain for a given school.
+     * @param string $token The public token of the school to get the domain for.
+     * @return ?string The domain of the school.
+     */
+    public function getDomainForSchool(string $token): ?string
+    {
+        return $this->tokenToSchool[$token]["DOMAIN"] ?? null;
+    }
+
+    /**
+     * Gets the public token for a given school.
      * @param string $code The code of the school to get the token for.
-     * @return ?string The secret token of the school.
+     * @return ?string The public token of the school.
      */
     public function getTokenForSchool(string $code): ?string
     {

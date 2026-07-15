@@ -43,8 +43,7 @@ Routes::post("support/contact", function (GoralysKernel $kernel, RequestInterfac
             . "<strong>Message:</strong><br>"
             . nl2br(htmlspecialchars($message)) . "<br><br>"
             . "<strong>Consulter le ticket sur Goralys: "
-            . htmlspecialchars($kernel->env->getByKey("ORIGIN_DOMAIN"))
-            . "support/ticket?t=" . $id . "</strong>";
+            . htmlspecialchars($kernel->getOriginDomain()) . "support/ticket?t=" . $id . "</strong>";
 
     $kernel->mailer->sendMail(
         MailerConfig::SUPPORT_ALIAS,
