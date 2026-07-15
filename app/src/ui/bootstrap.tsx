@@ -5,7 +5,7 @@ import Cookies from "universal-cookie";
 
 export default function Bootstrap(): null {
     configGoralysCore({
-        client: { apiDomain: process.env.NEXT_PUBLIC_API_DOMAIN ?? "", privateToken: process.env.NEXT_PUBLIC_API_TOKEN ?? "" },
+        client: { apiDomain: process.env.NEXT_PUBLIC_API_DOMAIN ?? "", schoolToken: process.env.NEXT_PUBLIC_API_TOKEN ?? "" },
         storage: {
             getItem: (key) => localStorage.getItem(key),
             getSize: () => localStorage.length,
