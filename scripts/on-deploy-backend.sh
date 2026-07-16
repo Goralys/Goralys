@@ -9,6 +9,16 @@ show_banner() {
 
 show_banner
 
+# Detect a PHP 8.5+ binary, falling back gracefully.
+# Handles hosts (e.g. cPanel/CloudLinux alt-php) where the default `php`
+# on PATH is older than what the lock file requires.
+PHP_BIN="php"
+if command -v php85 >/dev/null 2>&1; then
+    PHP_BIN="php85"
+elif [ -x /opt/alt/php85/usr/bin/php ]; then
+    PHP_BIN="/opt/alt/php85/usr/bin/php"
+fi
+
 # Custom script to delete anything non-essential to the backend and set it up
 # This script is used when deploying the backend and the frontend on different servers
 
@@ -34,10 +44,12 @@ if ! command -v composer >/dev/null 2>&1; then
     exit 1
 fi
 
-echo "[OK] composer found."
+COMPOSER_BIN="$(command -v composer)"
+
+echo "[OK] composer found (using $PHP_BIN)."
 
 echo "[2/5] Installing dependencies ..."
-composer install --working-dir=backend || {
+"$PHP_BIN" "$COMPOSER_BIN" install --working-dir=backend || {
     echo "[ERROR] Composer install failed."
     exit 1
 }
@@ -100,11 +112,20 @@ cat > ./backend/.env <<'EOF'
 DATABASE_HOST="localhost"
 DATABASE_ID="your db id (user)"
 DATABASE_PASSWORD="your db password"
-DATABASE_NAME="your db name"
-FOLDER="/"
+
 PHP_SESSION_LIFETIME=3600
 PHP_SESSION_LIFETIME_MULTIPLIER=1.25
-GORALYS_ENVIRONMENT="dev"
+GORALYS_ENVIRONMENT="prod"
+
+ALLOWED_DOMAINS="http://localhost:3000"
+MASTER_DOMAIN="exemple.com"
+COOKIES_DOMAIN=".exemple.com"
+
+MAIL_HOST="smtp.exemple.com"
+MAIL_PORT=587
+MAIL_USERNAME="your mail username (address)"
+MAIL_PASSWORD="your mail password"
+MAIL_ADMIN_ADDRESS="admin@exemple.com, jhon.doe@mail.com"
 EOF
 
     echo ".env ready."
@@ -114,9 +135,12 @@ fi
 echo "[4/5] Creating directories ..."
 echo "Creating Logs directory ..."
 mkdir -p ./backend/Logs
+echo "Creating RateLimiter directory ..."
+mkdir -p ./backend/RateLimiter
 echo "Creating Assets directory ..."
 mkdir -p ./backend/Assets
 mkdir -p ./backend/Assets/Template
+mkdir -p ./backend/Assets/Mails
 mkdir -p ./backend/Assets/Template/Exports
 mkdir -p ./backend/Assets/StudentsDrafts
 echo "[OK] Directories are ready."
@@ -133,19 +157,19 @@ if [ "${goto_done:-false}" != "true" ]; then
     echo
     echo "Running phpcs checks..."
 
-    if ! php backend/vendor/bin/phpcs --standard=PSR12 --ignore=vendor/* backend; then
+    if ! "$PHP_BIN" backend/vendor/bin/phpcs --standard=PSR12 --ignore=vendor/* backend; then
         echo
         echo "PHPCS found coding standard violations."
         read -r -p "Run phpcbf to auto-fix what it can ? (Y/n) : " RUN_FIX
 
         if [[ "${RUN_FIX:-Y}" == "Y" ]]; then
-            php backend/vendor/bin/phpcbf --standard=PSR12 --ignore=vendor/* backend || {
+            "$PHP_BIN" backend/vendor/bin/phpcbf --standard=PSR12 --ignore=vendor/* backend || {
                 echo "[ERROR] PHPCBF failed."
                 exit 1
             }
 
             echo "Re-running phpcs to verify..."
-            php backend/vendor/bin/phpcs --standard=PSR12 --ignore=vendor/* backend || {
+            "$PHP_BIN" backend/vendor/bin/phpcs --standard=PSR12 --ignore=vendor/* backend || {
                 echo "[ERROR] Some PHPCS issues remain after PHPCBF."
                 echo "You will need to fix the remaining violations manually."
                 exit 1
