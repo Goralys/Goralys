@@ -16,7 +16,8 @@ final class AppContext
 {
     public function __construct(
         public ToastMode $mode,
-        public string $originDomain,
+        public bool $hasHighSchoolToken,
+        public ?string $originDomain,
         public bool $isDev,
     ) {
     }

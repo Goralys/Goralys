@@ -6,18 +6,27 @@
  */
 
 use Goralys\Kernel\GoralysKernel;
+use Goralys\Platform\Loader\Services\EnvService;
 use Goralys\Platform\Loader\Services\HighSchoolsService;
 use Goralys\Shared\Config\GoralysConfig;
 
-// loads the .env file into the environment before the kernel is initialized
-function loadPreBootEnv(): void
+function isPublic(string $uri): bool
 {
-    $envPath = __DIR__ . "/../../.env";
-    if (file_exists($envPath)) {
-        foreach (parse_ini_file($envPath) as $key => $value) {
-            putenv("$key=$value");
-        }
-    }
+    $publicPrefixes = ['/highschools'];
+    return array_any($publicPrefixes, fn($prefix) => str_starts_with($uri, $prefix));
+}
+
+// loads the .env file into the environment before the kernel is initialized
+function loadPreBootEnv(): EnvService
+{
+    $envPath = __DIR__ . "/../../";
+    $envService = new EnvService();
+    $success = $envService->load($envPath);
+
+    error_log("ENV - load success=" . ($success ? 'true' : 'false') . ", path=" . $envPath);
+    error_log("ENV - GORALYS_ENVIRONMENT after load: " . ($_ENV['GORALYS_ENVIRONMENT'] ?? 'STILL UNDEFINED'));
+
+    return $envService;
 }
 
 // ----------- API bootstrap method ---------- //
@@ -27,15 +36,16 @@ function loadPreBootEnv(): void
  * Relies solely on MASTER_DOMAIN (and the ALLOWED_DOMAINS fallback) — never on the
  * high-school-token, since preflight (OPTIONS) requests never carry it.
  * @param string $origin The Origin header sent by the browser.
+ * @param EnvService $env The loaded environment variables.
  * @return bool
  */
-function isAllowedOrigin(string $origin): bool
+function isAllowedOrigin(string $origin, EnvService $env): bool
 {
     if ($origin === '') {
         return false;
     }
 
-    $masterDomain = getenv("MASTER_DOMAIN") ?: '';
+    $masterDomain = $env->getByKey("MASTER_DOMAIN") ?: '';
 
     if ($masterDomain !== '') {
         $escapedDomain = preg_quote($masterDomain, '/');
@@ -49,7 +59,7 @@ function isAllowedOrigin(string $origin): bool
     }
 
     // Fallback
-    $extra = array_map('trim', explode(",", getenv("ALLOWED_DOMAINS") ?: ''));
+    $extra = array_map('trim', explode(",", $env->getByKey("ALLOWED_DOMAINS") ?: ''));
     return in_array($origin, $extra, true);
 }
 
@@ -57,15 +67,16 @@ function isAllowedOrigin(string $origin): bool
  * Sets CORS headers based on the request Origin.
  * Must run before any token/kernel resolution, so that preflight (OPTIONS) requests —
  * which never carry the high-school-token — still get a valid CORS response.
+ * @param EnvService $env The loaded environment variables.
  * @return void
  */
-function setCorsHeaders(): void
+function setCorsHeaders(EnvService $env): void
 {
     $origin = $_SERVER['HTTP_ORIGIN'] ?? ($_SERVER['HTTP_X_FORWARDED_ORIGIN'] ?? '');
 
     error_log("CORS - 1: request origin=" . ($origin !== '' ? $origin : 'none'));
 
-    if (isAllowedOrigin($origin)) {
+    if (isAllowedOrigin($origin, $env)) {
         error_log("CORS - 2: origin ALLOWED");
         header("Access-Control-Allow-Origin: $origin");
         header('Access-Control-Allow-Credentials: true');
@@ -190,11 +201,21 @@ function bootstrapAPI(GoralysKernel $kernel): void
  */
 function bootKernel(): GoralysKernel
 {
-    loadPreBootEnv();
+    $env = loadPreBootEnv();
+    $uri = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH);
+
     error_log("KERNEL - 0: bootKernel start, method=" . ($_SERVER['REQUEST_METHOD'] ?? 'unknown')
         . ", uri=" . ($_SERVER['REQUEST_URI'] ?? 'unknown'));
 
-    setCorsHeaders();
+    if (isPublic($uri)) {
+        error_log("KERNEL - 1: public resource, skipping CORS/token checks");
+        $kernel = new GoralysKernel(__DIR__ . "/../../", skipHighSchoolToken: true);
+        $kernel->setHandlers();
+        bootstrapAPI($kernel);
+        return $kernel;
+    }
+
+    setCorsHeaders($env);
     handlePreflight();
 
     $token = getHighSchoolToken();

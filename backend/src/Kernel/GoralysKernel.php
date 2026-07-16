@@ -90,30 +90,30 @@ use Throwable;
  */
 class GoralysKernel
 {
-    public EnvService $env;
-    public HighSchoolsService $highSchools;
-    public GoralysLib $utils;
-    public DbContainerInterface $db;
-    public MailContainerInterface $mailer;
-    public LoggerInterface $logger;
-    public AuthController $auth;
-    public UserController $users;
-    public GoralysFileManager $fileManager;
-    public SubjectsController $subjects;
-    public TopicsController $topics;
-    public ToastController $toast;
-    public SupportController $support;
-    public GuardInterface $guard;
-    public CSRFService $csrf;
-    public UsernameManager $usernames;
+    private(set) EnvService $env;
+    private(set) HighSchoolsService $highSchools;
+    private(set) GoralysLib $utils;
+    private(set) DbContainerInterface $db;
+    private(set) MailContainerInterface $mailer;
+    private(set) LoggerInterface $logger;
+    private(set) AuthController $auth;
+    private(set) UserController $users;
+    private(set) GoralysFileManager $fileManager;
+    private(set) SubjectsController $subjects;
+    private(set) TopicsController $topics;
+    private(set) ToastController $toast;
+    private(set) SupportController $support;
+    private(set) GuardInterface $guard;
+    private(set) CSRFService $csrf;
+    private(set) UsernameManager $usernames;
     private(set) RouterInterface $router;
     private string $rootPath;
     private RateLimiter $rateLimiter;
     /**
      * This variable is used to determine the context of the app.
-     * @var AppContext
+     * @var ?AppContext
      */
-    private AppContext $context;
+    private ?AppContext $context = null;
     private RequestInterface $request;
     private DomPdfExporter $exporter;
     private int $sessionLifetime;
@@ -151,7 +151,7 @@ class GoralysKernel
      * @param string $rootPath The path to the .env file and that is considered to be the root path for the kernel.
      * @param FileMover|null $mover The file mover used by the kernel.
      */
-    public function __construct(string $rootPath, ?FileMover $mover = null)
+    public function __construct(string $rootPath, ?FileMover $mover = null, bool $skipHighSchoolToken = false)
     {
         $this->rootPath = $rootPath;
 
@@ -163,8 +163,9 @@ class GoralysKernel
         $this->sessionLifetimeMultiplier = $this->env->getByKey("PHP_SESSION_LIFETIME_MULTIPLIER");
         $this->context = new AppContext(
             ToastMode::DEFAULT,
-            trim($this->getOriginDomain()),
-            $this->env->getByKey("GORALYS_ENVIRONMENT") === "dev"
+            !$skipHighSchoolToken,
+            trim($this->getOriginDomain($skipHighSchoolToken)),
+            $this->env->getByKey("GORALYS_ENVIRONMENT") === "dev",
         );
         $this->startSession();
         $this->initRouter();
@@ -227,8 +228,12 @@ class GoralysKernel
         $this->logger->rotate();
     }
 
-    public function getOriginDomain(): ?string
+    public function getOriginDomain(bool $skip = false): ?string
     {
+        if ($skip || ($this->context && !$this->context->hasHighSchoolToken)) {
+            return null;
+        }
+
         $token = $this->request()->header("HTTP_X_HIGH_SCHOOL_TOKEN") ?? $this->request()->param("high-school-token");
 
         if ($token === null) {
