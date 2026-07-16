@@ -1,6 +1,6 @@
 {
     "name": "@goralys/core",
-    "version": "1.4.0",
+    "version": "1.4.1",
     "license": "LGPL-2.1-or-later",
     "description": "Shared business logic for the Goralys web application",
     "repository": {
