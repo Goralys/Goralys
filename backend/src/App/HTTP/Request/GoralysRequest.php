@@ -60,6 +60,7 @@ final class GoralysRequest implements RequestInterface
      */
     public function header(string $key): ?string
     {
+        $key = "HTTP_" . strtoupper(str_replace("-", "_", $key));
         return $_SERVER[$key] ?? null;
     }
 

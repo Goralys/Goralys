@@ -34,6 +34,7 @@ use ErrorException;
 use Exception;
 use Goralys\App\Config\RateLimiterConfig;
 use Goralys\App\Context\AppContext;
+use Goralys\App\Context\Data\Client;
 use Goralys\App\Context\Data\ToastMode;
 use Goralys\App\HTTP\Files\GoralysFileManager;
 use Goralys\App\HTTP\Files\Interface\FileExtractor;
@@ -163,6 +164,7 @@ class GoralysKernel
         $this->sessionLifetimeMultiplier = $this->env->getByKey("PHP_SESSION_LIFETIME_MULTIPLIER");
         $this->context = new AppContext(
             ToastMode::DEFAULT,
+            Client::fromRequest($this->request()),
             !$skipHighSchoolToken,
             trim($this->getOriginDomain($skipHighSchoolToken)),
             $this->env->getByKey("GORALYS_ENVIRONMENT") === "dev",
@@ -228,21 +230,6 @@ class GoralysKernel
         $this->logger->rotate();
     }
 
-    public function getOriginDomain(bool $skip = false): ?string
-    {
-        if ($skip || ($this->context && !$this->context->hasHighSchoolToken)) {
-            return null;
-        }
-
-        $token = $this->request()->header("HTTP_X_HIGH_SCHOOL_TOKEN") ?? $this->request()->param("high-school-token");
-
-        if ($token === null) {
-            $this->response(400)->http(); // Bad Request
-        }
-
-        return $this->highSchools->getDomainForSchool($token);
-    }
-
     /**
      * Gets the kernel's current HTTP request
      * @return RequestInterface The request.
@@ -256,6 +243,21 @@ class GoralysKernel
         return $this->request;
     }
 
+    public function getOriginDomain(bool $skip = false): ?string
+    {
+        if ($skip || ($this->context && !$this->context->hasHighSchoolToken)) {
+            return null;
+        }
+
+        $token = $this->request()->header("X-High-School-Token") ?? $this->request()->param("high-school-token");
+
+        if ($token === null) {
+            $this->response(400)->http(); // Bad Request
+        }
+
+        return $this->highSchools->getDomainForSchool($token);
+    }
+
     /**
      * Generate a new HTTP response.
      * @param int $code The response's code (default = 200).
@@ -265,7 +267,7 @@ class GoralysKernel
     {
         $files = new HttpFileResponder();
         $json = new HttpJsonResponder();
-        return new ImmediateResponse($code, $this->logger, $files, $json);
+        return new ImmediateResponse($code, $this->logger, $files, $json, $this->context);
     }
 
     /**
@@ -608,7 +610,8 @@ class GoralysKernel
 
     public function deferredResponse(int $code = 200): DeferredResponseInterface
     {
-        return new DeferredResponse($this->context, $code);
+        $json = new HttpJsonResponder();
+        return new DeferredResponse($this->context, $json, $code);
     }
 
     /**
@@ -647,7 +650,7 @@ class GoralysKernel
         }
 
         try {
-            $token = $this->request()->header("HTTP_X_HIGH_SCHOOL_TOKEN")
+            $token = $this->request()->header("X-High-School-Token")
                    ?? $this->request()->param("high-school-token");
             return $this->db->connect($this->highSchools->getDbForSchool($token));
         } catch (Exception $e) {

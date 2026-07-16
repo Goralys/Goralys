@@ -6,6 +6,7 @@
 export interface GoralysClientConfig {
     apiDomain: string;
     schoolToken: string;
+    isNative: boolean;
 }
 
 let config: GoralysClientConfig | null = null;

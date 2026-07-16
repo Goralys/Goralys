@@ -18,12 +18,16 @@ export async function goralysFetchClient(
     payload?: Record<string, string | number | boolean | null> | FormData,
     requestOptions?: RequestInit,
 ): Promise<Response> {
-    const { apiDomain, schoolToken } = getGoralysClientConfig();
+    const { apiDomain, schoolToken, isNative } = getGoralysClientConfig();
 
     const res = await fetch(`${apiDomain}/${input}`, {
         credentials: "include",
         method: method === "BREW" ? "POST" : method,
-        headers: { ...(method === "BREW" ? { "X-HTTP-Method-Override": method } : {}), "X-High-School-Token": schoolToken },
+        headers: {
+            ...(method === "BREW" ? { "X-HTTP-Method-Override": method } : {}),
+            "X-High-School-Token": schoolToken,
+            "X-Goralys-Client": isNative ? "mobile" : "desktop",
+        },
         body: payload ? (payload instanceof FormData ? payload : JSON.stringify(payload)) : undefined,
         ...requestOptions,
     });
@@ -57,10 +61,14 @@ export async function goralysFetchClient(
 }
 
 export async function fetchCsrfClient(formId: string): Promise<string | null> {
-    const { apiDomain, schoolToken } = getGoralysClientConfig();
+    const { apiDomain, schoolToken, isNative } = getGoralysClientConfig();
     const res = await fetch(`${apiDomain}/csrf`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "X-High-School-Token": schoolToken },
+        headers: {
+            "Content-Type": "application/json",
+            "X-High-School-Token": schoolToken,
+            "X-Goralys-Client": isNative ? "mobile" : "desktop",
+        },
         credentials: "include",
         body: JSON.stringify({ form: formId }),
     });

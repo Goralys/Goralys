@@ -8,7 +8,9 @@
 namespace Goralys\App\HTTP\Response;
 
 use Goralys\App\Context\AppContext;
+use Goralys\App\Context\Data\Client;
 use Goralys\App\Context\Data\ToastMode;
+use Goralys\App\HTTP\JSON\Interfaces\JsonResponder;
 use Goralys\App\Utils\Toast\Controllers\ToastController;
 use Goralys\App\Utils\Toast\Data\Enums\ToastType;
 use Goralys\App\Utils\Toast\Data\ToastDTO;
@@ -28,6 +30,7 @@ use JetBrains\PhpStorm\NoReturn;
 final class DeferredResponse implements Interfaces\DeferredResponseInterface
 {
     private AppContext $context;
+    private JsonResponder $json;
     private ?ToastDTO $toast = null;
     private ?string $action = null;
     private ToastController $controller;
@@ -35,11 +38,13 @@ final class DeferredResponse implements Interfaces\DeferredResponseInterface
 
     /**
      * @param AppContext $context The current application context.
+     * @param JsonResponder $json The JSON responder service.
      * @param int $responseCode The HTTP code of the response.
      */
-    public function __construct(AppContext $context, int $responseCode = 200)
+    public function __construct(AppContext $context, JsonResponder $json, int $responseCode = 200)
     {
         $this->context = $context;
+        $this->json = $json;
         $this->code = $responseCode;
         $this->controller = new ToastController();
     }
@@ -125,7 +130,11 @@ final class DeferredResponse implements Interfaces\DeferredResponseInterface
             http_response_code(302);
             $this->controller->responder->sendToast($this->toast, $this->action ?? "");
             error_log("KERNEL - 3: redirecting to: " . $this->toast->redirect);
-            header('Location: ' . $this->toast->redirect);
+            if ($this->context->client === Client::WEB) {
+                header("Location: " . $this->toast->redirect);
+            } elseif ($this->context->client === Client::MOBILE) {
+                $this->json->send(["redirect" => $this->toast->redirect]);
+            }
             exit;
         }
         http_response_code($this->code);

@@ -7,6 +7,7 @@
 
 namespace Goralys\App\Context;
 
+use Goralys\App\Context\Data\Client;
 use Goralys\App\Context\Data\ToastMode;
 
 /**
@@ -16,6 +17,7 @@ final class AppContext
 {
     public function __construct(
         public ToastMode $mode,
+        public Client $client,
         public bool $hasHighSchoolToken,
         public ?string $originDomain,
         public bool $isDev,
