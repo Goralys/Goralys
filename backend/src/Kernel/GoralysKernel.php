@@ -162,11 +162,16 @@ class GoralysKernel
         $this->initLogger();
         $this->sessionLifetime = $this->env->getByKey("PHP_SESSION_LIFETIME");
         $this->sessionLifetimeMultiplier = $this->env->getByKey("PHP_SESSION_LIFETIME_MULTIPLIER");
+        $client = Client::fromRequest($this->request());
+        $origin = match ($client) {
+            Client::MOBILE => "",
+            default => $this->getOriginDomain($skipHighSchoolToken),
+        };
         $this->context = new AppContext(
             ToastMode::DEFAULT,
-            Client::fromRequest($this->request()),
+            $client,
             !$skipHighSchoolToken,
-            trim($this->getOriginDomain($skipHighSchoolToken)),
+            trim($origin),
             $this->env->getByKey("GORALYS_ENVIRONMENT") === "dev",
         );
         $this->startSession();
@@ -277,17 +282,19 @@ class GoralysKernel
     private function startSession(): void
     {
         if (session_status() !== PHP_SESSION_ACTIVE) {
+            $isMobile = $this->context->client === Client::MOBILE;
+            $domain = $isMobile ? null : $this->env->getByKey("COOKIES_DOMAIN");
             ini_set('session.gc_maxlifetime', $this->getSessionLifetime());
             ini_set('session.cookie_lifetime', $this->getSessionLifetime());
-            error_log("SESSION - domain used: '" . ($this->env->getByKey("COOKIES_DOMAIN") ?? 'NULL/EMPTY') . "'");
+            error_log("SESSION - domain used: '" . ($domain ?? 'NULL/EMPTY') . "'");
             session_set_cookie_params([
                 // Ensure the session expiration logic works as intended. Refer to variable docs for more info.
                 'lifetime' => $this->getSessionLifetime(),
                 'path' => '/',
-                'domain' => $this->env->getByKey("COOKIES_DOMAIN"),
+                'domain' => $domain,
                 'secure' => true,
                 'httponly' => true,
-                'samesite' => $this->context->isDev ? 'None' : 'Lax',
+                'samesite' => $this->context->isDev ? 'None' : ($isMobile ? 'None' : 'Lax'),
             ]);
 
             session_name("GORALYSSESSID");

@@ -38,6 +38,10 @@ export async function goralysFetchClient(
 
     const data = await clone.json();
 
+    if (data?.redirect) {
+        emitNavigationEvent({ type: "redirect", url: data.redirect });
+    }
+
     if (res.status === 401) {
         try {
             emitAuthEvent(data?.authEvent ?? "unauthenticated");

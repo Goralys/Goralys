@@ -95,7 +95,10 @@ final class DeferredResponse implements Interfaces\DeferredResponseInterface
      */
     public function redirect(string $path): self
     {
-        $destination = trim($this->context->originDomain, "/") . "/" . trim($path, "/") . "/";
+        $destination = trim($this->context->originDomain, "/") . "/" . trim($path, "/");
+        if ($destination !== "/") {
+            $destination = $destination . "/";
+        }
         $this->toast->redirect = $destination;
         return $this;
     }
