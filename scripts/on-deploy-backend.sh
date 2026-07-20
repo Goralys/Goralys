@@ -146,6 +146,40 @@ mkdir -p ./backend/Assets/StudentsDrafts
 echo "[OK] Directories are ready."
 echo
 
+echo "[4.1/5] Creating .htaccess ..."
+echo "[NOTE] This action is specific to this script"
+cat > .htaccess << 'EOF'
+RewriteEngine On
+
+# Bloque toute exécution/accès direct aux fichiers PHP en dehors de backend/public/
+RewriteCond %{REQUEST_URI} !^/backend/public/
+RewriteCond %{REQUEST_URI} \.php$
+RewriteRule .* - [F,L]
+
+# Blocks backend/Assets/ entirely (schools_list, StudentsDrafts/, etc.)
+RewriteCond %{REQUEST_URI} ^/backend/Assets/
+RewriteRule .* - [F,L]
+
+# Blocks sensible files by name (without extensions, like schools_list)
+<FilesMatch "^schools_list$">
+    Require all denied
+</FilesMatch>
+
+# Blocks all sensible extensions
+<FilesMatch "\.(env|sql|ini|log|md|lock)$">
+    Require all denied
+</FilesMatch>
+
+# /public/... -> backend/public/... internally (proper URLs)
+RewriteCond %{REQUEST_URI} ^/public/
+RewriteRule ^public/(.*)$ /backend/public/$1 [L]
+
+# Catch-all : other request -> backend/public/
+RewriteCond %{REQUEST_URI} !^/backend/public/
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^(.*)$ /backend/public/$1 [L]
+EOF
+
 echo "[5/5] Running checks"
 
 read -r -p "Would you like the setup to run checks (phpcs)? (Y/n) : " RUN_CHECKS
