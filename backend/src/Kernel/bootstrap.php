@@ -208,7 +208,8 @@ function bootKernel(): GoralysKernel
         . ", uri=" . ($_SERVER['REQUEST_URI'] ?? 'unknown'));
 
     if (isPublic($uri)) {
-        error_log("KERNEL - 1: public resource, skipping CORS/token checks");
+        error_log("KERNEL - 1: public resource, skipping token checks");
+        setCorsHeaders($env);
         $kernel = new GoralysKernel(__DIR__ . "/../../", skipHighSchoolToken: true);
         $kernel->setHandlers();
         bootstrapAPI($kernel);
