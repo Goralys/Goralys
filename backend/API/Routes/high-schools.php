@@ -2,6 +2,7 @@
 
 use Goralys\App\HTTP\Middleware\RateLimitMiddleware;
 use Goralys\App\HTTP\Request\Interfaces\RequestInterface;
+use Goralys\App\Router\Options\RouterOptions;
 use Goralys\App\Router\Routes;
 use Goralys\Kernel\GoralysKernel;
 
@@ -18,5 +19,5 @@ Routes::get("highschools/token", function (GoralysKernel $kernel, RequestInterfa
     }
 
     $kernel->response()->json(["token" =>  $token]);
-})
+}, RouterOptions::$INPUT::require("code"))
     ->middleware(...RateLimitMiddleware::for("get-high-school-token"));

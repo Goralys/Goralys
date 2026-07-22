@@ -5,7 +5,7 @@
 
 export interface GoralysClientConfig {
     apiDomain: string;
-    schoolToken: string;
+    getSchoolToken: () => string;
     isNative: boolean;
 }
 

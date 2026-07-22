@@ -7,7 +7,7 @@ export default function Bootstrap(): null {
     configGoralysCore({
         client: {
             apiDomain: process.env.NEXT_PUBLIC_API_DOMAIN ?? "",
-            schoolToken: process.env.NEXT_PUBLIC_API_TOKEN ?? "",
+            getSchoolToken: () => process.env.NEXT_PUBLIC_API_TOKEN ?? "",
             isNative: false,
         },
         storage: {
