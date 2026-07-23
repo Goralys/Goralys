@@ -87,7 +87,7 @@ function setCorsHeaders(EnvService $env): void
 
     header('Access-Control-Allow-Methods: GET, POST, OPTIONS, DELETE, PATCH, PUT, BREW, WHEN');
     header('Access-Control-Max-Age: 86400'); // 1 day
-    header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With,'
+    header('Access-Control-Allow-Headers: Content-Type, Accept, Authorization, X-Requested-With,'
             . 'X-HTTP-Method-Override, X-High-School-Token');
 
     error_log("CORS - 3: headers set (unconditional Allow-Methods/Allow-Headers included)");
@@ -210,6 +210,7 @@ function bootKernel(): GoralysKernel
     if (isPublic($uri)) {
         error_log("KERNEL - 1: public resource, skipping token checks");
         setCorsHeaders($env);
+        handlePreflight();
         $kernel = new GoralysKernel(__DIR__ . "/../../", skipHighSchoolToken: true);
         $kernel->setHandlers();
         bootstrapAPI($kernel);
