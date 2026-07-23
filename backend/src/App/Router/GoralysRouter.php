@@ -68,7 +68,7 @@ final class GoralysRouter implements RouterInterface
         if (!array_key_exists($method, $routes) || !array_key_exists($path, $routes[$method])) {
             $this->kernel->logger->error(
                 LoggerInitiator::APP,
-                "Unknow route $path, known:\n" . $this->formatKnownRoutes($routes),
+                "Unknow route $method $path, known:\n" . $this->formatKnownRoutes($routes),
             );
             $this->kernel->response(404)->http();
         }
