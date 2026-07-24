@@ -87,8 +87,8 @@ function setCorsHeaders(EnvService $env): void
 
     header('Access-Control-Allow-Methods: GET, POST, OPTIONS, DELETE, PATCH, PUT, BREW, WHEN');
     header('Access-Control-Max-Age: 86400'); // 1 day
-    header('Access-Control-Allow-Headers: Content-Type, Accept, Authorization, X-Requested-With,'
-            . 'X-HTTP-Method-Override, X-High-School-Token');
+    header('Access-Control-Allow-Headers: Content-Type, Accept, Authorization, Cache-Control, Pragma, Expires,'
+            . 'X-Requested-With, X-HTTP-Method-Override, X-High-School-Token');
 
     error_log("CORS - 3: headers set (unconditional Allow-Methods/Allow-Headers included)");
 }
