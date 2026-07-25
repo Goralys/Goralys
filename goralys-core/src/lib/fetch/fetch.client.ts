@@ -18,7 +18,11 @@ export async function goralysFetchClient(
     payload?: Record<string, string | number | boolean | null> | FormData,
     requestOptions?: RequestInit,
 ): Promise<Response> {
+    if (requestOptions?.body)
+        console.error("[Fetch] Found body inside request options. This is not allowed, consider using the payload parameter instead");
+
     const { apiDomain, getSchoolToken, isNative } = getGoralysClientConfig();
+    const { headers: extraHeaders, ...restOptions } = requestOptions ?? {};
 
     const res = await fetch(`${apiDomain}/${input}`, {
         credentials: "include",
@@ -27,9 +31,10 @@ export async function goralysFetchClient(
             ...(method === "BREW" ? { "X-HTTP-Method-Override": method } : {}),
             "X-High-School-Token": getSchoolToken(),
             "X-Goralys-Client": isNative ? "mobile" : "desktop",
+            ...extraHeaders,
         },
         body: payload ? (payload instanceof FormData ? payload : JSON.stringify(payload)) : undefined,
-        ...requestOptions,
+        ...restOptions,
     });
 
     const clone = res.clone();
