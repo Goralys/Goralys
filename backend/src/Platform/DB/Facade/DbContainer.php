@@ -146,7 +146,7 @@ final class DbContainer implements DbContainerInterface
             throw new GoralysQueryException("Could not run the statement");
         }
 
-        return true;
+        return $stmt->affected_rows > 0;
     }
 
     /**
