@@ -8,9 +8,13 @@
 namespace Goralys\App\User\Controllers;
 
 use Goralys\App\User\Data\Enums\UserAuthStatus;
+use Goralys\App\User\Data\TokenCreateDTO;
+use Goralys\App\User\Data\TokenLoginDTO;
 use Goralys\Core\User\Data\Enums\UserRole;
 use Goralys\Core\User\Data\UserLoginDTO;
 use Goralys\Core\User\Data\UserRegisterDTO;
+use Goralys\Core\User\Repository\AuthRepository;
+use Goralys\Core\User\Repository\Interfaces\AuthRepositoryInterface;
 use Goralys\Core\User\Repository\Interfaces\UserRepositoryInterface;
 use Goralys\Core\User\Repository\UserRepository;
 use Goralys\Core\User\Services\AddEmailService;
@@ -24,9 +28,10 @@ use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
 use Goralys\Platform\Logger\Interfaces\LoggerInterface;
 use Goralys\Shared\Config\GoralysConfig as Config;
 use Goralys\Shared\Exception\User\UserNotFoundException;
+use Random\RandomException;
 
 /**
- * The controller that handles the authentification logic (register, login, and logout).
+ * The controller that handles the authentication logic (register, login, and logout).
  */
 final class AuthController
 {
@@ -38,7 +43,8 @@ final class AuthController
 
     private LoggerInterface $logger;
     private DbContainerInterface $db;
-    private UserRepositoryInterface $repo;
+    private UserRepositoryInterface $users;
+    private AuthRepositoryInterface $repo;
     /**
      * The lifetime of the PHP session, the kernel passes this variable when the controller is constructed.
      * @var int
@@ -64,7 +70,8 @@ final class AuthController
         $this->sessionLifetime = $sessionLifetime;
         $this->sessionMultiplier = $sessionLifetimeMultiplier;
 
-        $this->repo = new UserRepository($this->logger, $this->db);
+        $this->users = new UserRepository($this->logger, $this->db);
+        $this->repo = new AuthRepository($this->logger, $this->db);
     }
 
     /**
@@ -76,10 +83,10 @@ final class AuthController
     {
         $userData->sanitize();
 
-        $validator = new RegisterValidatorService($this->repo);
-        $roleGetter = new GetUserRoleService($this->repo);
-        $userCreator = new CreateUserService($this->repo);
-        $emailAdder = new AddEmailService($this->repo);
+        $validator = new RegisterValidatorService($this->users);
+        $roleGetter = new GetUserRoleService($this->users);
+        $userCreator = new CreateUserService($this->users);
+        $emailAdder = new AddEmailService($this->users);
 
         $service = new RegisterService(
             $this->logger,
@@ -92,13 +99,25 @@ final class AuthController
     }
 
     /**
+     * Checks if a password is correct for the current user.
+     * @param string $password The password to check.
+     * @return bool Whether the password is correct.
+     * @throws UserNotFoundException If the user does not exist.
+     */
+    public function validatePassword(string $password): bool
+    {
+        $service = new LoginService($this->logger, $this->users);
+        return $service->checkPassword(new UserLoginDTO($_SESSION[Config::SESSION::USERNAME], $password));
+    }
+
+    /**
      * Log in the user via a login service.
      * @param UserLoginDTO $userData The necessary credentials to log in the user.
      * @return bool If the login was successful or not.
      */
     public function login(UserLoginDTO $userData): bool
     {
-        $service = new LoginService($this->logger, $this->repo);
+        $service = new LoginService($this->logger, $this->users);
 
         try {
             if (!$service->login($userData)) {
@@ -106,12 +125,12 @@ final class AuthController
             }
 
             session_regenerate_id(true);
-            $sessionData = $this->repo->getByUsername($userData->username);
+            $sessionData = $this->users->getByUsername($userData->username);
 
             $_SESSION[Config::SESSION::ID] = $sessionData->id;
             $_SESSION[Config::SESSION::FULL_NAME] = $sessionData->fullName;
             $_SESSION[Config::SESSION::USERNAME] = $sessionData->username;
-            $_SESSION[Config::SESSION::PUBLIC_ID] = $this->repo->getPublicIdForUsername($sessionData->username);
+            $_SESSION[Config::SESSION::PUBLIC_ID] = $this->users->getPublicIdForUsername($sessionData->username);
             $_SESSION[Config::SESSION::ROLE] = $sessionData->role->toString();
             $_SESSION[Config::SESSION::EMAIL] = $sessionData->email;
 
@@ -122,6 +141,40 @@ final class AuthController
         } catch (UserNotFoundException) {
             return false;
         }
+    }
+
+    /**
+     * Creates a new authentication for a given user.
+     * @param TokenCreateDTO $data The data necessary to create the authentication token.
+     * @return ?string Null if the token could not be added to the user, the generated token elsewhise.
+     * @throws RandomException If the token generation fails.
+     */
+    public function createToken(TokenCreateDTO $data): ?string
+    {
+        $token = bin2hex(random_bytes(Config::AUTH::AUTH_TOKEN_LENGTH));
+        return $this->repo->addToken($data->username, hash(Config::AUTH::AUTH_TOKEN_ALGORITHM, $token), $data->name)
+            ? $token
+            : null;
+    }
+
+    /**
+     * Tries to log a user in based on his username and a given auth token.
+     * If the token is valid, the function automatically attempts to rotate it.
+     * @param TokenLoginDTO $data The necessary credentials to log the user in with an authentication token.
+     * @return ?string Null if the token is invalid or is the rotation fails, the new token elsewhise.
+     * @throws RandomException If the new token generation fails.
+     */
+    public function tokenLogin(TokenLoginDTO $data): ?string
+    {
+        $new = bin2hex(random_bytes(Config::AUTH::AUTH_TOKEN_LENGTH));
+        $oldHash = hash(Config::AUTH::AUTH_TOKEN_ALGORITHM, $data->token);
+        $newHash = hash(Config::AUTH::AUTH_TOKEN_ALGORITHM, $new);
+        $result =
+            $this->repo->isTokenValid($data->username, $oldHash)
+            && $this->repo->rotateToken($data->username, $oldHash, $newHash);
+        return $result
+            ? $new
+            : null;
     }
 
     /**
@@ -178,7 +231,7 @@ final class AuthController
 
     /**
      * Checks if the user is authenticated.
-     * The authentification cookie expires after an hour.
+     * The authentication cookie expires after an hour.
      * @param int $sinceLastConnection The time elapsed since the last user connection
      * @return UserAuthStatus If the user is authenticated.
      */

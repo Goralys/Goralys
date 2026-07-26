@@ -12,11 +12,9 @@ use Goralys\App\User\Data\UserGetDTO;
 use Goralys\App\User\Data\UsernameTable;
 use Goralys\Core\User\Data\Enums\UserRole;
 use Goralys\Core\User\Data\UserFullDTO;
-use Goralys\Core\User\Data\UserLoginDTO;
 use Goralys\Core\User\Data\VirtualUserDTO;
 use Goralys\Core\User\Repository\Interfaces\UserRepositoryInterface;
 use Goralys\Core\User\Repository\UserRepository;
-use Goralys\Core\User\Services\LoginService;
 use Goralys\Core\User\Services\UsernameManager;
 use Goralys\Platform\DB\Interfaces\DbContainerInterface;
 use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
@@ -24,7 +22,6 @@ use Goralys\Platform\Logger\Interfaces\LoggerInterface;
 use Goralys\Shared\Config\GoralysConfig as Config;
 use Goralys\Shared\Exception\GoralysRuntimeException;
 use Goralys\Shared\Exception\User\GoralysUserException;
-use Goralys\Shared\Exception\User\UserNotFoundException;
 use Goralys\Shared\Lib\GoralysLib as Lib;
 use Goralys\Shared\Lib\String\StringCase;
 use Goralys\Shared\User\Data\FullNameDTO;
@@ -153,18 +150,6 @@ final class UserController
     public function revokeAdmin(string $publicId): bool
     {
         return $this->repo->revokeAdmin($this->usernames->get($publicId));
-    }
-
-    /**
-     * Checks if a password is correct for the current user.
-     * @param string $password The password to check.
-     * @return bool Whether the password is correct.
-     * @throws UserNotFoundException If the user does not exist.
-     */
-    public function validatePassword(string $password): bool
-    {
-        $service = new LoginService($this->logger, $this->repo);
-        return $service->checkPassword(new UserLoginDTO($_SESSION[Config::SESSION::USERNAME], $password));
     }
 
     /**

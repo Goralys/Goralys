@@ -352,7 +352,7 @@ class GoralysKernel
     }
 
     /**
-     * Initializes the authentification controller of the kernel.
+     * Initializes the authentication controller of the kernel.
      * @return void
      */
     private function initAuth(): void
@@ -687,7 +687,7 @@ class GoralysKernel
 
     /**
      * Helper to check if the user is authenticated. Destroys the session on failure.
-     * @param string $endpoint The endpoint the authentification is required in.
+     * @param string $endpoint The endpoint the authentication is required in.
      * @return void
      */
     public function requireAuth(string $endpoint): void
@@ -700,7 +700,7 @@ class GoralysKernel
                 $this->destroySession();
                 $this->logger->warning(
                     LoggerInitiator::CORE,
-                    "Tried to perform action: $endpoint without authentification",
+                    "Tried to perform action: $endpoint without authentication",
                 );
 
                 $this->response(401)->json(["authEvent" => "expired"]); // Unauthorized
@@ -709,7 +709,7 @@ class GoralysKernel
                 $this->destroySession();
                 $this->logger->warning(
                     LoggerInitiator::CORE,
-                    "Tried to perform action: $endpoint without authentification",
+                    "Tried to perform action: $endpoint without authentication",
                 );
 
                 $this->response(401)->json(["authEvent" => "unauthenticated"]); // Unauthorized

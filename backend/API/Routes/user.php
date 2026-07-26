@@ -245,7 +245,7 @@ Routes::post('admin/create', function (GoralysKernel $kernel, RequestInterface $
         "L'administrateur n'a pas pu être créé, trop d'administrateurs ont les mêmes initiales."
     );
 
-    if (!$kernel->users->validatePassword($request->param("admin-password"))) {
+    if (!$kernel->auth->validatePassword($request->param("admin-password"))) {
         $kernel->deferredResponse(501)->toast( // Unauthorized
             ToastType::WARNING,
             "Mot de passe",
@@ -282,7 +282,7 @@ Routes::post('admin/create', function (GoralysKernel $kernel, RequestInterface $
         ->middleware(...DbMiddleware::transaction());
 
 Routes::delete('admin/revoke', function (GoralysKernel $kernel, RequestInterface $request) {
-    if (!$kernel->users->validatePassword($request->param("admin-password"))) {
+    if (!$kernel->auth->validatePassword($request->param("admin-password"))) {
         $kernel->deferredResponse(401)->toast( // Unauthorized
             ToastType::WARNING,
             "Mot de passe",
@@ -320,7 +320,7 @@ Routes::delete('admin/revoke', function (GoralysKernel $kernel, RequestInterface
 // --------------------------------------------------
 
 Routes::patch('users/reset', function (GoralysKernel $kernel, RequestInterface $request) {
-    if (!$kernel->users->validatePassword($request->param("admin-password"))) {
+    if (!$kernel->auth->validatePassword($request->param("admin-password"))) {
         $kernel->logger->debug(LoggerInitiator::APP, "Terminating reset password !");
         $kernel->deferredResponse(501)->toast( // Unauthorized
             ToastType::WARNING,
@@ -372,7 +372,7 @@ Routes::patch('users/reset', function (GoralysKernel $kernel, RequestInterface $
         ->middleware(...DbMiddleware::require());
 
 Routes::delete('users', function (GoralysKernel $kernel, RequestInterface $request) {
-    if (!$kernel->users->validatePassword($request->param("admin-password"))) {
+    if (!$kernel->auth->validatePassword($request->param("admin-password"))) {
         $kernel->deferredResponse(501)->toast( // Unauthorized
             ToastType::WARNING,
             "Mot de passe",
@@ -406,7 +406,7 @@ Routes::delete('users', function (GoralysKernel $kernel, RequestInterface $reque
 // --------------------------------------------------
 
 Routes::put('users/teacher/replace', function (GoralysKernel $kernel, RequestInterface $request) {
-    if (!$kernel->users->validatePassword($request->param("admin-password"))) {
+    if (!$kernel->auth->validatePassword($request->param("admin-password"))) {
         $kernel->deferredResponse(501)->toast( // Unauthorized
             ToastType::WARNING,
             "Mot de passe",
@@ -442,7 +442,7 @@ Routes::put('users/teacher/replace', function (GoralysKernel $kernel, RequestInt
         ->middleware(...DbMiddleware::transaction());
 
 Routes::get('users/username', function (GoralysKernel $kernel, RequestInterface $request) {
-    if (!$kernel->users->validatePassword($request->param("admin-password"))) {
+    if (!$kernel->auth->validatePassword($request->param("admin-password"))) {
         $kernel->deferredResponse(501)->toast( // Unauthorized
             ToastType::WARNING,
             "Mot de passe",
