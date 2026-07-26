@@ -10,10 +10,14 @@ use Goralys\App\HTTP\Middleware\CSRFMiddleware;
 use Goralys\App\HTTP\Middleware\DbMiddleware;
 use Goralys\App\HTTP\Middleware\MiddlewareSets;
 use Goralys\App\HTTP\Middleware\RateLimitMiddleware;
+use Goralys\App\HTTP\Middleware\RoleMiddleware;
 use Goralys\App\HTTP\Request\Interfaces\RequestInterface;
 use Goralys\App\Router\Options\RouterOptions;
 use Goralys\App\Router\Routes;
 use Goralys\App\User\Controllers\AuthController;
+use Goralys\App\User\Data\RevokeTokenDTO;
+use Goralys\App\User\Data\TokenCreateDTO;
+use Goralys\App\User\Data\TokenLoginDTO;
 use Goralys\App\Utils\Toast\Data\Enums\ToastType;
 use Goralys\Core\User\Data\Enums\UserRole;
 use Goralys\Core\User\Data\UserLoginDTO;
@@ -207,6 +211,114 @@ Routes::post('user/logout', function (GoralysKernel $kernel) {
     ->middleware(...RateLimitMiddleware::for('logout'))
     ->middleware(...CSRFMiddleware::form('logout'))
     ->middleware(...DbMiddleware::require());
+
+// --------------------------------------------------
+// [SUB SECTION] Auth tokens
+// --------------------------------------------------
+Routes::post('user/token/create', function (GoralysKernel $kernel, RequestInterface $request) {
+    $name = $request->param("name");
+    $data = new TokenCreateDTO($_SESSION[Config::SESSION::USERNAME], $name);
+    if (!$token = $kernel->auth->createToken($data)) {
+        $kernel->db->rollback();
+        $kernel->deferredResponse(412)->toast( // Precondition failed
+            ToastType::ERROR,
+            "Création du jeton",
+            "Votre jeton d'authentification n'a pas pu être créé, veuillez réessayer ultérieurement.",
+        )
+           ->redirect("/")
+           ->send();
+    }
+    $kernel->deferredResponse()->toast(
+        ToastType::SUCCESS,
+        "Création du jeton",
+        "Votre jeton d'authentification a bien été créé pour votre appareil ($name)."
+    )
+       ->redirect("/")
+        ->json(['token' => $token])
+       ->send();
+}, ...RouterOptions::$INPUT::require("name"), ...RouterOptions::$TOAST::flash())
+    ->middleware(...RateLimitMiddleware::for('create-auth-token'))
+    ->middleware(...CSRFMiddleware::form('create-auth-token'))
+    ->middleware(...AuthMiddleware::require())
+    ->middleware(...DbMiddleware::require());
+
+Routes::post('user/token/login', function (GoralysKernel $kernel, RequestInterface $request) {
+    $u = $request->param("username");
+    $t = $request->param("token");
+    $data = new TokenLoginDTO($u, $t);
+    if (!$newToken = $kernel->auth->tokenLogin($data)) {
+        $kernel->db->rollback();
+        $kernel->deferredResponse(401)->toast( // Unauthorized
+            ToastType::ERROR,
+            "Connexion",
+            "Votre jeton d'authentification n'a pas pu être utilisé pour vous connecter,
+            veuillez réessayer ultérieurement.",
+        )
+            ->redirect("/user/login")
+            ->send();
+    }
+    $kernel->deferredResponse()->toast(
+        ToastType::SUCCESS,
+        "Connexion",
+        "Vous avez bien été connecté à votre compte."
+    )
+        ->redirect("/subject")
+        ->action("login-success")
+        ->json(['token' => $newToken])
+        ->send();
+}, ...RouterOptions::$INPUT::require("username", "token"), ...RouterOptions::$TOAST::flash())
+    ->middleware(...RateLimitMiddleware::for('login-auth-token'))
+    ->middleware(...CSRFMiddleware::form('login-auth-token'))
+    ->middleware(...DbMiddleware::transaction());
+
+Routes::get('user/tokens', function (GoralysKernel $kernel, RequestInterface $request) {
+    $u = $_SESSION[Config::SESSION::USERNAME];
+    $kernel->response()->json($kernel->auth->getTokens($u));
+})
+    ->middleware(...RateLimitMiddleware::for('get-auth-tokens'))
+    ->middleware(...CSRFMiddleware::form('get-auth-tokens'))
+    ->middleware(...AuthMiddleware::require())
+    ->middleware(...DbMiddleware::require());
+
+Routes::get('user/tokens/any', function (GoralysKernel $kernel, RequestInterface $request) {
+    $u = $request->param("username");
+    $kernel->response()->json($kernel->auth->getTokens($u));
+}, ...RouterOptions::$INPUT::require("username"))
+    ->middleware(...RateLimitMiddleware::for('get-auth-tokens'))
+    ->middleware(...CSRFMiddleware::form('get-auth-tokens'))
+    ->middleware(...AuthMiddleware::require())
+    ->middleware(...RoleMiddleware::require(UserRole::ADMIN, true))
+    ->middleware(...DbMiddleware::require());
+
+Routes::delete('user/token', function (GoralysKernel $kernel, RequestInterface $request) {
+    $u = $request->param("username");
+    $name = $request->param("name");
+    $data = new RevokeTokenDTO($u, $name);
+    $redirect = "/admin/user?u=" . urlencode($u);
+    if (!$kernel->auth->revokeToken($data)) {
+        $kernel->db->rollback();
+        $kernel->deferredResponse(412)->toast(
+            ToastType::ERROR,
+            "Révocation du jeton",
+            "Le jeton de l'utilisateur n'a pas pu être révoqué."
+        )
+            ->redirect($redirect)
+            ->send();
+    }
+
+    $kernel->deferredResponse()->toast(
+        ToastType::SUCCESS,
+        "Révocation du jeton",
+        "Le jeton de l'utilisateur a bien été révoqué."
+    )
+        ->redirect($redirect)
+        ->send();
+}, ...RouterOptions::$INPUT::require("username", "name"), ...RouterOptions::$TOAST::flash())
+    ->middleware(...RateLimitMiddleware::for('revoke-auth-token'))
+    ->middleware(...CSRFMiddleware::form('revoke-auth-token'))
+    ->middleware(...AuthMiddleware::require())
+    ->middleware(...RoleMiddleware::require(UserRole::ADMIN, true))
+    ->middleware(...DbMiddleware::transaction());
 
 // ================================================
 // [SECTION] Admin actions
