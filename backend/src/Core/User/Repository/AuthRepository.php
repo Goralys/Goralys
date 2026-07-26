@@ -4,13 +4,18 @@ namespace Goralys\Core\User\Repository;
 
 use DateInterval;
 use DateMalformedIntervalStringException;
+use DateMalformedStringException;
 use DateTime;
+use Goralys\Core\User\Data\AuthToken;
+use Goralys\Core\User\Data\AuthTokensCollection;
+use Goralys\Core\User\Repository\Interfaces\AuthRepositoryInterface;
 use Goralys\Platform\DB\Interfaces\DbContainerInterface;
 use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
 use Goralys\Platform\Logger\Interfaces\LoggerInterface;
 use Goralys\Shared\Config\GoralysConfig as Config;
+use mysqli_result;
 
-class AuthRepository implements Interfaces\AuthRepositoryInterface
+class AuthRepository implements AuthRepositoryInterface
 {
     private DbContainerInterface $db;
     private LoggerInterface $logger;
@@ -19,6 +24,44 @@ class AuthRepository implements Interfaces\AuthRepositoryInterface
     {
         $this->db = $db;
         $this->logger = $logger;
+    }
+
+    /**
+     * Gets all the auth tokens for a given user.
+     * @param string $username The user to gets all the tokens for.
+     * @return AuthTokensCollection All the auth tokens for the given user.
+     */
+    public function getTokens(string $username): AuthTokensCollection
+    {
+        $result = $this->db->fetch(
+            "select username, name, expires_at, created_at from auth_tokens
+                  where username = ? and active = true and (expires_at > now())",
+            "s",
+            $username
+        );
+        return $this->buildTokensFromResult($result);
+    }
+
+    /**
+     * Builds a collection of auth tokens from a raw mysqli fetch result.
+     * The provided result should (at least) contain these four fields:
+     * 'username', 'name', 'expires_at' and 'created_at'.
+     * @param mysqli_result $result The raw result.
+     * @return AuthTokensCollection The list of tokens extracted from the result.
+     * @throws DateMalformedStringException
+     */
+    private function buildTokensFromResult(mysqli_result $result): AuthTokensCollection
+    {
+        $c = new AuthTokensCollection();
+        while ($row = $result->fetch_assoc()) {
+            $c->addToken(new AuthToken(
+                $row['username'],
+                $row['name'],
+                new DateTime($row['expires_at']),
+                new DateTime($row['created_at'])
+            ));
+        }
+        return $c;
     }
 
     /**
@@ -110,5 +153,22 @@ class AuthRepository implements Interfaces\AuthRepositoryInterface
             $username,
             $tokenHash
         )->num_rows > 0;
+    }
+
+    /**
+     * Revokes an auth token.
+     * @param string $username The user to which the token belongs.
+     * @param string $name The name of the token to revoke.
+     * @return bool Whether the operation succeded.
+     */
+    public function revokeToken(string $username, string $name): bool
+    {
+        return $this->db->run(
+            "delete from auth_tokens
+                  where username = ? and name = ?",
+            "ss",
+            $username,
+            $name
+        );
     }
 }

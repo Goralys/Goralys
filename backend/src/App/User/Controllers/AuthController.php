@@ -8,8 +8,10 @@
 namespace Goralys\App\User\Controllers;
 
 use Goralys\App\User\Data\Enums\UserAuthStatus;
+use Goralys\App\User\Data\RevokeTokenDTO;
 use Goralys\App\User\Data\TokenCreateDTO;
 use Goralys\App\User\Data\TokenLoginDTO;
+use Goralys\Core\User\Data\AuthTokensCollection;
 use Goralys\Core\User\Data\Enums\UserRole;
 use Goralys\Core\User\Data\UserLoginDTO;
 use Goralys\Core\User\Data\UserRegisterDTO;
@@ -124,23 +126,35 @@ final class AuthController
                 return false;
             }
 
-            session_regenerate_id(true);
-            $sessionData = $this->users->getByUsername($userData->username);
-
-            $_SESSION[Config::SESSION::ID] = $sessionData->id;
-            $_SESSION[Config::SESSION::FULL_NAME] = $sessionData->fullName;
-            $_SESSION[Config::SESSION::USERNAME] = $sessionData->username;
-            $_SESSION[Config::SESSION::PUBLIC_ID] = $this->users->getPublicIdForUsername($sessionData->username);
-            $_SESSION[Config::SESSION::ROLE] = $sessionData->role->toString();
-            $_SESSION[Config::SESSION::EMAIL] = $sessionData->email;
-
-            $_SESSION['ua'] = hash("sha256", $_SERVER['HTTP_USER_AGENT']);
-            $_SESSION['regen_time'] = time();
-            $this->logger->debug(LoggerInitiator::APP, "New session: " . print_r($_SESSION, true));
+            $this->cacheUserData($userData->username);
             return true;
         } catch (UserNotFoundException) {
             return false;
         }
+    }
+
+    /**
+     * Helper to cache the user's data after a successful login.
+     * This function also regenerates the session's id.
+     * @param string $username The username which logged in successfully.
+     * @throws UserNotFoundException If the user does not exists.
+     */
+    private function cacheUserData(string $username): void
+    {
+        session_regenerate_id(true);
+        $sessionData = $this->users->getByUsername($username);
+
+        $_SESSION[Config::SESSION::ID] = $sessionData->id;
+        $_SESSION[Config::SESSION::FULL_NAME] = $sessionData->fullName;
+        $_SESSION[Config::SESSION::USERNAME] = $sessionData->username;
+        $_SESSION[Config::SESSION::PUBLIC_ID] = $this->users->getPublicIdForUsername($sessionData->username);
+        $_SESSION[Config::SESSION::ROLE] = $sessionData->role->toString();
+        $_SESSION[Config::SESSION::EMAIL] = $sessionData->email;
+
+        $_SESSION['ua'] = hash("sha256", $_SERVER['HTTP_USER_AGENT']);
+        $_SESSION['regen_time'] = time();
+
+        $this->logger->debug(LoggerInitiator::APP, "New session: " . print_r($_SESSION, true));
     }
 
     /**
@@ -172,9 +186,37 @@ final class AuthController
         $result =
             $this->repo->isTokenValid($data->username, $oldHash)
             && $this->repo->rotateToken($data->username, $oldHash, $newHash);
-        return $result
-            ? $new
-            : null;
+
+        if (!$result) {
+            return null;
+        }
+
+        try {
+            $this->cacheUserData($data->username);
+        } catch (UserNotFoundException) {
+            return null;
+        }
+        return $new;
+    }
+
+    /**
+     * Revokes an authentication token.
+     * @param RevokeTokenDTO $data The necessary data to identify and revoke the token.
+     * @return bool Whether the token was revoked or not.
+     */
+    public function revokeToken(RevokeTokenDTO $data): bool
+    {
+        return $this->repo->revokeToken($data->username, $data->name);
+    }
+
+    /**
+     * Gets all the auth tokens for a given user.
+     * @param string $username The user to gets all the tokens for.
+     * @return AuthTokensCollection All the auth tokens for the given user.
+     */
+    public function getTokens(string $username): AuthTokensCollection
+    {
+        return $this->repo->getTokens($username);
     }
 
     /**

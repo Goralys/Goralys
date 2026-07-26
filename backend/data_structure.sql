@@ -49,7 +49,7 @@ create table auth_tokens
     name       varchar(64)  not null,
     active     bool         not null,
     created_at datetime default current_timestamp,
-    expires_at datetime,
+    expires_at datetime     not null,
 
     primary key (username, name),
 

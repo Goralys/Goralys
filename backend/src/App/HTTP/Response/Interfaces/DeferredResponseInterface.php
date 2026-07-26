@@ -11,6 +11,7 @@ use Goralys\App\Context\AppContext;
 use Goralys\App\HTTP\JSON\Interfaces\JsonResponder;
 use Goralys\App\Utils\Toast\Data\Enums\ToastType;
 use JetBrains\PhpStorm\NoReturn;
+use JsonSerializable;
 
 /**
  * A contract used to represent a deferred response.
@@ -53,6 +54,13 @@ interface DeferredResponseInterface
      * @return self
      */
     public function action(string $action): self;
+
+    /**
+     * Allows the response to carry extra JSON encoded data that is sent immediately to the frontend.
+     * @param array|JsonSerializable $data The data to encode and send.
+     * @return self
+     */
+    public function json(array|JsonSerializable $data): self;
 
     /**
      * Sends the response and terminates.

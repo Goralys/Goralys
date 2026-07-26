@@ -16,6 +16,7 @@ use Goralys\App\Utils\Toast\Data\Enums\ToastType;
 use Goralys\App\Utils\Toast\Data\ToastDTO;
 use Goralys\Shared\Exception\GoralysRuntimeException;
 use JetBrains\PhpStorm\NoReturn;
+use JsonSerializable;
 
 /**
  * A deferred HTTP response that buffers a toast notification before sending.
@@ -33,6 +34,7 @@ final class DeferredResponse implements Interfaces\DeferredResponseInterface
     private JsonResponder $json;
     private ?ToastDTO $toast = null;
     private ?string $action = null;
+    private array|JsonSerializable|null $data = null;
     private ToastController $controller;
     private int $code;
 
@@ -127,11 +129,13 @@ final class DeferredResponse implements Interfaces\DeferredResponseInterface
     public function send(): never
     {
         if (!$this->toast) {
-            throw new GoralysRuntimeException("Can not send null toast");
+            throw new GoralysRuntimeException(
+                "Can not send null toast, if you meant to only send JSON data, please use an immadiate response instead"
+            );
         }
         if ($this->context->mode === ToastMode::FLASH) {
             http_response_code(302);
-            $this->controller->responder->sendToast($this->toast, $this->action ?? "");
+            $this->controller->responder->sendToast($this->toast, $this->action ?? "", $this->data);
             error_log("KERNEL - 3: redirecting to: " . $this->toast->redirect);
             if ($this->context->client === Client::WEB) {
                 header("Location: " . $this->toast->redirect);
@@ -141,7 +145,18 @@ final class DeferredResponse implements Interfaces\DeferredResponseInterface
             exit;
         }
         http_response_code($this->code);
-        $this->controller->responder->sendToast($this->toast, $this->action ?? "");
+        $this->controller->responder->sendToast($this->toast, $this->action ?? "", $this->data);
         exit;
+    }
+
+    /**
+     * Allows the response to carry extra JSON encoded data that is sent immediately to the frontend.
+     * @param array|JsonSerializable $data The data to encode and send.
+     * @return self
+     */
+    public function json(array|JsonSerializable $data): self
+    {
+        $this->data = $data;
+        return $this;
     }
 }
