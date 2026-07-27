@@ -1,20 +1,19 @@
 "use client";
 
-import { useAdminsWeb, useVirtualAdminsWeb } from "@/app/src/hooks/useUsersWeb";
+import { useAdmins, User, useVirtualAdmins } from "@goralys/core";
 import { ReactElement, Suspense, useEffect, useState } from "react";
-import { User } from "@goralys/core";
 import { AdminsSearchBar } from "@/app/src/ui/admin-panel/admins-search-bar";
 import AdminCard from "@/app/src/ui/admin-panel/admin-card";
 import CreateAdminElement from "@/app/src/ui/admin-panel/create-admin-element";
 import AdminPanelCardSkeleton from "@/app/src/ui/skeletons/admin-panel/admin-card";
 
 export default function AdminPanelPageClient(): ReactElement {
-    const { users: admins, refetch, syncKey } = useAdminsWeb();
+    const { users: admins, refetch, syncKey } = useAdmins();
     const [currentAdmins, setCurrentAdmins] = useState<User[] | null>(null);
     // eslint-disable-next-line react-hooks/set-state-in-effect
     useEffect(() => setCurrentAdmins(admins), [admins]);
 
-    const { users: virtualAdmins, refetch: virtualRefetch, syncKey: virtualSyncKey } = useVirtualAdminsWeb();
+    const { users: virtualAdmins, refetch: virtualRefetch, syncKey: virtualSyncKey } = useVirtualAdmins();
     const [currentVirtualAdmins, setCurrentVirtualAdmins] = useState<User[] | null>(null);
     // eslint-disable-next-line react-hooks/set-state-in-effect
     useEffect(() => setCurrentVirtualAdmins(virtualAdmins), [virtualAdmins]);

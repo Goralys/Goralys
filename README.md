@@ -7,7 +7,7 @@ Goralys is a lightweight web app to manage "Grand Oral" topics for students and 
 - Student/teacher/admin roles with automatic role detection at registration ([
   `AuthController::register`](backend/src/App/User/Controllers/AuthController.php)).
 - Two-topic student workflow: draft, submit, and read-only once submitted ([
-  `useSubjects`](goralys-core/src/hooks/useSubjects.ts), [
+  `useSubjects`](goralys-core/src/hooks/use-subjects.ts), [
   `SubjectsController`](backend/src/App/Subjects/Controllers/SubjectsController.php)).
 - Session-backed user data caching for fast frontend rendering ([
   `AuthController::login`](backend/src/App/User/Controllers/AuthController.php) manages session data).
@@ -29,8 +29,7 @@ Prerequisites:
 Steps:
 
 To run the app locally, you must first install a reverse proxy like Caddy for the API. Goralys already includes a
-pre-configured
-file for Caddy.
+pre-configured file for Caddy.
 
 You can install Caddy via ChocoLatey:
 
@@ -38,8 +37,8 @@ You can install Caddy via ChocoLatey:
 choco install caddy
 ```
 
-You must also generate a wildcard certificate for the domain `*.goralys.test` (or any other domain you want to use).
-You can use mkcert to generate a self-signed certificate:
+You must also generate a wildcard certificate for the domain `*.goralys.test` (or any other domain you want to use). You
+can use mkcert to generate a self-signed certificate:
 
 ```bash
 # Install mkcert
@@ -88,9 +87,9 @@ the public internet. Edit your hosts file (`C:\Windows\System32\drivers\etc\host
       pnpm dev --experimental-https --experimental-https-key ./.certs/_wildcard.goralys.test+1-key.pem --experimental-https-cert ./.certs/_wildcard.goralys.test+1.pem
       ```
 5. Access the app:
-    - Visit `https://0492061z.goralys.test:3000` (replace `0492061z` with any high school code configured in
-      your hosts file and `schools_list`). Visiting `https://localhost:3000` directly will **not** work —
-      authentication will fail since the session cookie is scoped to `.goralys.test`.
+    - Visit `https://0492061z.goralys.test:3000` (replace `0492061z` with any high school code configured in your hosts
+      file and `schools_list`). Visiting `https://localhost:3000` directly will **not** work — authentication will fail
+      since the session cookie is scoped to `.goralys.test`.
 
 > [!IMPORTANT]
 > The dev script will automatically deactivate all TLS verification for the Next.js server.
@@ -100,8 +99,8 @@ the public internet. Edit your hosts file (`C:\Windows\System32\drivers\etc\host
 
 ## Testing
 
-You can use phpunit to run the unit tests for the backend in `backend/tests`.
-To run the tests, use the following command after installing the project dependencies with composer:
+You can use phpunit to run the unit tests for the backend in `backend/tests`. To run the tests, use the following
+command after installing the project dependencies with composer:
 
 ```bash
 .\backend\vendor\bin\phpunit --configuration backend\phpunit.xml
@@ -133,7 +132,7 @@ code — I try to minimize this as much as possible._
 - Authentication & Sessions: [`AuthController`](backend/src/App/User/Controllers/AuthController.php)
 - Subjects Management: [`SubjectsController`](backend/src/App/Subjects/Controllers/SubjectsController.php)
 - Database schema: [backend/data_structure.sql](backend/data_structure.sql)
-- Frontend Subject logic: [`useSubjects` hook](goralys-core/src/hooks/useSubjects.ts)
+- Frontend Subject logic: [`useSubjects` hook](goralys-core/src/hooks/use-subjects.ts)
 - Toast notification: [`ToastController`](backend/src/App/Utils/Toast/Controllers/ToastController.php) and [
   `toast-provider.tsx`](app/src/ui/toast/toast-provider.tsx)
 - CSRF Service: [`CSRFService`](backend/src/App/Security/CSRF/Services/CSRFService.php)
@@ -160,8 +159,8 @@ code — I try to minimize this as much as possible._
 
 This project was originally licensed under the MIT license, as of version 2.1.1, this project is now licensed under the
 GNU Affero General Public License v3.0 (see: [`LICENSE`](LICENSE)). Third-party licenses can be found in [
-`THIRD-LICENSE-PARTY`](THIRD-PARTY-LICENSE).
-All contributions are welcome as long as they respect the terms inside [`Contributing`](CONTRIBUTING.md).
+`THIRD-LICENSE-PARTY`](THIRD-PARTY-LICENSE). All contributions are welcome as long as they respect the terms inside [
+`Contributing`](CONTRIBUTING.md).
 
 ## Notes
 

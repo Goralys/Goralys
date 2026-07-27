@@ -9,8 +9,10 @@ export function buildArray<T>(...items: (T | false | null | undefined)[]): T[] {
     return items.filter((item): item is T => Boolean(item));
 }
 
+export const fromPhpDate = (phpDate: PHPDateTime): Date => new Date(phpDate.date);
+
 export const parsePhpDateTime = (phpDate: PHPDateTime): string => {
-    return new Date(phpDate.date).toLocaleString("fr-FR", {
+    return fromPhpDate(phpDate).toLocaleString("fr-FR", {
         year: "numeric",
         month: "2-digit",
         day: "2-digit",

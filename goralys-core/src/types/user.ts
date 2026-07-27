@@ -32,3 +32,12 @@ export type ConfirmOptions = {
     title: string;
     message: string;
 };
+
+export type AuthTokenContext = "admin-panel" | "profile";
+
+export type AuthToken = {
+    username: string;
+    name: string;
+    expires: Date;
+    created: Date;
+};

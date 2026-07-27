@@ -10,10 +10,10 @@ import {
     Subject,
     SUBJECT_SYNCS,
     USER_SYNCS,
+    useSubjects,
 } from "@goralys/core";
 import { useToast } from "@/app/src/ui/toast/toast-provider";
 import { Button } from "@/app/src/ui/button";
-import { useSubjectsWeb } from "@/app/src/hooks/useSubjectsWeb";
 import AdminCard from "@/app/src/ui/subjects/admin-card";
 import { SubjectsSearchBar } from "@/app/src/ui/subjects/subjects-search-bar";
 import { ReactElement, Suspense, useState } from "react";
@@ -24,7 +24,7 @@ export default function SubjectAdminPageClient(): ReactElement {
     const modal = useImportTopicsModal();
     const confirm = useConfirm();
     const toast = useToast();
-    const { subjects, refetch, syncKey } = useSubjectsWeb("admin");
+    const { subjects, refetch, syncKey } = useSubjects("admin");
     const [currentSubjects, setCurrentSubjects] = useState<Subject[] | null>(subjects);
     const sendTopics = async (): Promise<void> => {
         const file = await modal.showImportTopicsModal();

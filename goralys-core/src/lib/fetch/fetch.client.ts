@@ -8,7 +8,7 @@ import { emitNavigationEvent } from "./navigation-event";
 import { GoralysActionHandler } from "./goralys-action-handler";
 import type { HttpMethod } from "@/types/http";
 import { getGoralysClientConfig } from "./config";
-import { Toast } from "@/types/toast";
+import { ToastFn } from "@/types/toast";
 
 const actionHandler = new GoralysActionHandler();
 
@@ -99,12 +99,7 @@ export function buildApiUrl(endpoint: string, params: Record<string, string | nu
     return `${domain ? apiDomain + "/" : ""}${endpoint}${queryString ? `?${queryString}` : ""}`;
 }
 
-export async function handleToastRequest(
-    r: Response,
-    showToast: (payload: Toast, duration?: number) => void,
-    redirect: boolean = true,
-    duration?: number,
-): Promise<boolean> {
+export async function handleToastRequest(r: Response, showToast: ToastFn, redirect: boolean = true, duration?: number): Promise<boolean> {
     const res = r.clone();
     const data = await res.json();
 

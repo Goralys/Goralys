@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: LGPL-3.0-or-later
  */
 
-import { UserRole } from "@/types/user";
+import { AuthTokenContext, UserRole } from "@/types/user";
 
 export const COOKIES_DISMISSED_KEY = "cookie-banner-dismissed";
 export const PERSISTANT_COOKIES: string[] = [COOKIES_DISMISSED_KEY, "rate_limit_token"];
@@ -20,6 +20,8 @@ export const PUB_ID_KEY = "public-id";
 
 export const SUBJECT_SYNC_RADIX = "subjects-synced-";
 export const SUBJECT_CACHE_RADIX = "subjects-cache-";
+export const AUTH_TOKEN_SYNC_RADIX = "auth-tokens-sync-";
+export const AUTH_TOKEN_CACHE_RADIX = "auth-tokens-cache-";
 export const USER_CACHE_RADIX = "users-cache-";
 export const USER_SYNC_RADIX = "users-synced-";
 export const ADMIN_CACHE_RADIX = "admins-cache-";
@@ -39,6 +41,15 @@ export const SUBJECT_CACHES: Record<UserRole["role"], string> = {
     teacher: SUBJECT_CACHE_RADIX + "teacher",
     admin: SUBJECT_CACHE_RADIX + "admin",
     none: SUBJECT_CACHE_RADIX + "unknown",
+};
+
+export const AUTH_TOKEN_SYNCS: Record<AuthTokenContext, string> = {
+    "admin-panel": AUTH_TOKEN_SYNC_RADIX + "admin-panel",
+    profile: AUTH_TOKEN_SYNC_RADIX + "profile",
+};
+export const AUTH_TOKEN_CACHES: Record<AuthTokenContext, string> = {
+    "admin-panel": AUTH_TOKEN_CACHE_RADIX + "admin-panel",
+    profile: AUTH_TOKEN_CACHE_RADIX + "profile",
 };
 
 export type UserType = {

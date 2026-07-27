@@ -1,14 +1,13 @@
 "use client";
 
-import { useSubjectsWeb } from "@/app/src/hooks/useSubjectsWeb";
+import { cookiesSet, Subject, useSubjects } from "@goralys/core";
 import TeacherCard from "@/app/src/ui/subjects/teacher-card";
 import { SubjectsSearchBar } from "@/app/src/ui/subjects/subjects-search-bar";
 import { ReactElement, Suspense, useState } from "react";
-import { cookiesSet, Subject } from "@goralys/core";
 import TeacherCardSkeleton from "@/app/src/ui/skeletons/subjects/teacher-card";
 
 export default function SubjectTeacherPageClient(): ReactElement {
-    const { subjects, refetch, syncKey } = useSubjectsWeb("teacher");
+    const { subjects, refetch, syncKey } = useSubjects("teacher");
     const [currentSubjects, setCurrentSubjects] = useState<Subject[] | null>(subjects || null);
 
     const updateSubjects = async (): Promise<void> => {

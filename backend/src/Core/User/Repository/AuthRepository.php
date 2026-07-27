@@ -15,7 +15,7 @@ use Goralys\Platform\Logger\Interfaces\LoggerInterface;
 use Goralys\Shared\Config\GoralysConfig as Config;
 use mysqli_result;
 
-class AuthRepository implements AuthRepositoryInterface
+final class AuthRepository implements AuthRepositoryInterface
 {
     private DbContainerInterface $db;
     private LoggerInterface $logger;
@@ -30,12 +30,13 @@ class AuthRepository implements AuthRepositoryInterface
      * Gets all the auth tokens for a given user.
      * @param string $username The user to gets all the tokens for.
      * @return AuthTokensCollection All the auth tokens for the given user.
+     * @throws DateMalformedStringException
      */
     public function getTokens(string $username): AuthTokensCollection
     {
         $result = $this->db->fetch(
             "select username, name, expires_at, created_at from auth_tokens
-                  where username = ? and active = true and (expires_at > now())",
+                  where username = ? and (expires_at > now())",
             "s",
             $username
         );
@@ -79,8 +80,8 @@ class AuthRepository implements AuthRepositoryInterface
         }
 
         return $this->db->run(
-            "insert into auth_tokens (username, token_hash, name, active, expires_at) 
-                   values (?, ?, ?, true, ?)",
+            "insert into auth_tokens (username, token_hash, name, expires_at) 
+                   values (?, ?, ?, ?)",
             "ssss",
             $username,
             $tokenHash,
@@ -129,7 +130,7 @@ class AuthRepository implements AuthRepositoryInterface
         return $this->db->run(
             "update auth_tokens
                    set token_hash = ?, expires_at = ?
-                   where username = ? and token_hash = ? and active = true and (expires_at > now())",
+                   where username = ? and token_hash = ? and (expires_at > now())",
             "ssss",
             $new,
             $expires,
@@ -148,7 +149,7 @@ class AuthRepository implements AuthRepositoryInterface
     {
         return $this->db->fetch(
             "select 1 from auth_tokens
-                   where username = ? and token_hash = ? and active = true and (expires_at > now())",
+                   where username = ? and token_hash = ? and (expires_at > now())",
             "ss",
             $username,
             $tokenHash

@@ -8,7 +8,7 @@ import { UserListener } from "@/app/src/lib/auth/user-listerner";
 import { Providers } from "@/app/src/ui/modals/providers";
 import CookieBanner from "@/app/src/ui/basic/cookies-banner";
 import { NavigationListener } from "@/app/src/lib/navigation/navigation-listener";
-import Bootstrap from "@/app/src/ui/bootstrap";
+import Bootstrap from "@/app/src/lib/bootstrap";
 import DynamicNav from "@/app/src/ui/nav/dynamic-nav";
 
 export const metadata: Metadata = {
@@ -32,9 +32,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
                 </div>
                  */}
 
-                <Bootstrap />
-
                 <Providers>
+                    <Bootstrap />
                     <AuthListener />
                     <UserListener />
                     <NavigationListener />
