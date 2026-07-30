@@ -173,9 +173,8 @@ final class UserController
      */
     public function replaceTeacher(string $publicId, string $newName): ?string
     {
-        $table = new UsernameTable();
         $old = $this->usernames->get($publicId);
-        $new = $table->resolve($newName);
+        $new = $this->usernames->bucket->resolve($newName);
         return ($this->repo->softDelete($old) && $this->repo->replaceTeacher($old, $new)) ? $new : null;
     }
 
@@ -192,6 +191,11 @@ final class UserController
             LoggerInitiator::CORE,
             "Attempting to delete user " . $target . " (initiator: " . $_SESSION[Config::SESSION::USERNAME]
         );
+
+        if (!$this->usernames->bucket->remove($target)) {
+            return false;
+        }
+
         return $this->repo->hardDelete($target);
     }
 

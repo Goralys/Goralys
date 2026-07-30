@@ -7,6 +7,7 @@
 
 namespace Goralys\Core\User\Services;
 
+use Goralys\App\User\Data\UsernameTable;
 use Goralys\Core\User\Repository\Interfaces\UserRepositoryInterface;
 use Goralys\Shared\Exception\GoralysRuntimeException;
 
@@ -16,6 +17,7 @@ use Goralys\Shared\Exception\GoralysRuntimeException;
  */
 final class UsernameManager
 {
+    private(set) UsernameTable $bucket;
     private UserRepositoryInterface $users;
 
     /**
@@ -25,6 +27,7 @@ final class UsernameManager
     public function __construct(UserRepositoryInterface $users)
     {
         $this->users = $users;
+        $this->bucket = new UsernameTable();
     }
 
     /**
