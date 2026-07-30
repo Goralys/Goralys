@@ -20,6 +20,7 @@ use Goralys\Shared\Exception\DB\GoralysPrepareException;
 use Goralys\Shared\Exception\DB\GoralysQueryException;
 use mysqli;
 use mysqli_result;
+use mysqli_stmt;
 
 /**
  * The database wrapper used for this project.
@@ -86,15 +87,27 @@ final class DbContainer implements DbContainerInterface
             $value1,
             ...$args,
         );
+
+        return $this->runStatement($StmtData)->get_result();
+    }
+
+    /**
+     * Private helper to run a given statement on the database and return a native object.
+     * @param StmtDto $stmtData The statement to run.
+     * @return mysqli_stmt
+     * @throws GoralysPrepareException|GoralysQueryException If the statement could not be ran.
+     */
+    private function runStatement(StmtDto $stmtData): mysqli_stmt
+    {
         $service = new PrepareService($this->logger, $this->conn);
 
-        $stmt = $service->prepareAndBind($StmtData);
+        $stmt = $service->prepareAndBind($stmtData);
 
         if (!$stmt->execute()) {
             throw new GoralysQueryException("Could not run the statement");
         }
 
-        return $stmt->get_result();
+        return $stmt;
     }
 
     /**
@@ -127,7 +140,7 @@ final class DbContainer implements DbContainerInterface
      * Uses the same types as the default {@see mysqli} implementation.
      * @param mixed $value1 The first required variable to bind.
      * @param mixed ...$args The other variables to bind (optional).
-     * @return bool `true` if the request execution was successful, `false` elsewise.
+     * @return bool `true` if the request execution was successful and at least one row was changed, `false` elsewise.
      * @throws GoralysPrepareException|GoralysQueryException Thrown if something goes wrong during the execution.
      */
     public function run(string $query, string $types, mixed $value1, mixed ...$args): bool
@@ -138,15 +151,34 @@ final class DbContainer implements DbContainerInterface
             $value1,
             ...$args,
         );
-        $service = new PrepareService($this->logger, $this->conn);
 
-        $stmt = $service->prepareAndBind($StmtData);
+        return $this->runStatement($StmtData)->affected_rows > 0;
+    }
 
-        if (!$stmt->execute()) {
-            throw new GoralysQueryException("Could not run the statement");
-        }
+    /**
+     * Executes a request on the database.
+     * It uses prepared statements to avoid SQL injection.
+     * This function does not check if rows were affected by the query.
+     * Note that the preparation of the statement is delegated to a specialized service
+     * @param string $query The request to execute.
+     * @param string $types The types of the statements arguments.
+     * Uses the same types as the default {@see mysqli} implementation.
+     * @param mixed $value1 The first required variable to bind.
+     * @param mixed ...$args The other variables to bind (optional).
+     * @return bool `true` if the request execution was successful, `false` elsewise.
+     * @throws GoralysPrepareException|GoralysQueryException Thrown if something goes wrong during the execution.
+     */
+    public function runIgnoreNoOps(string $query, string $types, mixed $value1, mixed ...$args): bool
+    {
+        $stmtData = new StmtDto(
+            $query,
+            $types,
+            $value1,
+            ...$args,
+        );
 
-        return $stmt->affected_rows > 0;
+        $this->runStatement($stmtData);
+        return true;
     }
 
     /**

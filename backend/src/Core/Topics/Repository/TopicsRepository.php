@@ -76,7 +76,7 @@ final class TopicsRepository implements TopicsRepositoryInterface
             "si",
             $studentUsername,
             $topicId,
-        ) && $this->db->run(
+        ) && $this->db->runIgnoreNoOps(
             "insert ignore into students_classroom (username, class) values (?, ?)",
             "ss",
             $studentUsername,

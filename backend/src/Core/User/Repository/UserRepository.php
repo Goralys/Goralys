@@ -17,6 +17,7 @@ use Goralys\Core\User\Repository\Interfaces\UserRepositoryInterface;
 use Goralys\Platform\DB\Interfaces\DbContainerInterface;
 use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
 use Goralys\Platform\Logger\Interfaces\LoggerInterface;
+use Goralys\Shared\Exception\DB\GoralysDBException;
 use Goralys\Shared\Exception\User\UserNotFoundException;
 use Goralys\Shared\User\Data\FullNameDTO;
 use mysqli_result;
@@ -374,7 +375,7 @@ final class UserRepository implements UserRepositoryInterface
 
     /**
      * Unlike {@see UserRepository::softDelete()}, this deletes a user from all the database's tables.
-     * This is used to completely remove a user and its associated subjects and topics (teachers only).
+     * This is used to completely remove a user and its associated subjects (students) and topics (teachers).
      * @param string $username The user's username.
      * @return bool Whether the deletion was successful.
      */
@@ -382,8 +383,11 @@ final class UserRepository implements UserRepositoryInterface
     {
         $this->db->beginTransaction();
         try {
-            //cascades to student_topics and topics_teachers (see data_structure.sql for further info)
-            $this->db->run(
+            // Check the README.md at the project's root to have a better understanding of the cascading effects
+            // mentioned bellow. Or, if you hate yourself, you can check the raw schema at backend/data_structure.sql
+
+            // cascades to student_topics and topic_teachers, ignore topics shared by multiple teachers
+            $this->db->runIgnoreNoOps(
                 "delete from topics where id in (
                 select topic_id from topic_teachers where teacher_username = ?
                 and topic_id not in (
@@ -395,14 +399,17 @@ final class UserRepository implements UserRepositoryInterface
                 $username,
             );
 
-            $this->db->run("delete from student_topics where student_username = ?", "s", $username);
-            $this->db->run("delete from users where username = ?", "s", $username);
-            $this->db->run("delete from public_ids where username = ?", "s", $username);
+            // cascades to all other tables
+            if (!$this->db->run("delete from users_info where username= ?", "s", $username)) {
+                $this->db->rollback();
+                return false;
+            }
 
             $this->db->commit();
             return true;
-        } catch (Exception) {
+        } catch (GoralysDBException $e) {
             $this->db->rollback();
+            $this->logger->error(LoggerInitiator::CORE, "Failed to hard-delete user $username: " . $e->getMessage());
             return false;
         }
     }
@@ -594,7 +601,7 @@ final class UserRepository implements UserRepositoryInterface
      */
     public function setEmail(string $username, string $email): bool
     {
-        return $this->db->run(
+        return $this->db->runIgnoreNoOps(
             "insert into emails (username, email) values (?, ?)
                    on duplicate key update email = values(email)",
             "ss",
@@ -626,7 +633,7 @@ final class UserRepository implements UserRepositoryInterface
      */
     public function whitelist(string $username, FullNameDTO $fullName): bool
     {
-        return $this->db->run(
+        return $this->db->runIgnoreNoOps(
             "insert ignore into users_info (username, firstname, lastname) values (?, ?, ?)",
             "sss",
             $username,

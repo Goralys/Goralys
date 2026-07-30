@@ -69,6 +69,17 @@ interface DbContainerInterface
     public function run(string $query, string $types, mixed $value1, mixed ...$args): bool;
 
     /**
+     * Executes a prepared write-query (INSERT, UPDATE, DELETE) and returns its outcome.
+     * This function does not check if rows were actually affected by the query.
+     * @param string $query The SQL query with placeholders.
+     * @param string $types The bind types string (e.g. `"si"` for string + int).
+     * @param mixed $value1 The first bound value.
+     * @param mixed ...$args Additional bound values.
+     * @return bool Whether the query was executed successfully.
+     */
+    public function runIgnoreNoOps(string $query, string $types, mixed $value1, mixed ...$args): bool;
+
+    /**
      * Executes a write-query with no bound parameters and returns its outcome.
      * @param string $query The SQL query to execute.
      * @return bool Whether the query was executed successfully.

@@ -36,9 +36,9 @@ final class RegisterValidatorService implements RegisterValidatorServiceInterfac
      */
     public function canRegister(UserRegisterDTO $data): bool
     {
-        $exits = $this->repo->exists($data->username);
+        $exists = $this->repo->exists($data->username);
         $valid = $this->repo->isUsernameValid($data->username);
 
-        return $valid && !$exits;
+        return $valid && !$exists;
     }
 }
