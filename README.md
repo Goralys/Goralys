@@ -97,6 +97,12 @@ the public internet. Edit your hosts file (`C:\Windows\System32\drivers\etc\host
 > If you use this script for production, your machine will be vulnerable to MITM (man-in-the-middle) attacks.
 > Use this consciously.
 
+### Database Schema
+
+Here is a complete overview of the full schema for Goralys:
+
+![Database schema for Goralys](assets/readme/db_diagram.svg)
+
 ## Testing
 
 You can use phpunit to run the unit tests for the backend in `backend/tests`. To run the tests, use the following
@@ -108,9 +114,9 @@ command after installing the project dependencies with composer:
 
 ### Topic import
 
-To test the topic import system, you can use the test file under the `assets/` folder ([test.zip](assets/test.zip)).
-This can also help you understand the required format for Goralys topics import. If your data does not follow this exact
-format, the system will not be able to import it successfully.
+To test the topic import system, you can use the test file under the `assets/testing/` folder
+([test.zip](assets/testing/test.zip)). This can also help you understand the required format for Goralys topics import.
+If your data does not follow this exact format, the system will not be able to import it successfully.
 
 ## Security notes
 
