@@ -1,4 +1,4 @@
-import AdminPanelPageClient from "@/app/admin/admin/admin-panel-page-client";
+import AdminPanelPageClient from "@/app/admin/admins/admin-panel-page-client";
 import { ReactElement } from "react";
 import { Metadata } from "next";
 

@@ -61,8 +61,9 @@ final class UserController
         // clean username list first
         if ($raw = file(Config::USER::USERNAME_LIST_PATH, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES)) {
             $result = array_filter($raw, function ($line) {
-                [$fullName, $username] = explode("=", $line);
-                if (is_string($fullName) && is_string($username)) {
+                $parts = explode("=", $line);
+                [, $username] = $parts;
+                if (count($parts) === 2) {
                     return str_contains($username, Config::USER::ADMIN_SUFFIX);
                 }
                 return false;
@@ -149,7 +150,13 @@ final class UserController
      */
     public function revokeAdmin(string $publicId): bool
     {
-        return $this->repo->revokeAdmin($this->usernames->get($publicId));
+        $target = $this->usernames->get($publicId);
+
+        if (!$this->usernames->bucket->remove($target)) {
+            return false;
+        }
+
+        return $this->repo->revokeAdmin($target);
     }
 
     /**

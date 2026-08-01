@@ -6,7 +6,7 @@ import { ReactElement, Suspense, useState } from "react";
 import { UsersSearchBar } from "@/app/src/ui/admin-panel/users-search-bar";
 import UserCardSkeleton from "@/app/src/ui/skeletons/admin-panel/user-card";
 
-export default function UserPanelPageClient(): ReactElement {
+export default function UsersPanelPageClient(): ReactElement {
     const { users, refetch, syncKey } = useUsers();
     const [currentUsers, setCurrentUsers] = useState<User[] | null>(null);
 
