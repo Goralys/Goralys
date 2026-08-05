@@ -47,9 +47,9 @@ Routes::get('subjects/any', function (GoralysKernel $kernel, RequestInterface $r
 
     if (!$role) {
         $kernel->deferredResponse(400)->toast( // Bad Request
-                ToastType::WARNING,
-                "Utilisateur",
-                "Cet utilisateur n'existe pas."
+            ToastType::WARNING,
+            "Utilisateur",
+            "Cet utilisateur n'existe pas."
         )
             ->redirect("/admin/users")
             ->send();

@@ -7,10 +7,10 @@ import { UsersSearchBar } from "@/app/src/ui/admin-panel/users-search-bar";
 import UserCardSkeleton from "@/app/src/ui/skeletons/admin-panel/user-card";
 
 export default function UsersPanelPageClient(): ReactElement {
-    const { users, refetch, syncKey } = useUsers();
+    const { users } = useUsers();
     const [currentUsers, setCurrentUsers] = useState<User[] | null>(null);
 
-    const { users: virtualUsers, refetch: virtualRefetch, syncKey: virtualSyncKey } = useVirtualUsers();
+    const { users: virtualUsers } = useVirtualUsers();
     const [currentVirtualUsers, setCurrentVirtualUsers] = useState<User[] | null>(null);
 
     const skeletons = Array.from({ length: 3 }, (_, i) => <UserCardSkeleton key={i} />);
