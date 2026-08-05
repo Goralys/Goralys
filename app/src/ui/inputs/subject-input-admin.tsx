@@ -2,7 +2,7 @@ import { getStatusHelper, Subject } from "@goralys/core";
 import { SubjectTextArea } from "@/app/src/ui/inputs/subject-text-area";
 import { ChangeEventHandler, ReactElement } from "react";
 
-interface SubjectInputMultilineProps {
+interface Props {
     helper?: string;
     id: string;
     label: string;
@@ -11,7 +11,7 @@ interface SubjectInputMultilineProps {
     subjectData: Subject;
 }
 
-export function SubjectInputAdmin({ id, label, helper, subjectData, onChangeAction }: SubjectInputMultilineProps): ReactElement {
+export function SubjectInputAdmin({ id, label, helper, subjectData, onChangeAction }: Props): ReactElement {
     helper = getStatusHelper(subjectData.status, "admin");
 
     return (

@@ -18,6 +18,7 @@ use Goralys\Platform\Logger\Interfaces\LoggerInterface;
 use Goralys\Shared\Exception\DB\GoralysConnectException;
 use Goralys\Shared\Exception\DB\GoralysPrepareException;
 use Goralys\Shared\Exception\DB\GoralysQueryException;
+use JetBrains\PhpStorm\Language;
 use mysqli;
 use mysqli_result;
 use mysqli_stmt;
@@ -79,8 +80,12 @@ final class DbContainer implements DbContainerInterface
      * @return mysqli_result The result of the request.
      * @throws GoralysPrepareException|GoralysQueryException Thrown if something goes wrong during the fetch.
      */
-    public function fetch(string $query, string $types, mixed $value1, mixed ...$args): mysqli_result
-    {
+    public function fetch(
+        #[Language('MariaDB')] string $query,
+        string $types,
+        mixed $value1,
+        mixed ...$args
+    ): mysqli_result {
         $StmtData = new StmtDto(
             $query,
             $types,
@@ -118,7 +123,7 @@ final class DbContainer implements DbContainerInterface
      * @return mysqli_result The result of the request.
      * @throws GoralysPrepareException|GoralysQueryException
      */
-    public function fetchNoArgs(string $query): mysqli_result
+    public function fetchNoArgs(#[Language('MariaDB')] string $query): mysqli_result
     {
         $service = new PrepareService($this->logger, $this->conn);
 
@@ -143,7 +148,7 @@ final class DbContainer implements DbContainerInterface
      * @return bool `true` if the request execution was successful and at least one row was changed, `false` elsewise.
      * @throws GoralysPrepareException|GoralysQueryException Thrown if something goes wrong during the execution.
      */
-    public function run(string $query, string $types, mixed $value1, mixed ...$args): bool
+    public function run(#[Language('MariaDB')] string $query, string $types, mixed $value1, mixed ...$args): bool
     {
         $StmtData = new StmtDto(
             $query,
@@ -168,8 +173,12 @@ final class DbContainer implements DbContainerInterface
      * @return bool `true` if the request execution was successful, `false` elsewise.
      * @throws GoralysPrepareException|GoralysQueryException Thrown if something goes wrong during the execution.
      */
-    public function runIgnoreNoOps(string $query, string $types, mixed $value1, mixed ...$args): bool
-    {
+    public function runIgnoreNoOps(
+        #[Language('MariaDB')] string $query,
+        string $types,
+        mixed $value1,
+        mixed ...$args
+    ): bool {
         $stmtData = new StmtDto(
             $query,
             $types,
@@ -190,7 +199,7 @@ final class DbContainer implements DbContainerInterface
      * @return bool `true` if the request execution was successful, `false` elsewise.
      * @throws GoralysPrepareException|GoralysQueryException Thrown if something goes wrong during the execution.
      */
-    public function runNoArgs(string $query): bool
+    public function runNoArgs(#[Language('MariaDB')] string $query): bool
     {
         $service = new PrepareService($this->logger, $this->conn);
 

@@ -7,6 +7,8 @@
 
 namespace Goralys\Core\User\Repository;
 
+use DateMalformedStringException;
+use DateTime;
 use Exception;
 use Goralys\Core\User\Data\Enums\UserRole;
 use Goralys\Core\User\Data\UserCreateDTO;
@@ -47,7 +49,7 @@ final class UserRepository implements UserRepositoryInterface
      * Get a user's info with its username.
      * @param string $username The user's username.
      * @return UserFullDTO The user's info.
-     * @throws UserNotFoundException If the user is invalid.
+     * @throws UserNotFoundException|DateMalformedStringException If the user is invalid.
      */
     public function getByUsername(string $username): UserFullDTO
     {
@@ -68,7 +70,7 @@ final class UserRepository implements UserRepositoryInterface
      * it is in charge of the logging process.
      * @param mysqli_result $result The result from the database.
      * @return UserFullDTO All the user's info.
-     * @throws UserNotFoundException If the user is invalid.
+     * @throws UserNotFoundException|DateMalformedStringException If the user is invalid.
      */
     private function buildUserFromResult(mysqli_result $result): UserFullDTO
     {
@@ -88,6 +90,7 @@ final class UserRepository implements UserRepositoryInterface
      * It is in charge of the logging process.
      * @param array $row The row from the database result.
      * @return UserFullDTO All the user's info.
+     * @throws DateMalformedStringException If the user's creation date could not be parsed correctly.
      */
     private function buildUserFromRow(array $row): UserFullDTO
     {
@@ -98,10 +101,26 @@ final class UserRepository implements UserRepositoryInterface
         return new UserFullDTO(
             (int) $row['id'],
             $row['username'],
+            $this->getPublicIdForUsername($row['username']) ?? "",
             UserRole::fromString($row['role']),
             new FullNameDTO($row['firstname'], $row['lastname']),
             $row['email'] ?? "",
+            new DateTime($row['created_at'])
         );
+    }
+
+    /**
+     * Retrieves the public id of a user from its username.
+     * @param string $username The username of the user.
+     * @return ?string The public id on success, `null` on failure.
+     */
+    public function getPublicIdForUsername(string $username): ?string
+    {
+        return $this->db->fetch(
+            "select public_id from public_ids where username = ?",
+            "s",
+            $username,
+        )->fetch_assoc()['public_id'] ?? null;
     }
 
     /**
@@ -269,7 +288,7 @@ final class UserRepository implements UserRepositoryInterface
      * Get a user's info with its public id.
      * @param string $uuid The public id of the user.
      * @return UserFullDTO The info of the user.
-     * @throws UserNotFoundException If the user does not exist in the DB.
+     * @throws UserNotFoundException|DateMalformedStringException If the user does not exist in the DB.
      */
     public function getByPublicId(string $uuid): UserFullDTO
     {
@@ -282,6 +301,42 @@ final class UserRepository implements UserRepositoryInterface
                    where pi.public_id = ?",
             "s",
             $uuid,
+        );
+
+        return $this->buildUserFromResult($result);
+    }
+
+    /**
+     * This function is used to get a non-created user's ("virtual" user) info.
+     * However, as the user is not created yet, it cannot retrieve the complete info.
+     * Thus, it uses some defaults for values that cannot be retrieved.
+     * The rule are the following:
+     * - int: -1
+     * - string: ""
+     * These rules are then used by the frontend to inform the user that some data is not available on the requested
+     * user.
+     * @param string $uuid The user's public UUID.
+     * @return UserFullDTO The full user record.
+     * @throws UserNotFoundException | DateMalformedStringException If the user does not exist.
+     */
+    public function getVirtualByPublicId(string $uuid): UserFullDTO
+    {
+        $result = $this->db->fetch(
+            "select -1 as id, ui.username, ui.firstname, ui.lastname, '' as email, date('1970-01-01') as created_at,
+                   case
+                       when exists (select 1 from student_topics st where st.student_username = pi.username)
+                           then 'student'
+                       when exists (select 1 from topic_teachers tt where tt.teacher_username = pi.username)
+                           then 'teacher'
+                       when exists (select 1 from admins_list al where al.username = pi.username)
+                           then 'admin'
+                       else 'unknown'
+                   end as role
+                   from public_ids pi
+                   join users_info ui on ui.username = pi.username
+                   where pi.public_id = ?",
+            "s",
+            $uuid
         );
 
         return $this->buildUserFromResult($result);
@@ -302,20 +357,6 @@ final class UserRepository implements UserRepositoryInterface
     }
 
     /**
-     * Retrieves the public id of a user from its username.
-     * @param string $username The username of the user.
-     * @return ?string The public id on success, `null` on failure.
-     */
-    public function getPublicIdForUsername(string $username): ?string
-    {
-        return $this->db->fetch(
-            "select public_id from public_ids where username = ?",
-            "s",
-            $username,
-        )->fetch_assoc()['public_id'] ?? null;
-    }
-
-    /**
      * @param string $publicId The user's public id.
      * @return ?string The user's username, or null if the user does not exist.
      */
@@ -329,8 +370,38 @@ final class UserRepository implements UserRepositoryInterface
     }
 
     /**
+     * Updates a given user's username inside the database.
+     * @param string $target The targeted user's username.
+     * @param string $new The new username for the user.
+     * @return bool Whether the operation was successful.
+     */
+    public function setUsername(string $target, string $new): bool
+    {
+        // propagates via fk cascades
+        return $this->db->run("update users_info set username = ? where username = ?", "ss", $new, $target);
+    }
+
+    /**
+     * Updates a given user's full name inside the database.
+     * @param string $target The targeted user's username.
+     * @param FullNameDTO $new The new fullname for the user.
+     * @return bool Whether the operation was successful.
+     */
+    public function setFullName(string $target, FullNameDTO $new): bool
+    {
+        return $this->db->run(
+            "update users_info set firstname = ?, lastname = ? where username = ?",
+            "sss",
+            $new->first,
+            $new->last,
+            $target
+        );
+    }
+
+    /**
      * Returns all the users inside the database.
      * @return UserFullDTO[] The users.
+     * @throws DateMalformedStringException
      */
     public function getAll(): array
     {
@@ -348,6 +419,7 @@ final class UserRepository implements UserRepositoryInterface
      * result, it is in charge of the logging process.
      * @param mysqli_result $result The result from the database.
      * @return UserFullDTO[] All the users' info.
+     * @throws DateMalformedStringException
      */
     private function buildUsersFromResult(mysqli_result $result): array
     {
@@ -453,11 +525,13 @@ final class UserRepository implements UserRepositoryInterface
     public function getVirtual(): array
     {
         $result = $this->db->fetchNoArgs(
-            "select distinct all_ids.username, all_ids.role from (
+            "select distinct ui.firstname, ui.lastname, all_ids.username, all_ids.role from (
                    select student_username as username, 'student' as role from student_topics
                    union
                    select teacher_username as username, 'teacher' as role from topic_teachers
-                   ) as all_ids where all_ids.username not in (select username from users)",
+                   ) as all_ids
+                     join users_info ui on ui.username = all_ids.username
+                     where all_ids.username not in (select username from users)",
         );
 
         return $this->buildVirtualUsersFromResult($result);
@@ -492,6 +566,7 @@ final class UserRepository implements UserRepositoryInterface
         return new VirtualUserDTO(
             $row['username'],
             UserRole::fromString($row['role']),
+            new FullNameDTO($row['firstname'], $row['lastname'])
         );
     }
 
@@ -512,6 +587,7 @@ final class UserRepository implements UserRepositoryInterface
     /**
      * Returns all admins from the database.
      * @return UserFullDTO[] The admins.
+     * @throws DateMalformedStringException
      */
     public function getAdmins(): array
     {

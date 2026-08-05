@@ -59,7 +59,6 @@ goralys-core/dist
 
 # reverse proxy / certificates
 /.certs
-CaddyFile
 
 deploy-local.bat
 flush-logs.bat

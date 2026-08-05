@@ -9,8 +9,8 @@ import { getToastConfig } from "@/lib/toast/config";
 
 export interface UseSyncedResourceOptions<T> {
     name: string;
-    cacheKey: string;
-    syncKey: string;
+    cacheKey?: string;
+    syncKey?: string;
     fetcher: () => Promise<Response | null | undefined>;
     parse: (data: unknown) => T | null;
     requireAuth?: boolean;
@@ -26,6 +26,8 @@ export function useSyncedResource<T>({ name, cacheKey, syncKey, fetcher, parse, 
     refetch: () => Promise<undefined | void>;
     syncKey: string;
 } {
+    const caching = !!cacheKey && !!syncKey;
+
     const [data, setData] = useState<T | null>(null);
     const showToast = getToastConfig().getShowToast();
     const showToastRef = useRef(showToast);
@@ -56,29 +58,33 @@ export function useSyncedResource<T>({ name, cacheKey, syncKey, fetcher, parse, 
         });
 
         try {
-            const syncValue = cookiesGet(syncKey);
+            if (caching) {
+                const syncValue = cookiesGet(syncKey!);
 
-            if (syncValue == "1") {
-                const raw = storageGet(cacheKey);
-                if (raw === null || raw === undefined) {
-                    cookiesSet(syncKey, "0");
-                    storageRemove(cacheKey);
-                    inFlightRef.current = null;
-                    resolve!();
-                    await fetchResource();
+                if (syncValue == "1") {
+                    const raw = storageGet(cacheKey!);
+                    if (raw === null || raw === undefined) {
+                        cookiesSet(syncKey!, "0");
+                        storageRemove(cacheKey!);
+                        inFlightRef.current = null;
+                        resolve!();
+                        await fetchResource();
+                        return;
+                    }
+                    const cached = JSON.parse(raw ?? "null");
+                    setData((prev) => (JSON.stringify(prev) === JSON.stringify(cached) ? prev : cached));
                     return;
                 }
-                const cached = JSON.parse(raw ?? "null");
-                setData((prev) => (JSON.stringify(prev) === JSON.stringify(cached) ? prev : cached));
-                return;
             }
 
             const res = await fetcher();
             if (res) await handleToastRequest(res, showToastRef.current, false);
             const raw = await res?.json();
 
-            cookiesSet(syncKey, "1");
-            storageSet(cacheKey, JSON.stringify(raw));
+            if (caching) {
+                cookiesSet(syncKey!, "1");
+                storageSet(cacheKey!, JSON.stringify(raw));
+            }
 
             const result = parse(raw);
             setData((prev) => (JSON.stringify(prev) === JSON.stringify(result) ? prev : result));
@@ -86,22 +92,22 @@ export function useSyncedResource<T>({ name, cacheKey, syncKey, fetcher, parse, 
             inFlightRef.current = null;
             resolve!();
         }
-    }, [cacheKey, syncKey, fetcher, parse, requireAuth, guard, name]);
+    }, [cacheKey, syncKey, fetcher, parse, requireAuth, guard, name, caching]);
 
     useEffect(() => {
         const onChange = (): void => {
-            if (inFlightRef.current) return;
-            if (cookiesGet(syncKey) != "1") {
+            if (inFlightRef.current || !caching) return;
+            if (cookiesGet(syncKey!) != "1") {
                 void fetchResource();
             }
         };
 
         return cookiesOnChange(onChange);
-    }, [fetchResource, syncKey]);
+    }, [fetchResource, syncKey, caching]);
 
     useEffect(() => {
         void fetchResource();
     }, [fetchResource]);
 
-    return useMemo(() => ({ data, refetch: fetchResource, syncKey }), [data, fetchResource, syncKey]);
+    return useMemo(() => ({ data, refetch: fetchResource, syncKey: syncKey ?? "" }), [data, fetchResource, syncKey]);
 }

@@ -43,12 +43,12 @@ export const SUBJECT_CACHES: Record<UserRole["role"], string> = {
     none: SUBJECT_CACHE_RADIX + "unknown",
 };
 
-export const AUTH_TOKEN_SYNCS: Record<AuthTokenContext, string> = {
-    "admin-panel": AUTH_TOKEN_SYNC_RADIX + "admin-panel",
+export const AUTH_TOKEN_SYNCS: Record<AuthTokenContext, string | undefined> = {
+    "admin-panel": undefined,
     profile: AUTH_TOKEN_SYNC_RADIX + "profile",
 };
-export const AUTH_TOKEN_CACHES: Record<AuthTokenContext, string> = {
-    "admin-panel": AUTH_TOKEN_CACHE_RADIX + "admin-panel",
+export const AUTH_TOKEN_CACHES: Record<AuthTokenContext, string | undefined> = {
+    "admin-panel": undefined, // no caching
     profile: AUTH_TOKEN_CACHE_RADIX + "profile",
 };
 

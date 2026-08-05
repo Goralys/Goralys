@@ -3,6 +3,7 @@
 namespace Goralys\Core\User\Data;
 
 use DateTime;
+use Goralys\Shared\Lib\GoralysLib as Lib;
 use JsonSerializable;
 
 /**
@@ -27,7 +28,7 @@ final readonly class AuthToken implements JsonSerializable
     public function jsonSerialize(): array
     {
         return [
-            "username" => $this->username,
+            "username" => Lib::STRING::obfuscate($this->username, 2),
             "name" => $this->name,
             "expires" => $this->expires,
             "created" => $this->created,

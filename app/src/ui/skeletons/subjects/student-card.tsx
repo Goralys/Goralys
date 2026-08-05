@@ -3,11 +3,11 @@ import { CommentSkeleton } from "@/app/src/ui/skeletons/subjects/comment";
 import { ButtonSkeleton } from "@/app/src/ui/skeletons/button";
 import { ReactElement } from "react";
 
-interface StudentCardSkeletonProps {
+interface Props {
     showButtons?: boolean;
 }
 
-export default function StudentCardSkeleton({ showButtons = true }: StudentCardSkeletonProps): ReactElement {
+export default function StudentCardSkeleton({ showButtons = true }: Props): ReactElement {
     return (
         <div className="h-fit sm:w-200 w-96 flex flex-col bg-sky-200 gap-1 p-1 mb-1 mt-1">
             <div className="flex flex-row w-full justify-between">

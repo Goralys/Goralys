@@ -31,7 +31,7 @@
         "build": "tsup",
         "typeCheck": "tsgo --noEmit",
         "dev": "tsup --watch",
-        "barrel": "rm ./src/index.ts && barrelsby -d ./src -l top"
+        "barrel": "node -e \"require('fs').rmSync('./src/index.ts',{force:true})\" && barrelsby -d ./src -l top"
     },
     "peerDependencies": {
         "react": ">=18"

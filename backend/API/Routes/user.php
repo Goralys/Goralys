@@ -38,7 +38,7 @@ use Goralys\Shared\User\Data\FullNameDTO;
 Routes::get('user/profile', function (GoralysKernel $kernel) {
     $data = [
         "username"   => trim($_SESSION[GoralysConfig::SESSION::USERNAME]),
-        "full_name"  => trim($_SESSION[GoralysConfig::SESSION::FULL_NAME]),
+        "fullName"  => trim($_SESSION[GoralysConfig::SESSION::FULL_NAME]),
         "role"       => trim($_SESSION[GoralysConfig::SESSION::ROLE]),
         "public_id"  => trim($_SESSION[GoralysConfig::SESSION::PUBLIC_ID]),
         ...(isset($_SESSION[GoralysConfig::SESSION::EMAIL])
@@ -77,6 +77,20 @@ Routes::get('user/role', function (GoralysKernel $kernel) {
 })
     ->middleware(...RateLimitMiddleware::for("get-role"))
     ->middleware(...AuthMiddleware::weak());
+
+Routes::get('users/profile/any', function (GoralysKernel $kernel, RequestInterface $request) {
+    $t = $request->param("target"); // public id
+
+    $data = $kernel->users->getProfile($t);
+
+    if (!$data) {
+        $kernel->response(400)->json(['success' => false]);
+    }
+
+    $kernel->response()->json($data);
+}, ...RouterOptions::$INPUT::require("target"))
+    ->middlewares(...MiddlewareSets::adminPanelRoute("get-user-profile"))
+    ->middleware(...DbMiddleware::require());
 
 Routes::put("user/email", function (GoralysKernel $kernel, RequestInterface $request) {
     if (!$kernel->users->setEmail($request->param("email"))) {
@@ -271,7 +285,7 @@ Routes::post('user/token/login', function (GoralysKernel $kernel, RequestInterfa
     ->middleware(...CSRFMiddleware::form('login-auth-token'))
     ->middleware(...DbMiddleware::transaction());
 
-Routes::get('user/tokens', function (GoralysKernel $kernel, RequestInterface $request) {
+Routes::get('user/tokens', function (GoralysKernel $kernel) {
     $u = $_SESSION[Config::SESSION::USERNAME];
     $kernel->response()->json($kernel->auth->getTokens($u));
 })
@@ -281,9 +295,9 @@ Routes::get('user/tokens', function (GoralysKernel $kernel, RequestInterface $re
     ->middleware(...DbMiddleware::require());
 
 Routes::get('user/tokens/any', function (GoralysKernel $kernel, RequestInterface $request) {
-    $u = $request->param("username");
+    $u = $kernel->usernames->get($request->param("pubId"));
     $kernel->response()->json($kernel->auth->getTokens($u));
-}, ...RouterOptions::$INPUT::require("username"))
+}, ...RouterOptions::$INPUT::require("pubId"))
     ->middleware(...RateLimitMiddleware::for('get-auth-tokens'))
     ->middleware(...CSRFMiddleware::form('get-auth-tokens'))
     ->middleware(...AuthMiddleware::require())
@@ -345,6 +359,36 @@ Routes::get('admins/virtual', function (GoralysKernel $kernel) {
     $kernel->response()->json($kernel->users->getAdminsVirtual());
 })
         ->middlewares(...MiddlewareSets::adminPanelRoute('get-virtual-admins', fetch: true))
+        ->middleware(...DbMiddleware::require());
+
+Routes::put("user/name", function (GoralysKernel $kernel, RequestInterface $request) {
+    $t = $request->param("target");
+    $redirect = "/admin/user?u=" . urlencode($t);
+
+    if (
+        !$kernel->users->setFullName($t, new FullNameDTO(
+            $request->param("first-name"),
+            $request->param("last-name")
+        ))
+    ) {
+        $kernel->deferredResponse(400)->toast( // Bad Request
+            ToastType::ERROR,
+            "Nom de l'utilisateur",
+            "Nous n'avons pas pu mettre à jour le nom de l'utilisateur, veuillez réessayer ultérieurement.",
+        )
+                ->redirect($redirect)
+                ->send();
+    }
+
+    $kernel->deferredResponse()->toast( // OK
+        ToastType::SUCCESS,
+        "Nom de l'utilisateur",
+        "Le nom de l'utilisateur a bien été mise à jour.",
+    )
+            ->redirect($redirect)
+            ->send();
+}, ...RouterOptions::$INPUT::require("target", "first-name", "last-name"))
+        ->middlewares(...MiddlewareSets::adminPanelRoute("set-user-full-name", "/admin/user"))
         ->middleware(...DbMiddleware::require());
 
 // --------------------------------------------------
@@ -439,7 +483,7 @@ Routes::patch('users/reset', function (GoralysKernel $kernel, RequestInterface $
             "Mot de passe",
             "Veuillez saisir le bon mot de passe",
         )
-                ->redirect("/admin/user")
+                ->redirect("/admin/user?u=" . urlencode($request->param("target")))
                 ->send();
     }
 
@@ -449,7 +493,7 @@ Routes::patch('users/reset', function (GoralysKernel $kernel, RequestInterface $
         $kernel->deferredResponse(500)->error(
             "Le compte n'a pas pu être réinitialisé.",
         )
-                ->redirect("/admin/user")
+                ->redirect("/admin/users")
                 ->send();
     }
 
@@ -477,7 +521,7 @@ Routes::patch('users/reset', function (GoralysKernel $kernel, RequestInterface $
         "Compte",
         $message,
     )
-            ->redirect("/admin/user")
+            ->redirect("/admin/users")
             ->send();
 }, ...RouterOptions::$INPUT::require("target", "admin-password"))
         ->middlewares(...MiddlewareSets::adminPanelRoute('reset-account'))
@@ -490,7 +534,7 @@ Routes::delete('users', function (GoralysKernel $kernel, RequestInterface $reque
             "Mot de passe",
             "Veuillez saisir le bon mot de passe",
         )
-                ->redirect("/admin/user")
+                ->redirect("/admin/user?u=" . urlencode($request->param("target")))
                 ->send();
     }
 
@@ -498,7 +542,7 @@ Routes::delete('users', function (GoralysKernel $kernel, RequestInterface $reque
         $kernel->deferredResponse(500)->error(
             "L'utilisateur n'a pas pu être supprimé.",
         )
-                ->redirect("/admin/user")
+                ->redirect("/admin/users")
                 ->send();
     }
 
@@ -507,7 +551,7 @@ Routes::delete('users', function (GoralysKernel $kernel, RequestInterface $reque
         "Suppression du compte",
         "L'utilisateur a bien été supprimé",
     )
-            ->redirect("/admin/user")
+            ->redirect("/admin/users")
             ->send();
 }, ...RouterOptions::$INPUT::require("target", "admin-password"))
         ->middlewares(...MiddlewareSets::adminPanelRoute('delete-users', rateLimit: "delete-users"))
@@ -538,7 +582,7 @@ Routes::put('users/teacher/replace', function (GoralysKernel $kernel, RequestInt
         $kernel->deferredResponse(500)->error(
             "Le professeur n'a pas pu être remplacé.",
         )
-                ->redirect("/admin/user")
+                ->redirect("/admin/users")
                 ->send();
     }
 
@@ -547,20 +591,22 @@ Routes::put('users/teacher/replace', function (GoralysKernel $kernel, RequestInt
         "Remplacement",
         "Le professeur a bien été remplacé. Il peut désormais créer un compte avec l'identifiant $result.",
     )
-            ->redirect("/admin/user")
+            ->redirect("/admin/users")
             ->send();
 }, ...RouterOptions::$INPUT::require("target", "first-name", "last-name", "admin-password"))
         ->middlewares(...MiddlewareSets::adminPanelRoute('replace-teacher'))
         ->middleware(...DbMiddleware::transaction());
 
 Routes::get('users/username', function (GoralysKernel $kernel, RequestInterface $request) {
+    $redirect = "/admin/user?u=" . urlencode($request->param("target"));
+
     if (!$kernel->auth->validatePassword($request->param("admin-password"))) {
         $kernel->deferredResponse(501)->toast( // Unauthorized
             ToastType::WARNING,
             "Mot de passe",
             "Veuillez saisir le bon mot de passe",
         )
-                ->redirect("/admin/user")
+                ->redirect($redirect)
                 ->send();
     }
 
@@ -569,7 +615,7 @@ Routes::get('users/username', function (GoralysKernel $kernel, RequestInterface 
         "Identifiant",
         "Identifiant pour ce compte: " . $kernel->usernames->get($request->param("target")),
     )
-            ->redirect("/admin/user")
+            ->redirect($redirect)
             ->send();
 })
         ->middlewares(...MiddlewareSets::adminPanelRoute('get-username'))

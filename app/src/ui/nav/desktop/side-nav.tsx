@@ -40,8 +40,8 @@ export function SideNav(): ReactElement {
     const links: { name: string; url: string }[] = buildArray(
         { name: "Accueil", url: "/" },
         { name: getSubjectLinkText(), url: "/subject" },
-        role == "admin" && { name: "Utilisateurs", url: "/admin/user" },
-        role == "admin" && { name: "Accès", url: "/admin/admin" },
+        role == "admin" && { name: "Utilisateurs", url: "/admin/users" },
+        role == "admin" && { name: "Accès", url: "/admin/admins" },
         role == "admin" && { name: "Support", url: "/support" },
     );
 

@@ -132,7 +132,7 @@ final class UsernameTable
             |> (fn($x) => implode(PHP_EOL, $x)))
         ) {
             return false;
-        };
+        }
 
         unset($this->table[$fullName]);
         unset($this->reverse[$fullName]);

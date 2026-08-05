@@ -71,4 +71,17 @@ final class StringUtils
                 ? [$firstNameParts, $lastNameParts]
                 : [implode(" ", $firstNameParts), implode(" ", $lastNameParts)];
     }
+
+    /**
+     * Obfuscates a string by only showing the first characters and then a random number of asterisks (*).
+     * @param string $_s The string to obfuscate.
+     * @param int $n The number of characters to show before the asterisks.
+     * @param int $min The minimum number of asterisks (default = 3).
+     * @param int $max The maximum number of asterisks (default = 7).
+     * @return string The obfuscated string.
+     */
+    public static function obfuscate(string $_s, int $n, int $min = 3, int $max = 7): string
+    {
+        return substr($_s, 0, $n) . str_repeat('*', max($min, strlen($_s) - rand($min, $max) - $n));
+    }
 }

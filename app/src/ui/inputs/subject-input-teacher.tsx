@@ -4,7 +4,7 @@ import { SubjectTextArea } from "@/app/src/ui/inputs/subject-text-area";
 import Checkbox from "@/app/src/ui/inputs/checkbox";
 import React, { ChangeEventHandler, ReactElement } from "react";
 
-interface SubjectInputMultilineProps {
+interface Props {
     helper?: string;
     id: string;
     label: string;
@@ -13,7 +13,7 @@ interface SubjectInputMultilineProps {
     subjectData: Subject;
 }
 
-export function SubjectInputTeacher({ id, label, helper, subjectData, onChangeAction }: SubjectInputMultilineProps): ReactElement {
+export function SubjectInputTeacher({ id, label, helper, subjectData, onChangeAction }: Props): ReactElement {
     helper = getStatusHelper(subjectData.status, "teacher");
 
     const initialValue = subjectData.status == "rejected" ? (subjectData.lastRejected ?? "") : (subjectData.subject ?? "");

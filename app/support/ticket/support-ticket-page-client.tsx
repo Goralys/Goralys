@@ -17,11 +17,11 @@ import { TextArea } from "@/app/src/ui/inputs/text-area";
 import { FloatingInput } from "@/app/src/ui/inputs/floating-input";
 import { useToast } from "@/app/src/ui/toast/toast-provider";
 
-interface SupportTicketPageClientProps {
+interface Props {
     ticket: SupportTicket;
 }
 
-export default function SupportTicketPageClient({ ticket }: SupportTicketPageClientProps): ReactElement {
+export default function SupportTicketPageClient({ ticket }: Props): ReactElement {
     const toast = useToast();
     const [message, setMessage] = useState<string>("");
 

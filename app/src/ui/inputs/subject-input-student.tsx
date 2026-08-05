@@ -5,7 +5,7 @@ import { getStatusHelper, Subject } from "@goralys/core";
 import { SubjectTextArea } from "@/app/src/ui/inputs/subject-text-area";
 import Checkbox from "@/app/src/ui/inputs/checkbox";
 
-interface SubjectInputMultilineProps {
+interface Props {
     helper?: string;
     id: string;
     label: string;
@@ -21,7 +21,7 @@ export function SubjectInputStudent({
     subjectData,
     setIsInterdisciplinaryAction = (): void => {},
     onChangeAction,
-}: SubjectInputMultilineProps): ReactElement {
+}: Props): ReactElement {
     const initialValue = subjectData.status == "rejected" ? (subjectData.lastRejected ?? "") : (subjectData.subject ?? "");
     const MAX_CHARS = 250;
     helper = getStatusHelper(subjectData.status, "student");

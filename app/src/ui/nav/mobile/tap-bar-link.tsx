@@ -3,14 +3,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { clsx } from "clsx";
 
-type TapBarLinkProps = {
+type Props = {
     name: string;
     url: string;
     icon: ComponentType<SVGProps<SVGSVGElement>>;
     exact?: boolean;
 };
 
-export default function TapBarLink({ name, url, icon: Icon, exact = false }: TapBarLinkProps): ReactElement {
+export default function TapBarLink({ name, url, icon: Icon, exact = false }: Props): ReactElement {
     const current = usePathname();
     const isActive = exact || url === "/" ? current === url : current === url || current.startsWith(`${url}/`);
 

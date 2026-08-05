@@ -6,7 +6,7 @@ import { QuestionMarkCircleIcon } from "@heroicons/react/24/outline";
 import { useModalClose } from "@/app/src/lib/modals";
 import { ReactElement, useRef } from "react";
 
-interface ConfirmProps {
+interface Props {
     title: string;
     message: string;
     visible: boolean;
@@ -14,7 +14,7 @@ interface ConfirmProps {
     onCancelAction: () => void;
 }
 
-export default function ConfirmElement({ title, message, visible, onConfirmAction, onCancelAction }: ConfirmProps): ReactElement {
+export default function ConfirmElement({ title, message, visible, onConfirmAction, onCancelAction }: Props): ReactElement {
     const modalRef = useRef<HTMLDivElement>(null);
     useModalClose(modalRef, visible, onCancelAction);
 

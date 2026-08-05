@@ -21,9 +21,9 @@ export async function cacheUserDataClient(): Promise<void> {
     const data = (await res.json())["data"] as UserData;
 
     cookiesSet(USERNAME_KEY, data.username, "/", 1.5 * 60 * 60);
-    cookiesSet(FULL_NAME_KEY, data.full_name, "/", 1.5 * 60 * 60);
+    cookiesSet(FULL_NAME_KEY, data.fullName, "/", 1.5 * 60 * 60);
     cookiesSet(ROLE_KEY, data.role, "/", 1.5 * 60 * 60);
-    cookiesSet(PUB_ID_KEY, data.public_id, "/", 1.5 * 60 * 60);
+    cookiesSet(PUB_ID_KEY, data.publicId, "/", 1.5 * 60 * 60);
     if (data?.email) cookiesSet(EMAIL_KEY, data.email, "/", 1.5 * 60 * 60);
     else cookiesRemove(EMAIL_KEY);
 }

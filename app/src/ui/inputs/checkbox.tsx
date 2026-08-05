@@ -2,7 +2,7 @@
 
 import { ReactElement } from "react";
 
-interface CheckBoxProps {
+interface Props {
     id?: string;
     label: string;
     setValueAction: (v: boolean) => void;
@@ -11,7 +11,7 @@ interface CheckBoxProps {
     disabled?: boolean;
 }
 
-export default function Checkbox({ id, label, setValueAction, defaultValue, className, disabled = false }: CheckBoxProps): ReactElement {
+export default function Checkbox({ id, label, setValueAction, defaultValue, className, disabled = false }: Props): ReactElement {
     return (
         <div className={`flex items-center gap-0.5 ${className ?? ""}`}>
             <label

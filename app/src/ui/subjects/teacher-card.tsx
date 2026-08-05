@@ -17,12 +17,12 @@ import { SubjectInputTeacher } from "@/app/src/ui/inputs/subject-input-teacher";
 import CommentTeacher from "@/app/src/ui/subjects/comment-teacher";
 import { useMediaQuery } from "@/app/src/hooks/use-media-query";
 
-interface TeacherCardProps {
+interface Props {
     subjectData: Subject;
     onUpdateAction: () => void;
 }
 
-export default function TeacherCard({ subjectData, onUpdateAction }: TeacherCardProps): ReactElement {
+export default function TeacherCard({ subjectData, onUpdateAction }: Props): ReactElement {
     const toast = useToast();
     const confirm = useConfirm();
     const [comment, setComment] = useState<string | null>(subjectData.comment);

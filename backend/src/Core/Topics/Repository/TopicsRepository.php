@@ -98,19 +98,16 @@ final class TopicsRepository implements TopicsRepositoryInterface
         ];
 
         $this->db->runNoArgs(
-        /** @lang SQL */
             "set foreign_key_checks = 0"
         );
         try {
             foreach ($tables as $table) {
                 $this->db->runNoArgs(
-                    /** @lang SQL */
                     "truncate table `$table`",
                 );
             }
         } finally {
             $this->db->runNoArgs(
-            /** @lang SQL */
                 "set foreign_key_checks = 0"
             );
         }

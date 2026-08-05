@@ -18,12 +18,12 @@ import { useDraftModal } from "@/app/src/ui/modals/drafts/draft-modal-provider";
 import { useConfirm } from "@/app/src/ui/modals/confirm/confirm-provider";
 import { useMediaQuery } from "@/app/src/hooks/use-media-query";
 
-interface StudentCardProps {
+interface Props {
     subjectData: Subject;
     onUpdateAction: () => void;
 }
 
-export default function StudentCard({ subjectData, onUpdateAction }: StudentCardProps): ReactElement {
+export default function StudentCard({ subjectData, onUpdateAction }: Props): ReactElement {
     const toast = useToast();
     const confirm = useConfirm();
     const isDesktop = useMediaQuery("(min-width:640px)");

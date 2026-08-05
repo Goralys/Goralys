@@ -31,14 +31,7 @@ export default function UsersPanelPageClient(): ReactElement {
                                 <UsersSearchBar type="real" users={users} setCurrentUsers={setCurrentUsers} />
                                 <div className="flex flex-col gap-2">
                                     {currentUsers?.map((u) => (
-                                        <UserCard
-                                            type="real"
-                                            key={u.role + u.publicId}
-                                            user={u}
-                                            onUpdateAction={refetch}
-                                            syncKey={syncKey}
-                                            virtualSyncKey={virtualSyncKey}
-                                        />
+                                        <UserCard key={u.role + u.publicId} user={u} />
                                     ))}
                                 </div>
                             </>
@@ -55,14 +48,7 @@ export default function UsersPanelPageClient(): ReactElement {
                                 <UsersSearchBar type="virtual" users={virtualUsers} setCurrentUsers={setCurrentVirtualUsers} />
                                 <div className="flex flex-col gap-2">
                                     {currentVirtualUsers?.map((u) => (
-                                        <UserCard
-                                            type="virtual"
-                                            key={u.role + u.publicId + "-virtual"}
-                                            user={u}
-                                            onUpdateAction={virtualRefetch}
-                                            syncKey={syncKey}
-                                            virtualSyncKey={virtualSyncKey}
-                                        />
+                                        <UserCard key={u.role + u.publicId + "-virtual"} user={u} />
                                     ))}
                                 </div>
                             </>

@@ -7,9 +7,9 @@
 
 namespace Goralys\App\User\Controllers;
 
+use DateMalformedStringException;
 use Goralys\App\User\Data\UserCollection;
 use Goralys\App\User\Data\UserGetDTO;
-use Goralys\App\User\Data\UsernameTable;
 use Goralys\Core\User\Data\Enums\UserRole;
 use Goralys\Core\User\Data\UserFullDTO;
 use Goralys\Core\User\Data\VirtualUserDTO;
@@ -22,6 +22,7 @@ use Goralys\Platform\Logger\Interfaces\LoggerInterface;
 use Goralys\Shared\Config\GoralysConfig as Config;
 use Goralys\Shared\Exception\GoralysRuntimeException;
 use Goralys\Shared\Exception\User\GoralysUserException;
+use Goralys\Shared\Exception\User\UserNotFoundException;
 use Goralys\Shared\Lib\GoralysLib as Lib;
 use Goralys\Shared\Lib\String\StringCase;
 use Goralys\Shared\User\Data\FullNameDTO;
@@ -76,6 +77,7 @@ final class UserController
     /**
      * Returns all non-admin users from the database.
      * @return UserCollection The users (teachers and students).
+     * @throws DateMalformedStringException
      */
     public function getAll(): UserCollection
     {
@@ -114,6 +116,7 @@ final class UserController
     /**
      * Returns all admin users from the database.
      * @return UserCollection The users (admins).
+     * @throws DateMalformedStringException
      */
     public function getAdmins(): UserCollection
     {
@@ -137,8 +140,7 @@ final class UserController
      */
     public function addAdmin(FullNameDTO $name): ?string
     {
-        $table = new UsernameTable();
-        $username = $table->resolve($name, UserRole::ADMIN);
+        $username = $this->usernames->bucket->resolve($name, UserRole::ADMIN);
         return ($this->repo->whitelist($username, $name) && $this->repo->addAdmin($username)) ? $username : null;
     }
 
@@ -207,6 +209,34 @@ final class UserController
     }
 
     /**
+     * Returns the role of a given user.
+     * @param string $username The username of the target user.
+     * @return ?UserRole The role of the user of `null` if the user does not exist.
+     */
+    public function role(string $username): ?UserRole
+    {
+        return $this->repo->getRoleForUsername($username);
+    }
+
+    /**
+     * Updates a user's full name.
+     * This function also deletes the old username and generates a brand new one.
+     * @param string $username The username of the targeted user.
+     * @param FullNameDTO $new The new full name of the user.
+     * @return string|null The new username if the operation is successfull, `null` elsewhise.
+     * @throws GoralysUserException If the new username could not be generated.
+     */
+    public function setFullName(string $username, FullNameDTO $new): ?string
+    {
+        $newUsername = $this->usernames->bucket->resolve($new);
+        if (!$this->usernames->bucket->remove($username)) {
+            return null;
+        }
+
+        return $this->repo->setFullName($username, $new) && $this->repo->setUsername($username, $newUsername);
+    }
+
+    /**
      * Gets the email for the current user or the provided one.
      * @param $publicId ?string The public id of the target user, if `null` (default),
      * the controller will query the email for the current user.
@@ -246,5 +276,25 @@ final class UserController
         }
         unset($_SESSION[Config::SESSION::EMAIL]);
         return true;
+    }
+
+    /**
+     * Retrieves a user's profile based on his public id.
+     * @param string $publicId The user's public id.
+     * @return ?UserFullDTO The complete profile of the user or `null` if the user does not exist.
+     */
+    public function getProfile(string $publicId): ?UserFullDTO
+    {
+        try {
+            return $this->repo->getByPublicId($publicId);
+        } catch (UserNotFoundException) {
+            try {
+                return $this->repo->getVirtualByPublicId($publicId);
+            } catch (UserNotFoundException | DateMalformedStringException) {
+                return null;
+            }
+        } catch (DateMalformedStringException) {
+            return null;
+        }
     }
 }

@@ -1,16 +1,17 @@
 import { ReactElement } from "react";
-import SupportTicketPageClient from "./support-ticket-page-client";
+import UserPanelPageClient from "@/app/admin/user/user-panel-page-client";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { UserProfile } from "@goralys/core";
 
 interface PageParams {
-    t: string;
+    u: string;
 }
 
 export default async function Page({ searchParams }: { searchParams: Promise<PageParams> }): Promise<ReactElement> {
-    const id = (await searchParams).t;
+    const pubId = (await searchParams).u;
 
-    if (!id) redirect("/support");
+    if (!pubId) redirect("/admin/users");
 
     const cookieStore = await cookies();
     const sessionCookie = cookieStore.get("GORALYSSESSID")?.value;
@@ -22,7 +23,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Pag
             cookie: sessionCookie ? `GORALYSSESSID=${sessionCookie}` : "",
             "X-High-School-Token": process.env.NEXT_PUBLIC_API_TOKEN ?? "",
         },
-        body: JSON.stringify({ form: "get-ticket" }),
+        body: JSON.stringify({ form: "get-user-profile" }),
     });
 
     if (!csrfRes.ok) {
@@ -32,7 +33,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<Pag
     const csrfData = await csrfRes.json();
     const csrfToken = csrfData["csrf-token"];
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_DOMAIN}/support/ticket?t=${id}&csrf-token=${csrfToken}`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_DOMAIN}/users/profile/any?target=${pubId}&csrf-token=${csrfToken}`, {
+        method: "GET",
         headers: {
             cookie: sessionCookie ? `GORALYSSESSID=${sessionCookie}` : "",
             "X-High-School-Token": process.env.NEXT_PUBLIC_API_TOKEN ?? "",
@@ -42,13 +44,13 @@ export default async function Page({ searchParams }: { searchParams: Promise<Pag
     const text = await res.text();
 
     if (res.status === 401) redirect("/user/login?reason=unauthenticated");
-    if (res.status !== 200) redirect("/support");
+    if (res.status !== 200) redirect("/admin/users");
     if (text.startsWith("<")) {
         console.error("Backend returned HTML instead of JSON!");
-        redirect("/support");
+        redirect("/admin/users");
     }
 
-    const ticket = JSON.parse(text);
+    const profile: UserProfile = JSON.parse(text);
 
-    return <SupportTicketPageClient ticket={ticket} />;
+    return <UserPanelPageClient profile={profile} />;
 }

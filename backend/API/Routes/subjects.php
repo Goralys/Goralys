@@ -41,6 +41,25 @@ Routes::get('subjects/student', function (GoralysKernel $kernel) {
 })
         ->middlewares(...MiddlewareSets::subjectsRoute('get-student-subjects', UserRole::STUDENT));
 
+Routes::get('subjects/any', function (GoralysKernel $kernel, RequestInterface $request) {
+    $u = $kernel->usernames->get($request->param("target"));
+    $role = $kernel->users->role($u);
+
+    if (!$role) {
+        $kernel->deferredResponse(400)->toast( // Bad Request
+                ToastType::WARNING,
+                "Utilisateur",
+                "Cet utilisateur n'existe pas."
+        )
+            ->redirect("/admin/users")
+            ->send();
+    }
+
+    $kernel->response()->json($kernel->subjects->getForRole($role, $u));
+}, ...RouterOptions::$INPUT::require("target"))
+        ->middlewares(...MiddlewareSets::adminPanelRoute("get-user-subjects", fetch: true))
+        ->middleware(...DbMiddleware::require());
+
 // --------------------------------------------------
 // [SUB SECTION] Get draft
 // --------------------------------------------------
@@ -62,7 +81,7 @@ Routes::get('subjects/draft', function (GoralysKernel $kernel, RequestInterface 
             veuillez réessayer ultérieurement.",
         "/subject/",
     ),
-    ...RouterOptions::$TOAST::flash(),)
+    ...RouterOptions::$TOAST::flash())
         ->middleware(...RateLimitMiddleware::for('get-student-draft', '/subject/'))
         ->middleware(...AuthMiddleware::require())
         ->middleware(...RoleMiddleware::require(UserRole::TEACHER, true))

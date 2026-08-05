@@ -20,3 +20,25 @@ export const parsePhpDateTime = (phpDate: PHPDateTime): string => {
         minute: "2-digit",
     });
 };
+
+export function separateNames(fullName: string): { firstName: string; lastName: string } {
+    const parts = fullName.split(" ");
+    const firstNameParts: string[] = [];
+    const lastNameParts: string[] = [];
+    let current: "first" | "last" = "first";
+
+    parts.forEach((p) => {
+        if (p.toUpperCase() === p) current = "last";
+
+        switch (current) {
+            case "first":
+                firstNameParts.push(p);
+                break;
+            case "last":
+                lastNameParts.push(p);
+                break;
+        }
+    });
+
+    return { firstName: firstNameParts.join(" "), lastName: lastNameParts.join(" ") };
+}

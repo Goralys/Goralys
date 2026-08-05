@@ -5,7 +5,7 @@ import { useModalClose } from "@/app/src/lib/modals";
 import { ReactElement, useRef, useState } from "react";
 import { AtSymbolIcon } from "@heroicons/react/24/outline";
 
-interface EmailModalProps {
+interface Props {
     visible: boolean;
     onConfirmAction: (email: string) => void;
     onCancelAction: () => void;
@@ -13,13 +13,7 @@ interface EmailModalProps {
     message: string;
 }
 
-export default function EmailModalElement({
-    visible,
-    onConfirmAction,
-    onCancelAction,
-    onCloseModalAction,
-    message,
-}: EmailModalProps): ReactElement {
+export default function EmailModalElement({ visible, onConfirmAction, onCancelAction, onCloseModalAction, message }: Props): ReactElement {
     const [email, setEmail] = useState("");
     const modalRef = useRef<HTMLDivElement>(null);
 

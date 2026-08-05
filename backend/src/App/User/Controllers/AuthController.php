@@ -7,6 +7,7 @@
 
 namespace Goralys\App\User\Controllers;
 
+use DateMalformedStringException;
 use Goralys\App\User\Data\Enums\UserAuthStatus;
 use Goralys\App\User\Data\RevokeTokenDTO;
 use Goralys\App\User\Data\TokenCreateDTO;
@@ -116,6 +117,7 @@ final class AuthController
      * Log in the user via a login service.
      * @param UserLoginDTO $userData The necessary credentials to log in the user.
      * @return bool If the login was successful or not.
+     * @throws DateMalformedStringException
      */
     public function login(UserLoginDTO $userData): bool
     {
@@ -137,7 +139,7 @@ final class AuthController
      * Helper to cache the user's data after a successful login.
      * This function also regenerates the session's id.
      * @param string $username The username which logged in successfully.
-     * @throws UserNotFoundException If the user does not exists.
+     * @throws UserNotFoundException|DateMalformedStringException If the user does not exists.
      */
     private function cacheUserData(string $username): void
     {
@@ -176,7 +178,7 @@ final class AuthController
      * If the token is valid, the function automatically attempts to rotate it.
      * @param TokenLoginDTO $data The necessary credentials to log the user in with an authentication token.
      * @return ?string Null if the token is invalid or is the rotation fails, the new token elsewhise.
-     * @throws RandomException If the new token generation fails.
+     * @throws RandomException|DateMalformedStringException If the new token generation fails.
      */
     public function tokenLogin(TokenLoginDTO $data): ?string
     {
@@ -213,6 +215,7 @@ final class AuthController
      * Gets all the auth tokens for a given user.
      * @param string $username The user to gets all the tokens for.
      * @return AuthTokensCollection All the auth tokens for the given user.
+     * @throws DateMalformedStringException
      */
     public function getTokens(string $username): AuthTokensCollection
     {
