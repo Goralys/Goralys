@@ -47,7 +47,6 @@ create table auth_tokens
     username   varchar(32)  not null, -- e.g. "j.dupont3", fk -> users_info.username
     token_hash varchar(255) not null,
     name       varchar(64)  not null,
-    active     bool         not null,
     created_at datetime default current_timestamp,
     expires_at datetime     not null,
 
