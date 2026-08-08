@@ -598,15 +598,12 @@ Routes::put('users/teacher/replace', function (GoralysKernel $kernel, RequestInt
         ->middleware(...DbMiddleware::transaction());
 
 Routes::get('users/username', function (GoralysKernel $kernel, RequestInterface $request) {
-    $redirect = "/admin/user?u=" . urlencode($request->param("target"));
-
     if (!$kernel->auth->validatePassword($request->param("admin-password"))) {
         $kernel->deferredResponse(501)->toast( // Unauthorized
             ToastType::WARNING,
             "Mot de passe",
             "Veuillez saisir le bon mot de passe",
         )
-                ->redirect($redirect)
                 ->send();
     }
 
@@ -615,7 +612,6 @@ Routes::get('users/username', function (GoralysKernel $kernel, RequestInterface 
         "Identifiant",
         "Identifiant pour ce compte: " . $kernel->usernames->get($request->param("target")),
     )
-            ->redirect($redirect)
             ->send();
 })
         ->middlewares(...MiddlewareSets::adminPanelRoute('get-username'))
