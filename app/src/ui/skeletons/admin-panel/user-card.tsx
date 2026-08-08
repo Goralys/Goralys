@@ -1,13 +1,8 @@
 import { Card } from "@/app/src/ui/card";
 import { ButtonSkeleton } from "@/app/src/ui/skeletons/button";
-import { ReplaceTeacherSkeleton } from "./replace-teacher";
 import { ReactElement } from "react";
 
-interface Props {
-    showReplaceTeacher?: boolean;
-}
-
-export default function UserCardSkeleton({ showReplaceTeacher = false }: Props): ReactElement {
+export default function UserCardSkeleton(): ReactElement {
     return (
         <Card className="flex-col w-200! bg-sky-200 gap-1 p-1 mb-1 mt-1">
             <div className="flex flex-row justify-between items-center">
@@ -16,11 +11,9 @@ export default function UserCardSkeleton({ showReplaceTeacher = false }: Props):
                     <div className="skeleton h-5 w-48 rounded-xs self-center" />
                 </div>
                 <div className="flex flex-row w-100 gap-1">
-                    <ButtonSkeleton />
                     <ButtonSkeleton className="w-50!" />
                 </div>
             </div>
-            {showReplaceTeacher && <ReplaceTeacherSkeleton />}
         </Card>
     );
 }

@@ -33,7 +33,7 @@ export default function UserCard({ user }: Props): ReactElement {
                 <div className="flex flex-row w-100 gap-1 place-content-end">
                     <Button
                         type="button"
-                        className="w-55!"
+                        className="w-50!"
                         text="Gérer le compte"
                         onClick={() => router.push("/admin/user?u=" + user.publicId)}
                     />
