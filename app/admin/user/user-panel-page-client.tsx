@@ -25,6 +25,8 @@ import { usePasswordModal } from "@/app/src/ui/modals/password/password-modal-pr
 import { useConfirm } from "@/app/src/ui/modals/confirm/confirm-provider";
 import { useToast } from "@/app/src/ui/toast/toast-provider";
 import { Button } from "@/app/src/ui/button";
+import { UserSubjectsTeacherCardSkeleton } from "@/app/src/ui/skeletons/admin-panel/subjects/user-subjects-teacher-card";
+import { UserSubjectsStudentCardSkeleton } from "@/app/src/ui/skeletons/admin-panel/subjects/user-subjetcs-student-card";
 
 export default function UserPanelPageClient({ profile }: { profile: UserProfile }): ReactElement {
     // may have undesirable side effects, testing to do...
@@ -142,9 +144,17 @@ export default function UserPanelPageClient({ profile }: { profile: UserProfile 
                 </Card>
 
                 {profile.role === "teacher" ? (
-                    <UserSubjectsTeacherCard subjects={subjects} />
+                    subjects ? (
+                        <UserSubjectsTeacherCard subjects={subjects} />
+                    ) : (
+                        <UserSubjectsTeacherCardSkeleton />
+                    )
                 ) : profile.role === "student" ? (
-                    <UserSubjectsStudentCard subjects={subjects} />
+                    subjects ? (
+                        <UserSubjectsStudentCard subjects={subjects} />
+                    ) : (
+                        <UserSubjectsStudentCardSkeleton />
+                    )
                 ) : (
                     <></>
                 )}
