@@ -61,16 +61,41 @@ the public internet. Edit your hosts file (`C:\Windows\System32\drivers\etc\host
 > `0492061z` is a sample high school code used for local testing (must exist in your `schools_list` INI file).
 > Add one line per high school code you want to test locally.
 
-1. Run setup script:
+### Installing GoralysCLI
+
+#### Automated install
+
+Before starting the project's setup, you must install the **goralys-cli** tool. The recommended way to install the tool
+is via the **OFFICIAL** scripts provided directly by our team.
+You can run the following commands in your terminal to run the script for your platform:
+```bash
+# for Windows
+irm https://cli.goralys.fr/release/latest/install.ps1 | iex
+
+# for Linux
+curl -fsSL https://cli.goralys.fr/release/latest/install.sh | sh
+```
+
+You can then verify the installation with the following command:
+```bash
+goralys-cli --version
+```
+
+#### Manual download / Compile
+
+You can also download the cli tool manually from the [official repo](https://github.com/Goralys/GoralysCLI).
+Alternatively, you can clone this repo and build the project from source.
+
+> [!WARNING]
+> Do not trust any other sources than the two listed above.
+> Any non-official executable may contain malware !
+
+1. Run setup command:
     ```bash
-    .\scripts\setup.bat
-    ```
-   Or if you use Linux:
-    ```bash
-    ./scripts/setup.sh
+    goralys-cli setup
     ```
 2. Configure environment:
-    - For development, modify the values inside .env (created using setup.bat)
+    - For development, modify the values inside .env (created using the setup command)
 3. Database:
     - Create the database and tables using the schema at [backend/data_structure.sql](backend/data_structure.sql).
 4. Run dev server:
@@ -93,7 +118,7 @@ the public internet. Edit your hosts file (`C:\Windows\System32\drivers\etc\host
 
 > [!IMPORTANT]
 > The dev script will automatically deactivate all TLS verification for the Next.js server.
-> This should only be used for development purposes.$
+> This should only be used for development purposes.
 > If you use this script for production, your machine will be vulnerable to MITM (man-in-the-middle) attacks.
 > Use this consciously.
 
@@ -163,9 +188,9 @@ code — I try to minimize this as much as possible._
 
 ## License and contributing information
 
-This project was originally licensed under the MIT license, as of version 2.1.1, this project is now licensed under the
+This project was originally licensed under the MIT license, as of version 2.1.1, this project is licensed under the
 GNU Affero General Public License v3.0 (see: [`LICENSE`](LICENSE)). Third-party licenses can be found in [
-`THIRD-LICENSE-PARTY`](THIRD-PARTY-LICENSE). All contributions are welcome as long as they respect the terms inside [
+`THIRD-PARTY-LICENSE`](THIRD-PARTY-LICENSE). All contributions are welcome as long as they respect the terms inside [
 `Contributing`](CONTRIBUTING.md).
 
 ## Notes
