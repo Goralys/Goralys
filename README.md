@@ -76,7 +76,7 @@ the public internet. Edit your hosts file (`C:\Windows\System32\drivers\etc\host
 4. Run dev server:
     - Run Next and PHP's built-in server for the API. By default, the port for the API is 80:
         ```bash
-        C:\php8.5\php.exe -S 127.0.0.1:80 -t C:\Programmation\Goralys\backend\public C:\Programmation\Goralys\backend\public\index.php
+        C:\php8.5\php.exe -S localhost:80 -t C:\Programmation\Goralys\backend\public C:\Programmation\Goralys\backend\public\index.php
         ```
     - Run Caddy:
       ```bash
