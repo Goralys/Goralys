@@ -133,15 +133,29 @@ final class UserController
     }
 
     /**
-     * Adds a new admin inside the database.
-     * @param FullNameDTO $name The full name of the admin to add.
+     * Adds a new user inside the database.
+     * @param FullNameDTO $name The full name of the user to add.
+     * @param UserRole $role The user's role.
+     * @param string ...$topics The user's topics. This is only required for students and teachers.
      * @return ?string The admin's username on success, null otherwise.
-     * @throws GoralysUserException
+     * @throws GoralysUserException|GoralysRuntimeException If the user cannot be created.
      */
-    public function addAdmin(FullNameDTO $name): ?string
+    public function addUser(FullNameDTO $name, UserRole $role, string ...$topics): ?string
     {
         $username = $this->usernames->bucket->resolve($name, UserRole::ADMIN);
-        return ($this->repo->whitelist($username, $name) && $this->repo->addAdmin($username)) ? $username : null;
+
+        if (!$this->repo->whitelist($username, $name)) {
+            return null;
+        }
+
+        $success = match ($role) {
+            UserRole::ADMIN => $this->repo->addAdmin($username),
+            UserRole::TEACHER => $this->repo->addTeacher($username, ...$topics),
+            UserRole::STUDENT => $this->repo->addStudent($username, ...$topics),
+            default => false,
+        };
+
+        return $success ? $username : null;
     }
 
     /**

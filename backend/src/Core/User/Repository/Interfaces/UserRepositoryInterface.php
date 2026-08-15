@@ -142,6 +142,22 @@ interface UserRepositoryInterface
     public function addAdmin(string $username): bool;
 
     /**
+     * Creates a new teacher in the database.
+     * @param string $username The new teacher's username.
+     * @param string ...$topics The teacher's assigned topics.
+     * @return bool Whether the creation was successful.
+     */
+    public function addTeacher(string $username, string ...$topics): bool;
+
+    /**
+     * Creates a new student in the database.
+     * @param string $username The new student's username.
+     * @param string ...$topics The topics stutied by the student.
+     * @return bool Whether the creation was successful.
+     */
+    public function addStudent(string $username, string ...$topics): bool;
+
+    /**
      * Deletes an admin in the database.
      * @param string $username The new admin's username.
      * @return bool Whether the deletion was successful.

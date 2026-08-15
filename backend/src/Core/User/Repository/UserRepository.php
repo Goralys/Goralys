@@ -20,6 +20,7 @@ use Goralys\Platform\DB\Interfaces\DbContainerInterface;
 use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
 use Goralys\Platform\Logger\Interfaces\LoggerInterface;
 use Goralys\Shared\Exception\DB\GoralysDBException;
+use Goralys\Shared\Exception\GoralysRuntimeException;
 use Goralys\Shared\Exception\User\UserNotFoundException;
 use Goralys\Shared\User\Data\FullNameDTO;
 use mysqli_result;
@@ -631,6 +632,46 @@ final class UserRepository implements UserRepositoryInterface
             $this->db->rollback();
             return false;
         }
+    }
+
+    /**
+     * Creates a new teacher in the database.
+     * @param string $username The new teacher's username.
+     * @param string ...$topics The teacher's assigned topics.
+     * @return bool Whether the creation was successful.
+     * @throws GoralysRuntimeException If the teacher has no topics.
+     */
+    public function addTeacher(string $username, string ...$topics): bool
+    {
+        if (count($topics) === 0) {
+            throw new GoralysRuntimeException("Teachers must have at least one subject");
+        }
+
+        $query = "insert into topic_teachers (topic_id, teacher_username) values (?, ?)";
+        $query .= str_repeat(", (?, ?)", count($topics) - 1);
+        $params = array_map(fn($t) => [$t, $username], $topics);
+        return $this->db->run($query, str_repeat("s", count($topics) * 2), $params);
+    }
+
+    /**
+     * Creates a new student in the database.
+     * @param string $username The new student's username.
+     * @param string ...$topics The topics stutied by the student.
+     * @return bool Whether the creation was successful.
+     * @throws GoralysRuntimeException If the student has no topics.
+     */
+    public function addStudent(string $username, string ...$topics): bool
+    {
+        if (count($topics) === 0) {
+            throw new GoralysRuntimeException("Students must have at least one subject");
+        }
+
+        $query = "insert into student_topics 
+                  (student_username, topic_id, subject, subject_status, last_rejected, teacher_comment, draft_path)
+                  values (?, ?, null, 0, null, null, null)";
+        $query .= str_repeat(", (?, ?, null, 0, null, null, null)", count($topics) - 1);
+        $params = array_map(fn($s) => [$username, $s], $topics);
+        return $this->db->run($query, str_repeat("s", count($topics) * 2), $params);
     }
 
     /**

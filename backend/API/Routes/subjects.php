@@ -20,9 +20,9 @@ use Goralys\Kernel\GoralysKernel;
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-// ================================================
+// ==================================================
 // [SECTION] Subjects getters
-// ================================================
+// ==================================================
 Routes::get('subjects/admin', function (GoralysKernel $kernel) {
     $result = $kernel->subjects->getForRole(UserRole::ADMIN);
     $kernel->response()->json($result);
@@ -87,9 +87,9 @@ Routes::get('subjects/draft', function (GoralysKernel $kernel, RequestInterface 
         ->middleware(...RoleMiddleware::require(UserRole::TEACHER, true))
         ->middleware(...DbMiddleware::require());
 
-// ================================================
+// ==================================================
 // [SECTION] Subject modifiers/setters
-// ================================================
+// ==================================================
 Routes::post('subjects/export', function (GoralysKernel $kernel) {
     $kernel->subjects->cleanExports(); // Cleans all previous exports
     $kernel->subjects->prepareExports();

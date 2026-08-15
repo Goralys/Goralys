@@ -32,9 +32,9 @@ use Goralys\Shared\Lib\GoralysLib as Lib;
 use Goralys\Shared\Lib\String\StringCase;
 use Goralys\Shared\User\Data\FullNameDTO;
 
-// ================================================
+// ==================================================
 // [SECTION] Profile
-// ================================================
+// ==================================================
 Routes::get('user/profile', function (GoralysKernel $kernel) {
     $data = [
         "username"   => trim($_SESSION[GoralysConfig::SESSION::USERNAME]),
@@ -140,9 +140,9 @@ Routes::delete("user/email", function (GoralysKernel $kernel) {
     ->middleware(...AuthMiddleware::weak())
     ->middleware(...DbMiddleware::require());
 
-// ================================================
+// ==================================================
 // [SECTION] Auth
-// ================================================
+// ==================================================
 Routes::post('user/register', function (GoralysKernel $kernel, RequestInterface $request) {
     $registerData = new UserRegisterDTO(
         $request->param("user-name"),
@@ -334,9 +334,9 @@ Routes::delete('user/token', function (GoralysKernel $kernel, RequestInterface $
     ->middleware(...RoleMiddleware::require(UserRole::ADMIN, true))
     ->middleware(...DbMiddleware::transaction());
 
-// ================================================
+// ==================================================
 // [SECTION] Admin actions
-// ================================================
+// ==================================================
 Routes::get('users/all', function (GoralysKernel $kernel) {
     $kernel->response()->json($kernel->users->getAll());
 })
@@ -392,6 +392,39 @@ Routes::put("user/name", function (GoralysKernel $kernel, RequestInterface $requ
         ->middleware(...DbMiddleware::require());
 
 // --------------------------------------------------
+// [SUBSECTION] User creation
+// --------------------------------------------------
+
+// Not in use right now, planned for 3.3.0
+Routes::post("user/student", function (GoralysKernel $kernel, RequestInterface $request) {
+    $fn = new FullNameDTO($request->param("first-name"), $request->param("last-name"));
+    $topics = $request->param("topics");
+
+    if (!is_array($topics)) {
+        $topics = [$topics];
+    }
+
+    $u = $kernel->users->addUser($fn, ...$topics);
+
+    if (!$u) {
+        $kernel->db->rollback();
+        $kernel->deferredResponse(400)->toast(
+            ToastType::ERROR,
+            "Ajout de l'élève",
+            "L'élève n'a pas pu être ajouté."
+        );
+    }
+
+    $kernel->deferredResponse()->toast(
+        ToastType::SUCCESS,
+        "Ajout de l'élève",
+        "L'élève a bien été ajouté."
+    );
+}, ...RouterOptions::$INPUT::require("first-name", "last-name", "topics"))
+    ->middlewares(...MiddlewareSets::adminPanelRoute("create-student"))
+    ->middleware(...DbMiddleware::transaction());
+
+// --------------------------------------------------
 // [SUB SECTION] Admins create and revoke
 // --------------------------------------------------
 
@@ -411,11 +444,12 @@ Routes::post('admin/create', function (GoralysKernel $kernel, RequestInterface $
                 ->send();
     }
 
-    $result = $kernel->users->addAdmin(
+    $result = $kernel->users->addUser(
         new FullNameDTO(
             trim($request->param("first-name")),
             trim(Lib::STRING::sanitize($request->param("last-name"), StringCase::UPPER))
-        )
+        ),
+        UserRole::ADMIN
     );
 
     if (!$result) {

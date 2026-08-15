@@ -17,9 +17,9 @@ interface RequestInterface
     /**
      * Gets the value of an input from the request.
      * @param string $key The name of the input.
-     * @return int|float|string|bool|null The value of the input.
+     * @return int|float|string|bool|array|null The value of the input.
      */
-    public function param(string $key): int|float|string|bool|null;
+    public function param(string $key): int|float|string|bool|array|null;
 
     /**
      * Gets the header of the request.
