@@ -51,7 +51,6 @@ goralys-core/dist
 /backend/vendor
 /backend/RateLimiter
 /backend/migration.sql
-/backend/Users
 
 # IDE
 /.idea
