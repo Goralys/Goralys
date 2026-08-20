@@ -131,12 +131,13 @@ final class DeferredResponse implements Interfaces\DeferredResponseInterface
         }
         if ($this->context->mode === ToastMode::FLASH) {
             http_response_code(302);
-            $this->controller->responder->sendToast($this->toast, $this->action ?? "", $this->data);
+            $this->controller->responder->sendToast($this->toast, $this->action ?? "");
             error_log("KERNEL - 3: redirecting to: " . $this->toast->redirect ?? "NONE");
             if ($this->context->client === Client::WEB && $this->toast->redirect) {
                 header("Location: " . $this->toast->redirect);
+                $this->json->send($this->data ?? []);
             } elseif ($this->context->client === Client::MOBILE && $this->toast->redirect) {
-                $this->json->send(["redirect" => $this->toast->redirect]);
+                $this->json->send(array_merge(["redirect" => $this->toast->redirect], $this->data ?? []));
             }
             exit;
         }

@@ -247,9 +247,9 @@ Routes::post('user/token/create', function (GoralysKernel $kernel, RequestInterf
         "Création du jeton",
         "Votre jeton d'authentification a bien été créé pour votre appareil ($name)."
     )
-       ->redirect("/")
+        ->redirect("/")
         ->json(['token' => $token])
-       ->send();
+        ->send();
 }, ...RouterOptions::$INPUT::require("name"), ...RouterOptions::$TOAST::flash())
     ->middleware(...RateLimitMiddleware::for('create-auth-token'))
     ->middleware(...CSRFMiddleware::form('create-auth-token'))
