@@ -239,7 +239,7 @@ Routes::post('user/token/create', function (GoralysKernel $kernel, RequestInterf
             "Création du jeton",
             "Votre jeton d'authentification n'a pas pu être créé, veuillez réessayer ultérieurement.",
         )
-           ->redirect("/")
+           ->redirect("/user/login")
            ->send();
     }
     $kernel->deferredResponse()->toast(
@@ -247,10 +247,10 @@ Routes::post('user/token/create', function (GoralysKernel $kernel, RequestInterf
         "Création du jeton",
         "Votre jeton d'authentification a bien été créé pour votre appareil ($name)."
     )
-        ->redirect("/")
+        ->redirect("/subject")
         ->json(['token' => $token])
         ->send();
-}, ...RouterOptions::$INPUT::require("name"), ...RouterOptions::$TOAST::flash())
+}, ...RouterOptions::$INPUT::require("name"))
     ->middleware(...RateLimitMiddleware::for('create-auth-token'))
     ->middleware(...CSRFMiddleware::form('create-auth-token'))
     ->middleware(...AuthMiddleware::require())
@@ -280,7 +280,7 @@ Routes::post('user/token/login', function (GoralysKernel $kernel, RequestInterfa
         ->action("login-success")
         ->json(['token' => $newToken])
         ->send();
-}, ...RouterOptions::$INPUT::require("username", "token"), ...RouterOptions::$TOAST::flash())
+}, ...RouterOptions::$INPUT::require("username", "token"))
     ->middleware(...RateLimitMiddleware::for('login-auth-token'))
     ->middleware(...CSRFMiddleware::form('login-auth-token'))
     ->middleware(...DbMiddleware::transaction());
