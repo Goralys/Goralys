@@ -26,7 +26,6 @@ final class HttpJsonResponder implements JsonResponder
     {
         if (!headers_sent()) {
             header("Content-Type: application/JSON; charset: utf-8");
-
         }
 
         http_response_code($responseCode);

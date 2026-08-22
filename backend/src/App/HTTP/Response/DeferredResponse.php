@@ -135,9 +135,9 @@ final class DeferredResponse implements Interfaces\DeferredResponseInterface
             error_log("KERNEL - 3: redirecting to: " . $this->toast->redirect ?? "NONE");
             if ($this->context->client === Client::WEB && $this->toast->redirect) {
                 header("Location: " . $this->toast->redirect);
-                $this->json->send($this->data ?? []);
+                $this->json->send($this->data ?? [], 302);
             } elseif ($this->context->client === Client::MOBILE && $this->toast->redirect) {
-                $this->json->send(array_merge(["redirect" => $this->toast->redirect], $this->data ?? []));
+                $this->json->send(array_merge(["redirect" => $this->toast->redirect], $this->data ?? []), 302);
             }
             exit;
         }
