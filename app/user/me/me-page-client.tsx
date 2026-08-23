@@ -28,9 +28,9 @@ export default function MePageClient(): ReactElement {
     const [fullName, setFullName] = useState<string>((cookiesGet(FULL_NAME_KEY) ?? " ") as string);
     const updateUserData = async (): Promise<void> => {
         await cacheUserDataClient();
-        setUsername((cookiesGet(EMAIL_KEY) ?? "") as string);
-        setFullName((cookiesGet(USERNAME_KEY) ?? "") as string);
-        setEmail((cookiesGet(FULL_NAME_KEY) ?? " ") as string);
+        setUsername((cookiesGet(USERNAME_KEY) ?? "") as string);
+        setFullName((cookiesGet(FULL_NAME_KEY) ?? "") as string);
+        setEmail((cookiesGet(EMAIL_KEY) ?? " ") as string);
     };
     const logout = async (): Promise<void> => {
         emitUserEvent("logout");
