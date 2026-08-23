@@ -81,7 +81,11 @@ final class AuthRepository implements AuthRepositoryInterface
 
         return $this->db->run(
             "insert into auth_tokens (username, token_hash, name, expires_at) 
-                   values (?, ?, ?, ?)",
+                   values (?, ?, ?, ?)
+                   on duplicate key update
+                       token_hash = values(token_hash),
+                       expires_at = values(expires_at),
+                       created_at = current_timestamp",
             "ssss",
             $username,
             $tokenHash,
