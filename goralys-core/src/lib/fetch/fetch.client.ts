@@ -6,7 +6,7 @@
 import { emitAuthEvent } from "@/lib/auth/auth-event";
 import { emitNavigationEvent } from "./navigation-event";
 import { GoralysActionHandler } from "./goralys-action-handler";
-import type { HttpMethod } from "@/types/http";
+import type { GoralysFetchOptions, HttpMethod } from "@/types/http";
 import { getGoralysClientConfig } from "./config";
 import { ToastFn } from "@/types/toast";
 
@@ -16,7 +16,7 @@ export async function goralysFetchClient(
     method: HttpMethod,
     input: string | URL | Request,
     payload?: Record<string, string | number | boolean | null> | FormData,
-    requestOptions?: RequestInit,
+    requestOptions?: GoralysFetchOptions,
 ): Promise<Response> {
     if (requestOptions?.body)
         console.error("[Fetch] Found body inside request options. This is not allowed, consider using the payload parameter instead");
@@ -43,7 +43,7 @@ export async function goralysFetchClient(
 
     const data = await clone.json();
 
-    if (data?.redirect) {
+    if (data?.redirect && requestOptions?.suppressRedirect) {
         emitNavigationEvent({ type: "redirect", url: data.redirect });
     }
 
