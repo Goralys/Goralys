@@ -43,7 +43,7 @@ export async function goralysFetchClient(
 
     const data = await clone.json();
 
-    if (data?.redirect && requestOptions?.suppressRedirect) {
+    if (data?.redirect && !requestOptions?.suppressRedirect) {
         emitNavigationEvent({ type: "redirect", url: data.redirect });
     }
 
