@@ -55,7 +55,7 @@ final class UserRepository implements UserRepositoryInterface
     public function getByUsername(string $username): UserFullDTO
     {
         $result = $this->db->fetch(
-            "select id, u.username, role, firstname, lastname, email from users u
+            "select id, u.username, role, firstname, lastname, email, created_at from users u
                    left join emails e on u.username = e.username
                    right outer join users_info ui on ui.username = u.username
                    where u.username = ?",
@@ -294,7 +294,7 @@ final class UserRepository implements UserRepositoryInterface
     public function getByPublicId(string $uuid): UserFullDTO
     {
         $result = $this->db->fetch(
-            "select u.id, u.username, u.role, ui.firstname, ui.lastname, e.email 
+            "select u.id, u.username, u.role, u.created_at, ui.firstname, ui.lastname, e.email 
                    from users u
                    join users_info ui on ui.username = u.username
                    join public_ids pi on u.username = pi.username
@@ -407,7 +407,7 @@ final class UserRepository implements UserRepositoryInterface
     public function getAll(): array
     {
         $result = $this->db->fetchNoArgs(
-            "select id, u.username, firstname, lastname, role 
+            "select id, u.username, firstname, lastname, role, u.created_at 
                    from users u
                    join users_info ui on ui.username = u.username
                    where role <> 'admin'"
@@ -593,7 +593,7 @@ final class UserRepository implements UserRepositoryInterface
     public function getAdmins(): array
     {
         $result = $this->db->fetchNoArgs(
-            "select id, u.username, firstname, lastname, role 
+            "select id, u.username, firstname, lastname, role , u.created_at
                    from users u
                    join users_info ui on ui.username = u.username
                    where role = 'admin'"
