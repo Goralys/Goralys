@@ -63,11 +63,12 @@ final class AuthController
      * @param float $sessionLifetimeMultiplier The lifetime multiplier of the PHP session.
      */
     public function __construct(
-        LoggerInterface $logger,
+        LoggerInterface      $logger,
         DbContainerInterface $db,
-        int $sessionLifetime,
-        float $sessionLifetimeMultiplier,
-    ) {
+        int                  $sessionLifetime,
+        float                $sessionLifetimeMultiplier,
+    )
+    {
         $this->logger = $logger;
         $this->db = $db;
         $this->sessionLifetime = $sessionLifetime;
@@ -185,19 +186,25 @@ final class AuthController
         $new = bin2hex(random_bytes(Config::AUTH::AUTH_TOKEN_LENGTH));
         $oldHash = hash(Config::AUTH::AUTH_TOKEN_ALGORITHM, $data->token);
         $newHash = hash(Config::AUTH::AUTH_TOKEN_ALGORITHM, $new);
-        $result =
-            $this->repo->isTokenValid($data->username, $oldHash)
-            && $this->repo->rotateToken($data->username, $oldHash, $newHash);
+        $valid = $this->repo->isTokenValid($data->username, $oldHash);
+        $rotate = $this->repo->rotateToken($data->username, $oldHash, $newHash);
+        $result = $valid && $rotate;
 
         if (!$result) {
+            $this->logger->debug(
+                LoggerInitiator::APP,
+                "Exit token login because of invalid result (" . (!$valid ? "invalid" : "not rotated") . ")"
+            );
             return null;
         }
 
         try {
             $this->cacheUserData($data->username);
-        } catch (UserNotFoundException) {
+        } catch (UserNotFoundException $e) {
+            $this->logger->debug(LoggerInitiator::APP, "Exit token login because of exception {$e->getMessage()}");
             return null;
         }
+        $this->logger->debug(LoggerInitiator::APP, "Exit token login successfully");
         return $new;
     }
 
@@ -292,7 +299,7 @@ final class AuthController
         }
 
         return $sinceLastConnection > $this->sessionLifetime
-                ? UserAuthStatus::SESSION_EXPIRED
-                : UserAuthStatus::AUTHENTICATED;
+            ? UserAuthStatus::SESSION_EXPIRED
+            : UserAuthStatus::AUTHENTICATED;
     }
 }

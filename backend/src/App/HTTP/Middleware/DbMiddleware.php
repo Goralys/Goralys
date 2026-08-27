@@ -49,6 +49,7 @@ final class DbMiddleware implements Interface\MiddlewareInterface
 
             $result = $next($kernel);
 
+            register_shutdown_function(fn() => $kernel->db->commit());
             $kernel->db->commit();
 
             return $result;
