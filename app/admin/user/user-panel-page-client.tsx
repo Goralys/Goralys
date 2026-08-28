@@ -163,7 +163,7 @@ export default function UserPanelPageClient({ profile }: { profile: UserProfile 
                 <Card className="flex flex-col flex-1 bg-sky-200 m-2">
                     <CardTitle title="Jetons d'authentification" />
                     {tokens && tokens.length > 0 ? (
-                        tokens.map((t) => <AuthTokenCard key={t.name} token={t} />)
+                        tokens.map((t) => <AuthTokenCard key={t.name} publicId={profile.pubId} token={t} onUpdate={refetchTokens} />)
                     ) : (
                         <p className="text">Cet utilisateur n&#39;a créé aucun jeton d&#39;authentification.</p>
                     )}

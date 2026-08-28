@@ -16,21 +16,21 @@ import {
 import { useToast } from "@/app/src/ui/toast/toast-provider";
 import { Card } from "@/app/src/ui/card";
 import { FloatingInput } from "@/app/src/ui/inputs/floating-input";
-import { ReactElement, useState } from "react";
+import { ReactElement, useEffect, useState } from "react";
 import { useEmailModal } from "@/app/src/ui/modals/email/email-modal-provider";
 
 export default function MePageClient(): ReactElement {
     const { showToast } = useToast();
     const { showEmailModal } = useEmailModal();
 
-    const [email, setEmail] = useState<string>((cookiesGet(EMAIL_KEY) ?? "") as string);
-    const [username, setUsername] = useState<string>((cookiesGet(USERNAME_KEY) ?? "") as string);
-    const [fullName, setFullName] = useState<string>((cookiesGet(FULL_NAME_KEY) ?? " ") as string);
+    const [email, setEmail] = useState<string | null>(null);
+    const [username, setUsername] = useState<string>("");
+    const [fullName, setFullName] = useState<string>("");
     const updateUserData = async (): Promise<void> => {
         await cacheUserDataClient();
         setUsername((cookiesGet(USERNAME_KEY) ?? "") as string);
         setFullName((cookiesGet(FULL_NAME_KEY) ?? "") as string);
-        setEmail((cookiesGet(EMAIL_KEY) ?? " ") as string);
+        setEmail(cookiesGet(EMAIL_KEY) as string | null);
     };
     const logout = async (): Promise<void> => {
         emitUserEvent("logout");
@@ -60,7 +60,7 @@ export default function MePageClient(): ReactElement {
 
         const payload = { "csrf-token": await fetchCsrfClient("update-email"), email: newEmail };
 
-        const res = await goralysFetchClient("PUT", "user/email", payload);
+        const res = await goralysFetchClient("PUT", "user/email", payload, { suppressRedirect: true });
 
         if (res.ok) {
             await updateUserData();
@@ -72,12 +72,19 @@ export default function MePageClient(): ReactElement {
     const deleteEmail = async (): Promise<void> => {
         const payload = { "csrf-token": await fetchCsrfClient("delete-email") };
 
-        const res = await goralysFetchClient("DELETE", buildApiUrl("user/email", payload));
+        const res = await goralysFetchClient("DELETE", buildApiUrl("user/email", payload), undefined, { suppressRedirect: true });
 
         if (res.ok) await updateUserData();
 
         await handleToastRequest(res, showToast, false);
     };
+
+    useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setEmail((cookiesGet(EMAIL_KEY) ?? "") as string);
+        setUsername((cookiesGet(USERNAME_KEY) ?? "") as string);
+        setFullName((cookiesGet(FULL_NAME_KEY) ?? " ") as string);
+    }, []);
 
     return (
         <Card className="flex-col absolute top-25 bg-sky-200 left-1/2 -translate-x-1/2 w-100!">
@@ -85,7 +92,7 @@ export default function MePageClient(): ReactElement {
             <FloatingInput id="username" label="Identifiant" disabled defaultValue={username} />
             <FloatingInput id="firstname" label="Prénom" disabled defaultValue={fullName.split(" ")[0]} />
             <FloatingInput id="lastname" label="Nom" disabled defaultValue={fullName.split(" ").slice(1).join(" ")} />
-            <FloatingInput id="email" label="Adresse Mail" email disabled value={email} />
+            <FloatingInput id="email" label="Adresse Mail" email disabled value={email ?? ""} />
             <Button
                 key="change-email-button"
                 text={email ? "Changer l'adresse mail" : "Ajouter une adresse mail"}

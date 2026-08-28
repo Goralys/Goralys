@@ -40,7 +40,7 @@ Routes::get('user/profile', function (GoralysKernel $kernel) {
         "username" => trim($_SESSION[GoralysConfig::SESSION::USERNAME]),
         "fullName" => trim($_SESSION[GoralysConfig::SESSION::FULL_NAME]),
         "role" => trim($_SESSION[GoralysConfig::SESSION::ROLE]),
-        "public_id" => trim($_SESSION[GoralysConfig::SESSION::PUBLIC_ID]),
+        "publicId" => trim($_SESSION[GoralysConfig::SESSION::PUBLIC_ID]),
         ...(isset($_SESSION[GoralysConfig::SESSION::EMAIL])
             ? ["email" => trim($_SESSION[GoralysConfig::SESSION::EMAIL])]
             : []
@@ -99,7 +99,7 @@ Routes::put("user/email", function (GoralysKernel $kernel, RequestInterface $req
             "Adresse mail",
             "Nous n'avons pas pu mettre à jour votre adresse mail, veuillez réessayer ultérieurement.",
         )
-            ->redirect("/user/profile")
+            ->redirect("/user/me")
             ->send();
     }
 
@@ -108,7 +108,7 @@ Routes::put("user/email", function (GoralysKernel $kernel, RequestInterface $req
         "Adresse mail",
         "Votre adresse mail a bien été mise à jour.",
     )
-        ->redirect("/user/profile")
+        ->redirect("/user/me")
         ->send();
 }, ...RouterOptions::$INPUT::require("email"))
     ->middleware(...RateLimitMiddleware::for("email-update"))
@@ -123,7 +123,7 @@ Routes::delete("user/email", function (GoralysKernel $kernel) {
             "Adresse mail",
             "Nous n'avons pas pu supprimer votre adresse mail, veuillez réessayer ultérieurement.",
         )
-            ->redirect("/user/profile")
+            ->redirect("/user/me")
             ->send();
     }
 
@@ -132,7 +132,7 @@ Routes::delete("user/email", function (GoralysKernel $kernel) {
         "Adresse mail",
         "Votre adresse mail a bien été supprimée.",
     )
-        ->redirect("/user/profile")
+        ->redirect("/user/me")
         ->send();
 })
     ->middleware(...RateLimitMiddleware::for("email-update"))
@@ -315,14 +315,14 @@ Routes::delete('user/token', function (GoralysKernel $kernel, RequestInterface $
     }
 
     $kernel->response()->json(["success" => true]);
-})
+}, ...RouterOptions::$INPUT::require("name"))
     ->middleware(...RateLimitMiddleware::for('revoke-auth-token'))
     ->middleware(...CSRFMiddleware::form('revoke-auth-token'))
     ->middleware(...AuthMiddleware::require())
     ->middleware(...DbMiddleware::require());
 
 Routes::delete('user/token/any', function (GoralysKernel $kernel, RequestInterface $request) {
-    $u = $request->param("username");
+    $u = $kernel->usernames->get($request->param("target"));
     $name = $request->param("name");
     $data = new RevokeTokenDTO($u, $name);
     $redirect = "/admin/user?u=" . urlencode($u);
@@ -344,7 +344,7 @@ Routes::delete('user/token/any', function (GoralysKernel $kernel, RequestInterfa
     )
         ->redirect($redirect)
         ->send();
-}, ...RouterOptions::$INPUT::require("username", "name"), ...RouterOptions::$TOAST::flash())
+}, ...RouterOptions::$INPUT::require("target", "name"))
     ->middlewares(...MiddlewareSets::adminPanelRoute("revoke-auth-token"))
     ->middleware(...DbMiddleware::require());
 

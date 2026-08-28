@@ -17,6 +17,14 @@ export default function Bootstrap(): null {
             getItem: (key) => localStorage.getItem(key),
             getSize: () => localStorage.length,
             keyAt: (idx) => localStorage.key(idx) ?? undefined,
+            keys: () => {
+                const localKeys: string[] = [];
+                for (let i = 0; i < localStorage.length; i++) {
+                    const k = localStorage.key(i);
+                    if (k !== null) localKeys.push(k);
+                }
+                return localKeys;
+            },
             setItem: (key, value) => localStorage.setItem(key, value),
             removeItem: (key) => localStorage.removeItem(key),
         },

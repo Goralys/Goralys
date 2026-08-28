@@ -10,11 +10,11 @@ interface Props {
 export default function UserSubjectsStudentCard({ subjects }: Props): ReactElement {
     return (
         <Card className="flex flex-col grow bg-sky-200 m-2">
-            {subjects?.map((s) => {
+            {subjects?.map((s, i) => {
                 const realStatus: SubjectStatus | "empty" = s.subject.trim() === "" && s.status === "not_submitted" ? "empty" : s.status;
 
                 return (
-                    <Card className="flex flex-row w-full justify-between" key={s.teacherToken}>
+                    <Card className="flex flex-row w-full justify-between" key={s.teacherToken + "#" + i}>
                         <div className="flex flex-col">
                             <p className="text-lg font-bold">{getShortFromLong(s.topic)}</p>
                             <p className="italic">Statut: {getStatusLabel(s.status)}</p>
