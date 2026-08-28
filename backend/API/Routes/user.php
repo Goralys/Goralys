@@ -319,7 +319,7 @@ Routes::delete('user/token', function (GoralysKernel $kernel, RequestInterface $
     ->middleware(...RateLimitMiddleware::for('revoke-auth-token'))
     ->middleware(...CSRFMiddleware::form('revoke-auth-token'))
     ->middleware(...AuthMiddleware::require())
-    ->middleware(...DbMiddleware::transaction());
+    ->middleware(...DbMiddleware::require());
 
 Routes::delete('user/token/any', function (GoralysKernel $kernel, RequestInterface $request) {
     $u = $request->param("username");
@@ -346,7 +346,7 @@ Routes::delete('user/token/any', function (GoralysKernel $kernel, RequestInterfa
         ->send();
 }, ...RouterOptions::$INPUT::require("username", "name"), ...RouterOptions::$TOAST::flash())
     ->middlewares(...MiddlewareSets::adminPanelRoute("revoke-auth-token"))
-    ->middleware(...DbMiddleware::transaction());
+    ->middleware(...DbMiddleware::require());
 
 // ==================================================
 // [SECTION] Admin actions
