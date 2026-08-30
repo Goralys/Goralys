@@ -11,8 +11,12 @@ use Goralys\Shared\User\Data\FullNameDTO;
 
 class FakeUserRepository implements UserRepositoryInterface
 {
-    private mixed $updateResult = true;
-    private mixed $getResult = null;
+    private bool $updateResult = true;
+    private ?UserFullDTO $userFullDTOResult = null;
+    private ?UserLoginDTO $loginDTOResult = null;
+    private ?UserRole $roleResult = null;
+    private ?FullNameDTO $fullNameResult = null;
+    private ?string $emailResult = null;
     private bool $existsResult = false;
     private bool $usernameValidResult = false;
     private array $publicIds = [];
@@ -20,25 +24,55 @@ class FakeUserRepository implements UserRepositoryInterface
 
     /**
      * Set the result for update/save operations.
-     * @param mixed $updateResult
      */
-    public function setUpdateResult(mixed $updateResult): void
+    public function setUpdateResult(bool $updateResult): void
     {
         $this->updateResult = $updateResult;
     }
 
     /**
-     * Set the result for get/find operations.
-     * @param mixed $getResult
+     * Set the result returned by {@see getByUsername()}.
      */
-    public function setGetResult(mixed $getResult): void
+    public function setUserFullDTOResult(UserFullDTO $userFullDTOResult): void
     {
-        $this->getResult = $getResult;
+        $this->userFullDTOResult = $userFullDTOResult;
+    }
+
+    /**
+     * Set the result returned by {@see getLoginDTO()}.
+     */
+    public function setLoginDTOResult(?UserLoginDTO $loginDTOResult): void
+    {
+        $this->loginDTOResult = $loginDTOResult;
+    }
+
+    /**
+     * Set the result returned by {@see getRoleForUsername()}.
+     */
+    public function setRoleResult(?UserRole $roleResult): void
+    {
+        $this->roleResult = $roleResult;
+    }
+
+    /**
+     * Set the result returned by {@see getFullNameForUsername()}.
+     */
+    public function setFullNameResult(?FullNameDTO $fullNameResult): void
+    {
+        $this->fullNameResult = $fullNameResult;
+    }
+
+    /**
+     * Set the result returned by {@see getEmail()}.
+     */
+    public function setEmailResult(?string $emailResult): void
+    {
+        $this->emailResult = $emailResult;
     }
 
     public function getByUsername(string $username): UserFullDTO
     {
-        return $this->getResult;
+        return $this->userFullDTOResult;
     }
 
     public function exists(string $username): bool
@@ -53,17 +87,17 @@ class FakeUserRepository implements UserRepositoryInterface
 
     public function save(UserCreateDTO $userData): bool
     {
-        return (bool) $this->updateResult;
+        return $this->updateResult;
     }
 
     public function getLoginDTO(string $username): ?UserLoginDTO
     {
-        return $this->getResult;
+        return $this->loginDTOResult;
     }
 
     public function getRoleForUsername(string $username): ?UserRole
     {
-        return $this->getResult;
+        return $this->roleResult;
     }
 
     public function setUsernameValidResult(bool $usernameValidResult): void
@@ -83,7 +117,7 @@ class FakeUserRepository implements UserRepositoryInterface
 
     public function getFullNameForUsername(string $username): ?FullNameDTO
     {
-        return $this->getResult;
+        return $this->fullNameResult;
     }
 
     public function isPublicIdValid(string $uuid): bool
@@ -111,6 +145,11 @@ class FakeUserRepository implements UserRepositoryInterface
         return $this->users[$uuid];
     }
 
+    public function getVirtualByPublicId(string $uuid): UserFullDTO
+    {
+        return $this->users[$uuid];
+    }
+
     /**
      * @return array
      */
@@ -121,7 +160,17 @@ class FakeUserRepository implements UserRepositoryInterface
 
     public function getUsernameForPublicId(string $publicId): ?string
     {
-        return isset($this->users[$publicId]) ? $this->users[$publicId]->username : null;
+        return $this->users[$publicId]->username ?? null;
+    }
+
+    public function setUsername(string $target, string $new): bool
+    {
+        return $this->updateResult;
+    }
+
+    public function setFullName(string $target, FullNameDTO $new): bool
+    {
+        return $this->updateResult;
     }
 
     public function getPublicIds(): array
@@ -136,12 +185,22 @@ class FakeUserRepository implements UserRepositoryInterface
 
     public function addAdmin(string $username): bool
     {
-        return (bool) $this->updateResult;
+        return $this->updateResult;
+    }
+
+    public function addTeacher(string $username, string ...$topics): bool
+    {
+        return $this->updateResult;
+    }
+
+    public function addStudent(string $username, string ...$topics): bool
+    {
+        return $this->updateResult;
     }
 
     public function revokeAdmin(string $username): bool
     {
-        return (bool) $this->updateResult;
+        return $this->updateResult;
     }
 
     public function getAdmins(): array
@@ -156,17 +215,17 @@ class FakeUserRepository implements UserRepositoryInterface
 
     public function replaceTeacher(string $old, string $new): bool
     {
-        return (bool) $this->updateResult;
+        return $this->updateResult;
     }
 
     public function softDelete(string $username): bool
     {
-        return (bool) $this->updateResult;
+        return $this->updateResult;
     }
 
     public function hardDelete(string $username): bool
     {
-        return (bool) $this->updateResult;
+        return $this->updateResult;
     }
 
     /**
@@ -190,7 +249,7 @@ class FakeUserRepository implements UserRepositoryInterface
 
     public function getEmail(string $username): ?string
     {
-        return $this->getResult;
+        return $this->emailResult;
     }
 
     public function whitelist(string $username, FullNameDTO $fullName): bool

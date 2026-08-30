@@ -41,7 +41,7 @@ final class LoggerConfigLoader
                 "KERNEL" => $_ENV["LOGGER_KERNEL_FILENAME"] ?? "Goralys_Kernel",
                 "GLOBAL" => $_ENV["LOGGER_GLOBAL_FILENAME"] ?? "Goralys_Global",
             ];
-            self::$goralysEnv = $_ENV['GORALYS_ENVIRONMENT'];
+            self::$goralysEnv = $_ENV['GORALYS_ENVIRONMENT'] ?? "testing"; // fallback when no env is loaded
             self::$isInitialized = true;
         }
     }

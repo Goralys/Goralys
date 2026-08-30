@@ -88,7 +88,6 @@ class UpdateSubjectServiceTest extends TestCase
     {
         unset($this->logger);
         unset($this->repo);
-        unset($this->mysqliResult);
         unset($this->service);
     }
 }

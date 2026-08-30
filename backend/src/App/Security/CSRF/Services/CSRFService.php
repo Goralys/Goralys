@@ -93,6 +93,14 @@ final class CSRFService
     {
         $token = $request->param('csrf-token');
 
+        if (!is_string($token)) {
+            $this->logger->error(
+                LoggerInitiator::APP,
+                "Missing or invalid token for form : " . $formId,
+            );
+            return false;
+        }
+
         if (!isset($_SESSION["csrf-tokens-table"][$formId])) {
             $this->logger->error(
                 LoggerInitiator::APP,

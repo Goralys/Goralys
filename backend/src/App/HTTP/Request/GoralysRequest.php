@@ -33,6 +33,12 @@ final class GoralysRequest implements RequestInterface
 
         // GET requests
         if (!empty($_GET)) {
+            // optimize by skipping array_merge
+            if (empty($this->input)) {
+                $this->input = $_GET;
+                return;
+            }
+
             $this->input = array_merge($this->input, $_GET);
         }
     }
@@ -92,7 +98,7 @@ final class GoralysRequest implements RequestInterface
                     }
                 }
 
-                if (str_starts_with($constraint, 'min')) {
+                if (str_starts_with($constraint, 'min') && is_string($value)) {
                     $min = (int) explode(":", $constraint)[1];
                     if (strlen($value) < $min) {
                         throw new InvalidInputException("$k is too short (min $min)");

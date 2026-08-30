@@ -1,7 +1,8 @@
 <?php
 
-namespace Goralys\Tests\Unit\App;
+namespace Goralys\Tests\Unit\Core;
 
+use DateTime;
 use Goralys\Core\User\Data\Enums\UserRole;
 use Goralys\Core\User\Data\UserFullDTO;
 use Goralys\Core\User\Services\UsernameManager;
@@ -10,7 +11,7 @@ use Goralys\Shared\User\Data\FullNameDTO;
 use Goralys\Tests\Fakes\FakeUserRepository;
 use PHPUnit\Framework\TestCase;
 
-class SubjectsUsernameManagerTest extends TestCase
+class UsernameManagerTest extends TestCase
 {
     private UsernameManager $service;
     private FakeUserRepository $repo;
@@ -41,11 +42,13 @@ class SubjectsUsernameManagerTest extends TestCase
         $this->repo->setUser(
             "uuid-1",
             new UserFullDTO(
-                1,
-                "e.martin",
-                UserRole::STUDENT,
-                new FullNameDTO("Emma", "Martin"),
-                "emma.martin@exemplemail.com"
+                id: 1,
+                username: "e.martin",
+                publicId: "uuid-1",
+                role: UserRole::STUDENT,
+                fullName: new FullNameDTO("Emma", "Martin"),
+                email: "emma.martin@exemplemail.com",
+                createdAt: new DateTime(),
             ),
         );
 
@@ -59,7 +62,15 @@ class SubjectsUsernameManagerTest extends TestCase
         $this->repo->setPublicId("j.doe", "uuid-1");
         $this->repo->setUser(
             "uuid-1",
-            new UserFullDTO(1, "j.doe", UserRole::STUDENT, new FullNameDTO("John", "Doe"), "jhon.doe@exemplemail.com"),
+            new UserFullDTO(
+                id: 1,
+                username: "j.doe",
+                publicId: "uuid-1",
+                role: UserRole::STUDENT,
+                fullName: new FullNameDTO("John", "Doe"),
+                email: "jhon.doe@exemplemail.com",
+                createdAt: new DateTime(),
+            ),
         );
 
         $token = $this->service->resolve("j.doe");
@@ -68,29 +79,38 @@ class SubjectsUsernameManagerTest extends TestCase
         self::assertSame("j.doe", $result);
     }
 
+    /**
+     * @throws GoralysRuntimeException
+     */
     public function testMultipleUsersAllRetrievable(): void
     {
         $users = [
             "j.doe"   => ["uuid-1", new UserFullDTO(
-                1,
-                "j.doe",
-                UserRole::STUDENT,
-                new FullNameDTO("John", "Doe"),
-                "jhon.doe@exemplemail.com"
+                id: 1,
+                username: "j.doe",
+                publicId: "uuid-1",
+                role: UserRole::STUDENT,
+                fullName: new FullNameDTO("John", "Doe"),
+                email: "jhon.doe@exemplemail.com",
+                createdAt: new DateTime(),
             )],
             "a.smith" => ["uuid-2", new UserFullDTO(
-                2,
-                "a.smith",
-                UserRole::TEACHER,
-                new FullNameDTO("Alice", "Smith"),
-                "alice.smith@exemplemail.com"
+                id: 2,
+                username: "a.smith",
+                publicId: "uuid-2",
+                role: UserRole::TEACHER,
+                fullName: new FullNameDTO("Alice", "Smith"),
+                email: "alice.smith@exemplemail.com",
+                createdAt: new DateTime(),
             )],
             "e.martin" => ["uuid-3", new UserFullDTO(
-                3,
-                "e.martin",
-                UserRole::STUDENT,
-                new FullNameDTO("Emma", "Martin"),
-                "emma.martin@exemplemail.com"
+                id: 3,
+                username: "e.martin",
+                publicId: "uuid-3",
+                role: UserRole::STUDENT,
+                fullName: new FullNameDTO("Emma", "Martin"),
+                email: "emma.martin@exemplemail.com",
+                createdAt: new DateTime(),
             )],
         ];
 
