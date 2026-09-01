@@ -7,7 +7,6 @@ import LoginForm from "@/app/src/ui/user/forms/login-form";
 import { ReactElement, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useToast } from "@/app/src/ui/toast/toast-provider";
-import { emitUserEvent } from "@goralys/core";
 
 export default function LoginPageClient(): ReactElement {
     const searchParams = useSearchParams();
@@ -40,16 +39,14 @@ export default function LoginPageClient(): ReactElement {
             return;
         }
 
-        emitUserEvent("logout");
-
         router.replace("/user/login");
     }, [searchParams, router, showToast]); // The toast dependency is ignored to avoid render loop.
 
     return (
-        <div className="flex grow content-center justify-center items-center">
-            <div className="grid w-5xl gap-1 grid-cols-2">
-                <Card className="flex-col h-65 bg-sky-300">
-                    <Image src="/user/login.svg" alt="Login illustration." width={200} height={150} />
+        <div className="flex grow content-center justify-center items-center min-h-screen">
+            <div className="grid sm:w-5xl sm:ml-auto ml-2 sm:mr-auto mr-2 w-full gap-1 sm:grid-cols-2 grid-rows-2">
+                <Card className="flex-col sm:h-65 h-fit p-1 bg-sky-300 order-2 sm:order-1">
+                    <Image className="h-auto sm:w-50 w-40" src="/user/login.svg" alt="Login illustration." width={200} height={150} />
 
                     <h1 className="text-xl">Bon retour chez Goralys !</h1>
                     <p className="text-2xs">

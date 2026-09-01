@@ -7,13 +7,13 @@ import { usePasswordModal } from "@/app/src/ui/modals/password/password-modal-pr
 import { useToast } from "@/app/src/ui/toast/toast-provider";
 import { cookiesSet, fetchCsrfClient, goralysFetchClient, handleToastRequest } from "@goralys/core";
 
-interface CreatAdminElementProps {
+interface Props {
     onUpdateAction: () => void;
     syncKey: string;
     virtualSyncKey: string;
 }
 
-export default function CreateAdminElement({ onUpdateAction, syncKey, virtualSyncKey }: CreatAdminElementProps): ReactElement {
+export default function CreateAdminElement({ onUpdateAction, syncKey, virtualSyncKey }: Props): ReactElement {
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
 

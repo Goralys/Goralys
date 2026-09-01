@@ -7,7 +7,12 @@ use Goralys\Core\User\Interfaces\CreateUserInterface;
 
 class FakeCreateUser implements CreateUserInterface
 {
-    public bool $success = true;
+    private bool $success = true;
+
+    public function setSuccess(bool $success): void
+    {
+        $this->success = $success;
+    }
 
     public function createUser(UserCreateDTO $userData): bool
     {

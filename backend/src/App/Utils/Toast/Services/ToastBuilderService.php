@@ -20,7 +20,7 @@ final class ToastBuilderService
      * @param ToastType $toastType The type of the toast
      * @param string $toastTitle The title of the toast
      * @param string $toastMessage The message of the toast
-     * @param string $redirect The page to redirect the user to.
+     * @param ?string $redirect The page to redirect the user to, or `null` if no redirect is needed.
      * @param bool $flash If the toast is flash or not.
      * @return ToastDTO The data of the toast
      */
@@ -28,7 +28,7 @@ final class ToastBuilderService
         ToastType $toastType,
         string $toastTitle,
         string $toastMessage,
-        string $redirect,
+        ?string $redirect,
         bool $flash = false,
     ): ToastDTO {
         $toastInfo = [
@@ -36,7 +36,7 @@ final class ToastBuilderService
             "toastType" => $toastType->value,
             "toastTitle" => $toastTitle,
             "toastMessage" => $toastMessage,
-            "redirect" =>  $redirect,
+            ...($redirect ? ["redirect" =>  $redirect] : []),
         ];
         return new ToastDTO(
             $toastInfo,

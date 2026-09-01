@@ -44,8 +44,8 @@ export function AuthListener(): null {
                 setTimeout(() => {
                     routerRef.current.replace("/user/login");
                 }, 0);
+                emitUserEvent("logout");
             }
-            emitUserEvent("logout");
         });
     }, []);
 

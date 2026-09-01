@@ -7,7 +7,7 @@ import InputZipFile from "@/app/src/ui/inputs/input-zip-file";
 import { QuestionMarkCircleIcon } from "@heroicons/react/24/outline";
 import { useModalClose } from "@/app/src/lib/modals";
 
-interface ImportTopicsModalProps {
+interface Props {
     visible: boolean;
     onCancelAction: () => void;
     onImportTopicsAction: (file: File | null) => void;
@@ -19,7 +19,7 @@ export default function ImportTopicsModalElement({
     onImportTopicsAction,
     onCancelAction,
     onCloseModalAction,
-}: ImportTopicsModalProps): ReactElement {
+}: Props): ReactElement {
     const [topicsFile, setTopicsFile] = useState<File | null>(null);
     const modalRef = useRef<HTMLDivElement>(null);
 

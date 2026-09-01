@@ -6,9 +6,9 @@
 import { emitAuthEvent } from "@/lib/auth/auth-event";
 import { emitNavigationEvent } from "./navigation-event";
 import { GoralysActionHandler } from "./goralys-action-handler";
-import type { HttpMethod } from "@/types/http";
+import type { GoralysFetchOptions, HttpMethod } from "@/types/http";
 import { getGoralysClientConfig } from "./config";
-import { Toast } from "@/types/toast";
+import { ToastFn } from "@/types/toast";
 
 const actionHandler = new GoralysActionHandler();
 
@@ -16,16 +16,25 @@ export async function goralysFetchClient(
     method: HttpMethod,
     input: string | URL | Request,
     payload?: Record<string, string | number | boolean | null> | FormData,
-    requestOptions?: RequestInit,
+    requestOptions?: GoralysFetchOptions,
 ): Promise<Response> {
-    const { apiDomain } = getGoralysClientConfig();
+    if (requestOptions?.body)
+        console.error("[Fetch] Found body inside request options. This is not allowed, consider using the payload parameter instead");
+
+    const { apiDomain, getSchoolToken, isNative } = getGoralysClientConfig();
+    const { headers: extraHeaders, ...restOptions } = requestOptions ?? {};
 
     const res = await fetch(`${apiDomain}/${input}`, {
         credentials: "include",
         method: method === "BREW" ? "POST" : method,
-        headers: method === "BREW" ? { "X-HTTP-Method-Override": method } : {},
+        headers: {
+            ...(method === "BREW" ? { "X-HTTP-Method-Override": method } : {}),
+            "X-High-School-Token": getSchoolToken(),
+            "X-Goralys-Client": isNative ? "mobile" : "desktop",
+            ...extraHeaders,
+        },
         body: payload ? (payload instanceof FormData ? payload : JSON.stringify(payload)) : undefined,
-        ...requestOptions,
+        ...restOptions,
     });
 
     const clone = res.clone();
@@ -33,6 +42,10 @@ export async function goralysFetchClient(
     if (!(contentType && contentType.toLowerCase().trim().includes("application/json"))) return res;
 
     const data = await clone.json();
+
+    if (data?.redirect && !requestOptions?.suppressRedirect) {
+        emitNavigationEvent({ type: "redirect", url: data.redirect });
+    }
 
     if (res.status === 401) {
         try {
@@ -57,10 +70,14 @@ export async function goralysFetchClient(
 }
 
 export async function fetchCsrfClient(formId: string): Promise<string | null> {
-    const { apiDomain } = getGoralysClientConfig();
+    const { apiDomain, getSchoolToken, isNative } = getGoralysClientConfig();
     const res = await fetch(`${apiDomain}/csrf`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+            "Content-Type": "application/json",
+            "X-High-School-Token": getSchoolToken(),
+            "X-Goralys-Client": isNative ? "mobile" : "desktop",
+        },
         credentials: "include",
         body: JSON.stringify({ form: formId }),
     });
@@ -82,12 +99,7 @@ export function buildApiUrl(endpoint: string, params: Record<string, string | nu
     return `${domain ? apiDomain + "/" : ""}${endpoint}${queryString ? `?${queryString}` : ""}`;
 }
 
-export async function handleToastRequest(
-    r: Response,
-    showToast: (payload: Toast, duration?: number) => void,
-    redirect: boolean = true,
-    duration?: number,
-): Promise<boolean> {
+export async function handleToastRequest(r: Response, showToast: ToastFn, redirect: boolean = true, duration?: number): Promise<boolean> {
     const res = r.clone();
     const data = await res.json();
 

@@ -24,7 +24,7 @@ interface UserRepositoryInterface
      * Whitelists a user inside the database so that it can then be registered.
      * @param string $username The username of the user to whitelist.
      * @param FullNameDTO $fullName The fullname of the user to whitelist.
-     * @return bool Wether the operation was successful or not.
+     * @return bool Whether the operation was successful or not.
     */
     public function whitelist(string $username, FullNameDTO $fullName): bool;
 
@@ -39,6 +39,12 @@ interface UserRepositoryInterface
      * @return UserFullDTO The full user record.
      */
     public function getByPublicId(string $uuid): UserFullDTO;
+
+    /**
+     * @param string $uuid The user's public UUID.
+     * @return UserFullDTO The full user record.
+     */
+    public function getVirtualByPublicId(string $uuid): UserFullDTO;
 
     /**
      * Checks if a user exits inside the database.
@@ -97,6 +103,20 @@ interface UserRepositoryInterface
     public function getUsernameForPublicId(string $publicId): ?string;
 
     /**
+     * @param string $target The targeted user's username.
+     * @param string $new The new username for the user.
+     * @return bool Whether the operation was successful.
+     */
+    public function setUsername(string $target, string $new): bool;
+
+    /**
+     * @param string $target The targeted user's username.
+     * @param FullNameDTO $new The new fullname for the user.
+     * @return bool Whether the operation was successful.
+     */
+    public function setFullName(string $target, FullNameDTO $new): bool;
+
+    /**
      * Gets all the public associated with their usernames.
      * @return array<string, string> The user's public UUID, or null if the user does not exist.
      */
@@ -120,6 +140,22 @@ interface UserRepositoryInterface
      * @return bool Whether the creation was successful.
      */
     public function addAdmin(string $username): bool;
+
+    /**
+     * Creates a new teacher in the database.
+     * @param string $username The new teacher's username.
+     * @param string ...$topics The teacher's assigned topics.
+     * @return bool Whether the creation was successful.
+     */
+    public function addTeacher(string $username, string ...$topics): bool;
+
+    /**
+     * Creates a new student in the database.
+     * @param string $username The new student's username.
+     * @param string ...$topics The topics stutied by the student.
+     * @return bool Whether the creation was successful.
+     */
+    public function addStudent(string $username, string ...$topics): bool;
 
     /**
      * Deletes an admin in the database.

@@ -18,3 +18,7 @@ export type HttpMethod = (typeof HTTP_METHODS)[number];
  * @returns true if the string is an HTTP method.
  */
 export declare function isHTTPMethod(maybeMethod: string): maybeMethod is HttpMethod;
+
+export type GoralysFetchOptions = RequestInit & {
+    suppressRedirect?: boolean;
+};

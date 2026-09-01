@@ -76,7 +76,7 @@ final class TopicsRepository implements TopicsRepositoryInterface
             "si",
             $studentUsername,
             $topicId,
-        ) && $this->db->run(
+        ) && $this->db->runIgnoreNoOps(
             "insert ignore into students_classroom (username, class) values (?, ?)",
             "ss",
             $studentUsername,
@@ -92,25 +92,22 @@ final class TopicsRepository implements TopicsRepositoryInterface
     {
         $tables = [
             "student_topics",
-            "student_info",
+            "students_classroom",
             "topic_teachers",
             "topics",
         ];
 
         $this->db->runNoArgs(
-        /** @lang SQL */
             "set foreign_key_checks = 0"
         );
         try {
             foreach ($tables as $table) {
                 $this->db->runNoArgs(
-                    /** @lang SQL */
                     "truncate table `$table`",
                 );
             }
         } finally {
             $this->db->runNoArgs(
-            /** @lang SQL */
                 "set foreign_key_checks = 0"
             );
         }

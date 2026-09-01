@@ -7,6 +7,7 @@
 
 namespace Goralys\Platform\DB\Interfaces;
 
+use JetBrains\PhpStorm\Language;
 use mysqli_result;
 
 /**
@@ -17,9 +18,10 @@ interface DbContainerInterface
 {
     /**
      * Establishes the connection to the database.
+     * @param string $dbName The name of the database to connect to.
      * @return bool Whether the connection was successfully established.
      */
-    public function connect(): bool;
+    public function connect(string $dbName): bool;
 
     /* Transactions */
 
@@ -48,14 +50,19 @@ interface DbContainerInterface
      * @param mixed ...$args Additional bound values.
      * @return mysqli_result The query result set.
      */
-    public function fetch(string $query, string $types, mixed $value1, mixed ...$args): mysqli_result;
+    public function fetch(
+        #[Language('MariaDB')] string $query,
+        string $types,
+        mixed $value1,
+        mixed ...$args
+    ): mysqli_result;
 
     /**
      * Executes a select-query with no bound parameters and returns the result set.
      * @param string $query The SQL query to execute.
      * @return mysqli_result The query result set.
      */
-    public function fetchNoArgs(string $query): mysqli_result;
+    public function fetchNoArgs(#[Language('MariaDB')] string $query): mysqli_result;
 
     /**
      * Executes a prepared write-query (INSERT, UPDATE, DELETE) and returns its outcome.
@@ -65,12 +72,28 @@ interface DbContainerInterface
      * @param mixed ...$args Additional bound values.
      * @return bool Whether the query was executed successfully.
      */
-    public function run(string $query, string $types, mixed $value1, mixed ...$args): bool;
+    public function run(#[Language('MariaDB')] string $query, string $types, mixed $value1, mixed ...$args): bool;
+
+    /**
+     * Executes a prepared write-query (INSERT, UPDATE, DELETE) and returns its outcome.
+     * This function does not check if rows were actually affected by the query.
+     * @param string $query The SQL query with placeholders.
+     * @param string $types The bind types string (e.g. `"si"` for string + int).
+     * @param mixed $value1 The first bound value.
+     * @param mixed ...$args Additional bound values.
+     * @return bool Whether the query was executed successfully.
+     */
+    public function runIgnoreNoOps(
+        #[Language('MariaDB')] string $query,
+        string $types,
+        mixed $value1,
+        mixed ...$args
+    ): bool;
 
     /**
      * Executes a write-query with no bound parameters and returns its outcome.
      * @param string $query The SQL query to execute.
      * @return bool Whether the query was executed successfully.
      */
-    public function runNoArgs(string $query): bool;
+    public function runNoArgs(#[Language('MariaDB')] string $query): bool;
 }

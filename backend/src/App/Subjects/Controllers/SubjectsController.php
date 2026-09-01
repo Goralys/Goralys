@@ -133,15 +133,16 @@ final class SubjectsController
     /**
      * Get the subjects for a given user with a given role.
      * @param UserRole $role The role of the user to get the subjects of.
-     * Let the defaults value ("") for admins as they have access to all subjects.
+     * @param string|null $_u An optionnal paramter to fetch the subjects of a specific users.
+     * This feature should be restricted to admins.
      * @return SubjectsCollection The list of the retrieved subjects.
      * @throws DateMalformedStringException If one the date column fails to create a valid {@see DateTime} object.
      * @throws GoralysRuntimeException If the subjects cannot be retrived, refer to the exact implementation for more
      * details.
      */
-    public function getForRole(UserRole $role): SubjectsCollection
+    public function getForRole(UserRole $role, ?string $_u = null): SubjectsCollection
     {
-        $username = $_SESSION[GoralysConfig::SESSION::USERNAME];
+        $username = $_u ?? $_SESSION[GoralysConfig::SESSION::USERNAME];
 
         return match ($role) {
             UserRole::STUDENT => $this->getService->getStudentSubjects($username),

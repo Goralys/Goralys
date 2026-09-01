@@ -10,9 +10,9 @@ use Goralys\App\Router\Routes;
 use Goralys\App\Utils\Toast\Data\Enums\ToastType;
 use Goralys\Kernel\GoralysKernel;
 
-// ================================================
+// ==================================================
 // [SECTION] Topics actions
-// ================================================
+// ==================================================
 Routes::post('topics/import', function (GoralysKernel $kernel) {
     $topics = $kernel->topics->makeTopicsFromZip($kernel->fileManager->get("topics-file"));
 

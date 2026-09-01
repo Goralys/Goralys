@@ -4,6 +4,7 @@ namespace Goralys\Platform\Mail\Services;
 
 use Goralys\Platform\Mail\Data\MailConfigDTO;
 use Goralys\Platform\Mail\Data\MailDTO;
+use Goralys\Shared\Config\GoralysConfig as Config;
 use PHPMailer\PHPMailer\Exception;
 use PHPMailer\PHPMailer\PHPMailer;
 
@@ -35,7 +36,7 @@ class MailSendService
         }
         $mailer->CharSet = 'UTF-8';
         $mailer->Subject = $mail->subject;
-        $signature = file_get_contents(__DIR__ . "/Assets/signature.html") ?? "";
+        $signature = file_get_contents(Config::DIRECTORIES::ASSETS . "Mails/signature.html") ?? "";
         $mailer->Body = "<p>" . $mail->body . "</p>" . $signature;
         $mailer->isHTML();
 

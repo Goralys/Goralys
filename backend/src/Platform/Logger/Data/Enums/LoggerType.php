@@ -19,4 +19,15 @@ enum LoggerType: int
     case Warning = 200;
     case Error = 300;
     case Fatal = 400;
+
+    public function toString(): string
+    {
+        return match ($this) {
+            LoggerType::Debug => "DEBUG",
+            LoggerType::Info => "INFO",
+            LoggerType::Warning => "WARNING",
+            LoggerType::Error => "ERROR",
+            LoggerType::Fatal => "FATAL",
+        };
+    }
 }

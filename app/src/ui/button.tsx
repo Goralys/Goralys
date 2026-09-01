@@ -1,7 +1,7 @@
 import React, { ReactElement } from "react";
 import clsx from "clsx";
 
-interface ButtonProps {
+interface Props {
     className?: string;
     text: string;
     type: "submit" | "button" | "reset";
@@ -10,14 +10,14 @@ interface ButtonProps {
     disabled?: boolean;
 }
 
-const colors: Record<NonNullable<ButtonProps["color"]>, string> = {
+const colors: Record<NonNullable<Props["color"]>, string> = {
     sky: "bg-sky-100 border-sky-300 before:bg-sky-300",
     red: "bg-red-50 border-red-300 before:bg-red-300",
     green: "bg-green-50 border-green-300 before:bg-green-300",
     amber: "bg-amber-50 border-amber-300 before:bg-amber-300",
 };
 
-export function Button({ text, type, className, onClick, color = "sky", disabled = false }: ButtonProps): ReactElement {
+export function Button({ text, type, className, onClick, color = "sky", disabled = false }: Props): ReactElement {
     return (
         <button
             type={type}

@@ -10,7 +10,7 @@ namespace Goralys\App\User\Data;
 use Goralys\Core\User\Data\Enums\UserRole;
 use Goralys\Core\User\Data\UserFullDTO;
 use Goralys\Core\User\Data\VirtualUserDTO;
-use Goralys\Core\Utils\User\Services\UsernameFormatterService;
+use Goralys\Shared\Lib\GoralysLib as Lib;
 use JsonSerializable;
 
 /**
@@ -40,11 +40,8 @@ final readonly class UserGetDTO implements JsonSerializable
      */
     public static function fromFull(UserFullDTO $user, string $publicId): self
     {
-        $username = $user->username;
-        $obfuscated = substr($username, 0, 2) . str_repeat('*', max(2, strlen($username) - rand(3, 7) - 2));
-
         return new self(
-            $obfuscated,
+            Lib::STRING::obfuscate($user->username, 2),
             $user->fullName,
             $user->role,
             $publicId,
@@ -59,12 +56,9 @@ final readonly class UserGetDTO implements JsonSerializable
      */
     public static function fromVirtual(VirtualUserDTO $user, string $publicId): self
     {
-        $username = $user->username;
-        $obfuscated = substr($username, 0, 2) . str_repeat('*', max(2, strlen($username) - rand(3, 7) - 2));
-
         return new self(
-            $obfuscated,
-            UsernameFormatterService::formatUsername($user->username),
+            Lib::STRING::obfuscate($user->username, 2),
+            $user->fullName,
             $user->role,
             $publicId,
         );

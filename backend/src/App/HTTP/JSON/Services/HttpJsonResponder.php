@@ -21,16 +21,14 @@ final class HttpJsonResponder implements JsonResponder
      * @param array|JsonSerializable $data The data to send.
      * @param int $responseCode The HTTP code of the response to send.
      * @return void
-     * @throws GoralysRuntimeException If HTTP headers were already sent.
      */
     public function send(array|JsonSerializable $data, int $responseCode = 200): void
     {
-        if (headers_sent($file, $line)) {
-            throw new GoralysRuntimeException("Headers were already sent at $file:$line");
+        if (!headers_sent()) {
+            header("Content-Type: application/JSON; charset: utf-8");
         }
 
         http_response_code($responseCode);
-        header("Content-Type: application/JSON; charset: utf-8");
         echo json_encode($data, JSON_UNESCAPED_UNICODE);
     }
 }

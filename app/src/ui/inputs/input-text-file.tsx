@@ -5,13 +5,13 @@ import { useToast } from "@/app/src/ui/toast/toast-provider";
 import { ArrowUpTrayIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 
-interface InputTextFileProps {
+interface Props {
     text: string;
     maxSizeKB: number;
     onFileSelected: CallableFunction;
 }
 
-export default function InputTextFile({ text, maxSizeKB, onFileSelected }: InputTextFileProps): ReactElement {
+export default function InputTextFile({ text, maxSizeKB, onFileSelected }: Props): ReactElement {
     const [fileName, setFileName] = useState<string | null>(null);
     const [dragging, setDragging] = useState(false);
     const toast = useToast();

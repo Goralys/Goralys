@@ -7,6 +7,7 @@ export interface StorageAdapter {
     getItem(key: string): string | null;
     getSize(): number;
     keyAt(ids: number): string | undefined;
+    keys(): string[];
     setItem(key: string, value: string): void;
     removeItem(key: string): void;
 }
@@ -31,5 +32,7 @@ export const storageSet = (key: string, value: string): void => getAdapter().set
 export const storageSize = (): number => getAdapter().getSize();
 
 export const storageKeyAt = (idx: number): string | undefined => getAdapter().keyAt(idx);
+
+export const storageKeys = (): string[] => getAdapter().keys();
 
 export const storageRemove = (key: string): void => getAdapter().removeItem(key);

@@ -12,6 +12,9 @@ interface RoleGuardOptions {
 }
 
 export async function roleGuard(request: NextRequest, { allowedRoles, onSuccess }: RoleGuardOptions): Promise<NextResponse> {
+    console.log("[roleGuard] all cookies:", request.cookies.getAll());
+    console.log("[roleGuard] has GORALYSSESSID:", request.cookies.has("GORALYSSESSID"));
+
     if (!request.cookies.has("GORALYSSESSID")) {
         return redirectTo(request, "/user/login?reason=unauthenticated");
     }
@@ -30,6 +33,7 @@ export async function roleGuard(request: NextRequest, { allowedRoles, onSuccess 
                 cookie: request.headers.get("cookie") ?? "",
                 "User-Agent": request.headers.get("user-agent") ?? "",
                 "X-Forwarded-Origin": request.headers.get("origin") ?? request.nextUrl.origin,
+                "X-High-School-Token": process.env.NEXT_PUBLIC_API_TOKEN ?? "",
                 "Cache-Control": "no-cache, no-store, must-revalidate",
                 Pragma: "no-cache",
                 Expires: "0",

@@ -8,12 +8,15 @@
 namespace Goralys\App\HTTP\Response;
 
 use Goralys\App\Context\AppContext;
+use Goralys\App\Context\Data\Client;
 use Goralys\App\Context\Data\ToastMode;
+use Goralys\App\HTTP\JSON\Interfaces\JsonResponder;
 use Goralys\App\Utils\Toast\Controllers\ToastController;
 use Goralys\App\Utils\Toast\Data\Enums\ToastType;
 use Goralys\App\Utils\Toast\Data\ToastDTO;
 use Goralys\Shared\Exception\GoralysRuntimeException;
 use JetBrains\PhpStorm\NoReturn;
+use JsonSerializable;
 
 /**
  * A deferred HTTP response that buffers a toast notification before sending.
@@ -28,18 +31,22 @@ use JetBrains\PhpStorm\NoReturn;
 final class DeferredResponse implements Interfaces\DeferredResponseInterface
 {
     private AppContext $context;
+    private JsonResponder $json;
     private ?ToastDTO $toast = null;
     private ?string $action = null;
+    private array|JsonSerializable|null $data = null;
     private ToastController $controller;
     private int $code;
 
     /**
      * @param AppContext $context The current application context.
+     * @param JsonResponder $json The JSON responder service.
      * @param int $responseCode The HTTP code of the response.
      */
-    public function __construct(AppContext $context, int $responseCode = 200)
+    public function __construct(AppContext $context, JsonResponder $json, int $responseCode = 200)
     {
         $this->context = $context;
+        $this->json = $json;
         $this->code = $responseCode;
         $this->controller = new ToastController();
     }
@@ -57,7 +64,7 @@ final class DeferredResponse implements Interfaces\DeferredResponseInterface
             $type,
             $title,
             $message,
-            "/",
+            null,
             $this->context->mode === ToastMode::FLASH,
         );
         return $this;
@@ -90,8 +97,7 @@ final class DeferredResponse implements Interfaces\DeferredResponseInterface
      */
     public function redirect(string $path): self
     {
-        $destination = $this->context->originDomain . trim($path, "/") . "/";
-        $this->toast->redirect = $destination;
+        $this->toast->redirect = trim($this->context->originDomain, "/") . "/" . trim($path, "/");
         return $this;
     }
 
@@ -119,16 +125,35 @@ final class DeferredResponse implements Interfaces\DeferredResponseInterface
     public function send(): never
     {
         if (!$this->toast) {
-            throw new GoralysRuntimeException("Can not send null toast");
+            throw new GoralysRuntimeException(
+                "Can not send null toast, if you meant to only send JSON data, please use an immadiate response instead"
+            );
         }
         if ($this->context->mode === ToastMode::FLASH) {
             http_response_code(302);
             $this->controller->responder->sendToast($this->toast, $this->action ?? "");
-            header('Location: ' . $this->toast->redirect);
+            error_log("KERNEL - 3: redirecting to: " . $this->toast->redirect ?? "NONE");
+            if ($this->context->client === Client::WEB && $this->toast->redirect) {
+                header("Location: " . $this->toast->redirect);
+                $this->json->send($this->data ?? [], 302);
+            } elseif ($this->context->client === Client::MOBILE && $this->toast->redirect) {
+                $this->json->send(array_merge(["redirect" => $this->toast->redirect], $this->data ?? []), 302);
+            }
             exit;
         }
         http_response_code($this->code);
-        $this->controller->responder->sendToast($this->toast, $this->action ?? "");
+        $this->controller->responder->sendToast($this->toast, $this->action ?? "", $this->data);
         exit;
+    }
+
+    /**
+     * Allows the response to carry extra JSON encoded data that is sent immediately to the frontend.
+     * @param array|JsonSerializable $data The data to encode and send.
+     * @return self
+     */
+    public function json(array|JsonSerializable $data): self
+    {
+        $this->data = $data;
+        return $this;
     }
 }

@@ -24,7 +24,7 @@ export default function RegisterForm(): ReactElement {
     }, [searchParams, router]);
 
     const [csrfToken, setCsrfToken] = useState<string | null>(null);
-    const requestUrl = `${process.env.NEXT_PUBLIC_API_DOMAIN}/user/register`;
+    const requestUrl = `${process.env.NEXT_PUBLIC_API_DOMAIN}/user/register?high-school-token=${process.env.NEXT_PUBLIC_API_TOKEN}`;
     useEffect(() => {
         const run = async (): Promise<void> => setCsrfToken(await fetchCsrfClient("register"));
 
@@ -32,7 +32,7 @@ export default function RegisterForm(): ReactElement {
     }, []);
 
     return (
-        <Card className="flex-col h-79 bg-sky-200">
+        <Card className="flex-col h-79 bg-sky-200 order-1 sm:order-2">
             <h1 className="text-xl">Créez votre compte chez Goralys</h1>
 
             <form className="relative flex flex-col h-full" method="POST" action={requestUrl} autoComplete="on">
@@ -60,7 +60,7 @@ export default function RegisterForm(): ReactElement {
 
                 <Button
                     type="submit"
-                    text={csrfToken === null ? "Chargement..." : "Se connecter"}
+                    text={csrfToken === null ? "Chargement..." : "Créer mon compte"}
                     className="absolute! bottom-0"
                     disabled={csrfToken === null}
                 />

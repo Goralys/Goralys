@@ -5,7 +5,7 @@ import { clsx } from "clsx";
 import { useModalClose } from "@/app/src/lib/modals";
 import { ReactElement, useRef, useState } from "react";
 
-interface PasswordModalProps {
+interface Props {
     visible: boolean;
     onConfirmAction: (password: string) => void;
     onCancelAction: () => void;
@@ -19,7 +19,7 @@ export default function PasswordModalElement({
     onCancelAction,
     onCloseModalAction,
     message,
-}: PasswordModalProps): ReactElement {
+}: Props): ReactElement {
     const [password, setPassword] = useState("");
     const modalRef = useRef<HTMLDivElement>(null);
 

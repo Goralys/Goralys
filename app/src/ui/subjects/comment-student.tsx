@@ -4,13 +4,13 @@ import { ChangeEventHandler, ReactElement } from "react";
 import { SubjectTextArea } from "@/app/src/ui/inputs/subject-text-area";
 import { ChevronRightIcon } from "@heroicons/react/24/outline";
 
-interface CommentStudentProps {
+interface Props {
     subjectData: Subject;
     disabled: boolean;
     onChange?: ChangeEventHandler<HTMLTextAreaElement>;
 }
 
-export default function CommentStudent({ subjectData, disabled, onChange }: CommentStudentProps): ReactElement {
+export default function CommentStudent({ subjectData, disabled, onChange }: Props): ReactElement {
     const visible = !!subjectData?.comment && !(subjectData.status === "submitted" || subjectData.status === "approved");
     const showLastRejected = subjectData.status === "not_submitted" && subjectData.lastRejected;
 

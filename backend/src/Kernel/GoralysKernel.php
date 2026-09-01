@@ -31,8 +31,10 @@
 namespace Goralys\Kernel;
 
 use ErrorException;
+use Exception;
 use Goralys\App\Config\RateLimiterConfig;
 use Goralys\App\Context\AppContext;
+use Goralys\App\Context\Data\Client;
 use Goralys\App\Context\Data\ToastMode;
 use Goralys\App\HTTP\Files\GoralysFileManager;
 use Goralys\App\HTTP\Files\Interface\FileExtractor;
@@ -50,6 +52,8 @@ use Goralys\App\HTTP\Response\ImmediateResponse;
 use Goralys\App\HTTP\Response\Interfaces\DeferredResponseInterface;
 use Goralys\App\HTTP\Response\Interfaces\ImmediateResponseInterface;
 use Goralys\App\RateLimiter\RateLimiter;
+use Goralys\App\Router\GoralysRouter;
+use Goralys\App\Router\Interfaces\RouterInterface;
 use Goralys\App\Security\CSRF\Services\CSRFService;
 use Goralys\App\Subjects\Controllers\SubjectsController;
 use Goralys\App\Support\Controllers\SupportController;
@@ -68,6 +72,7 @@ use Goralys\Platform\DB\Facade\DbContainer;
 use Goralys\Platform\DB\Interfaces\DbContainerInterface;
 use Goralys\Platform\Doc\PDF\DomPdfExporter;
 use Goralys\Platform\Loader\Services\EnvService;
+use Goralys\Platform\Loader\Services\HighSchoolsService;
 use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
 use Goralys\Platform\Logger\GoralysLogger;
 use Goralys\Platform\Logger\Interfaces\LoggerInterface;
@@ -86,28 +91,30 @@ use Throwable;
  */
 class GoralysKernel
 {
-    public EnvService $env;
-    public GoralysLib $utils;
-    public DbContainerInterface $db;
-    public MailContainerInterface $mailer;
-    public LoggerInterface $logger;
-    public AuthController $auth;
-    public UserController $users;
-    public GoralysFileManager $fileManager;
-    public SubjectsController $subjects;
-    public TopicsController $topics;
-    public ToastController $toast;
-    public SupportController $support;
-    public GuardInterface $guard;
-    public CSRFService $csrf;
-    public UsernameManager $usernames;
+    private(set) EnvService $env;
+    private(set) HighSchoolsService $highSchools;
+    private(set) GoralysLib $utils;
+    private(set) DbContainerInterface $db;
+    private(set) MailContainerInterface $mailer;
+    private(set) LoggerInterface $logger;
+    private(set) AuthController $auth;
+    private(set) UserController $users;
+    private(set) GoralysFileManager $fileManager;
+    private(set) SubjectsController $subjects;
+    private(set) TopicsController $topics;
+    private(set) ToastController $toast;
+    private(set) SupportController $support;
+    private(set) GuardInterface $guard;
+    private(set) CSRFService $csrf;
+    private(set) UsernameManager $usernames;
+    private(set) RouterInterface $router;
     private string $rootPath;
     private RateLimiter $rateLimiter;
     /**
      * This variable is used to determine the context of the app.
-     * @var AppContext
+     * @var ?AppContext
      */
-    private AppContext $context;
+    private ?AppContext $context = null;
     private RequestInterface $request;
     private DomPdfExporter $exporter;
     private int $sessionLifetime;
@@ -145,20 +152,33 @@ class GoralysKernel
      * @param string $rootPath The path to the .env file and that is considered to be the root path for the kernel.
      * @param FileMover|null $mover The file mover used by the kernel.
      */
-    public function __construct(string $rootPath, ?FileMover $mover = null)
+    public function __construct(string $rootPath, ?FileMover $mover = null, bool $skipHighSchoolToken = false)
     {
         $this->rootPath = $rootPath;
 
         $this->initEnv();
+        $this->initHighSchools();
         $this->initUtils();
         $this->initLogger();
         $this->sessionLifetime = $this->env->getByKey("PHP_SESSION_LIFETIME");
         $this->sessionLifetimeMultiplier = $this->env->getByKey("PHP_SESSION_LIFETIME_MULTIPLIER");
+        $client = Client::fromRequest($this->request());
+        $origin = match ($client) {
+            Client::MOBILE => "",
+            default => $this->getOriginDomain($skipHighSchoolToken),
+        };
+        $this->context = new AppContext(
+            ToastMode::DEFAULT,
+            $client,
+            !$skipHighSchoolToken,
+            trim($origin),
+            $this->env->getByKey("GORALYS_ENVIRONMENT") === "dev",
+        );
         $this->startSession();
+        $this->initRouter();
 
         // Initializes toast before the DB to be able to provide user feedback if the connection to the DB fails.
         $this->initToast();
-        $this->context = new AppContext(ToastMode::DEFAULT, trim($this->env->getByKey("ORIGIN_DOMAIN")));
 
         $this->initDb();
         $this->initMailer();
@@ -187,6 +207,15 @@ class GoralysKernel
     }
 
     /**
+     * Initializes the high schools service.
+     * @return void
+     */
+    private function initHighSchools(): void
+    {
+        $this->highSchools = new HighSchoolsService();
+    }
+
+    /**
      * Initializes all the utility services
      * @return void
      */
@@ -207,23 +236,65 @@ class GoralysKernel
     }
 
     /**
+     * Gets the kernel's current HTTP request
+     * @return RequestInterface The request.
+     */
+    public function request(): RequestInterface
+    {
+        if (!isset($this->request)) {
+            $this->request = new GoralysRequest();
+        }
+
+        return $this->request;
+    }
+
+    public function getOriginDomain(bool $skip = false): ?string
+    {
+        if ($skip || ($this->context && !$this->context->hasHighSchoolToken)) {
+            return null;
+        }
+
+        $token = $this->request()->header("X-High-School-Token") ?? $this->request()->param("high-school-token");
+
+        if ($token === null) {
+            $this->response(400)->http(); // Bad Request
+        }
+
+        return $this->highSchools->getDomainForSchool($token);
+    }
+
+    /**
+     * Generate a new HTTP response.
+     * @param int $code The response's code (default = 200).
+     * @return ImmediateResponseInterface The response.
+     */
+    public function response(int $code = 200): ImmediateResponseInterface
+    {
+        $files = new HttpFileResponder();
+        $json = new HttpJsonResponder();
+        return new ImmediateResponse($code, $this->logger, $files, $json, $this->context);
+    }
+
+    /**
      * Starts the PHP session if it is not already started.
      * @return void
      */
     private function startSession(): void
     {
         if (session_status() !== PHP_SESSION_ACTIVE) {
-            ini_set('session.gc_maxlifetime', $this->sessionLifetime);
-            ini_set('session.cookie_lifetime', $this->sessionLifetime);
-
+            $isMobile = $this->context->client === Client::MOBILE;
+            $domain = $isMobile ? null : $this->env->getByKey("COOKIES_DOMAIN");
+            ini_set('session.gc_maxlifetime', $this->getSessionLifetime());
+            ini_set('session.cookie_lifetime', $this->getSessionLifetime());
+            error_log("SESSION - domain used: '" . ($domain ?? 'NULL/EMPTY') . "'");
             session_set_cookie_params([
                 // Ensure the session expiration logic works as intended. Refer to variable docs for more info.
-                'lifetime' => $this->sessionLifetime * $this->sessionLifetimeMultiplier,
+                'lifetime' => $this->getSessionLifetime(),
                 'path' => '/',
-                'domain' => $this->env->getByKey("COOKIES_DOMAIN"),
+                'domain' => $domain,
                 'secure' => true,
                 'httponly' => true,
-                'samesite' => 'Lax',
+                'samesite' => $this->context->isDev ? 'None' : ($isMobile ? 'None' : 'Lax'),
             ]);
 
             session_name("GORALYSSESSID");
@@ -236,6 +307,20 @@ class GoralysKernel
 
             $_SESSION['LAST_ACTIVITY'] = time();
         }
+    }
+
+    public function getSessionLifetime(): float
+    {
+        return $this->sessionLifetime * $this->sessionLifetimeMultiplier;
+    }
+
+    /**
+     * Initializes the router used by the API via the kernel
+     * @return void
+     */
+    private function initRouter(): void
+    {
+        $this->router = new GoralysRouter($this);
     }
 
     /**
@@ -267,7 +352,7 @@ class GoralysKernel
     }
 
     /**
-     * Initializes the authentification controller of the kernel.
+     * Initializes the authentication controller of the kernel.
      * @return void
      */
     private function initAuth(): void
@@ -386,7 +471,7 @@ class GoralysKernel
      */
     private function initCSRF(): void
     {
-        $this->csrf = new CSRFService($this->logger);
+        $this->csrf = new CSRFService($this->logger, $this->router);
     }
 
     /**
@@ -411,7 +496,8 @@ class GoralysKernel
     }
 
     /**
-     * Sets the exceptions and errors handlers to be the ones from the `GoralysKernel`.
+     * Sets the exceptions and errors handlers to be the ones from the kernel.
+     * This is done to ensure that the kernel's error handling is used instead of the default PHP error handler.
      * @return void
      */
     public function setHandlers(): void
@@ -472,7 +558,7 @@ class GoralysKernel
     public function run(callable $callback): void
     {
         try {
-            $callback($this, $this->request);
+            $callback($this, $this->request());
 
             if (session_status() == PHP_SESSION_ACTIVE) {
                 session_write_close();
@@ -531,7 +617,8 @@ class GoralysKernel
 
     public function deferredResponse(int $code = 200): DeferredResponseInterface
     {
-        return new DeferredResponse($this->context, $code);
+        $json = new HttpJsonResponder();
+        return new DeferredResponse($this->context, $json, $code);
     }
 
     /**
@@ -542,13 +629,15 @@ class GoralysKernel
     {
         try {
             if (!$this->connect()) {
+                $this->logger->warning(LoggerInitiator::KERNEL, "Could not connect to the database");
                 $this->deferredResponse(500)->error( // Internal server error
                     "Une erreur interne est survenue lors de la connexion, veuillez réessayer ultérieurement.",
                 )
                     ->redirect("/")
                     ->send();
             }
-        } catch (Throwable) {
+        } catch (Throwable $e) {
+            $this->logger->warning(LoggerInitiator::KERNEL, "Could not connect to the database: " . $e->getMessage());
             $this->deferredResponse(500)->error( // Internal server error
                 "Une erreur interne est survenue lors de la connexion, veuillez réessayer ultérieurement.",
             )
@@ -566,7 +655,14 @@ class GoralysKernel
         if (!isset($this->db)) {
             $this->db = new DbContainer($this->logger);
         }
-        return $this->db->connect();
+
+        try {
+            $token = $this->request()->header("X-High-School-Token")
+                   ?? $this->request()->param("high-school-token");
+            return $this->db->connect($this->highSchools->getDbForSchool($token));
+        } catch (Exception $e) {
+            throw new GoralysConnectException("Could not connect to the database: " . $e->getMessage());
+        }
     }
 
     /**
@@ -590,8 +686,8 @@ class GoralysKernel
     }
 
     /**
-     * Helper to check if the user is authenticated
-     * @param string $endpoint The endpoint the authentification is required in.
+     * Helper to check if the user is authenticated. Destroys the session on failure.
+     * @param string $endpoint The endpoint the authentication is required in.
      * @return void
      */
     public function requireAuth(string $endpoint): void
@@ -604,20 +700,20 @@ class GoralysKernel
                 $this->destroySession();
                 $this->logger->warning(
                     LoggerInitiator::CORE,
-                    "Tried to perform action: $endpoint without authentification",
+                    "Tried to perform action: $endpoint without authentication",
                 );
 
                 $this->response(401)->json(["authEvent" => "expired"]); // Unauthorized
-                // no break
+            // no break
             case UserAuthStatus::NOT_AUTHENTICATED:
                 $this->destroySession();
                 $this->logger->warning(
                     LoggerInitiator::CORE,
-                    "Tried to perform action: $endpoint without authentification",
+                    "Tried to perform action: $endpoint without authentication",
                 );
 
                 $this->response(401)->json(["authEvent" => "unauthenticated"]); // Unauthorized
-                // no break
+            // no break
             case UserAuthStatus::AUTHENTICATED:
                 break;
         }
@@ -632,19 +728,7 @@ class GoralysKernel
     }
 
     /**
-     * Generate a new HTTP response.
-     * @param int $code The response's code (default = 200).
-     * @return ImmediateResponseInterface The response.
-     */
-    public function response(int $code = 200): ImmediateResponseInterface
-    {
-        $files = new HttpFileResponder();
-        $json = new HttpJsonResponder();
-        return new ImmediateResponse($code, $this->logger, $files, $json);
-    }
-
-    /**
-     * Helper to check if the user is authenticated
+     * Helper to check if the user is authenticated. Preserves the session on failure.
      * @return bool If the user is authenticated
      */
     public function checkAuth(): bool
@@ -674,19 +758,6 @@ class GoralysKernel
     }
 
     /**
-     * Gets the kernel's current HTTP request
-     * @return RequestInterface The request.
-     */
-    public function request(): RequestInterface
-    {
-        if (!isset($this->request)) {
-            $this->request = new GoralysRequest();
-        }
-
-        return $this->request;
-    }
-
-    /**
      * Helper to check if the user has a certain role.
      * @param UserRole $role The minimum role the user must have.
      * @param bool $strict If set to true, the user must be exactly the provided role.
@@ -706,14 +777,14 @@ class GoralysKernel
         if (!$pass) {
             $this->logger->warning(
                 LoggerInitiator::KERNEL,
-                "Tried to perform forbidden action with role " . $currentRole->toString(
-                ) . "(required " . ($strict ? "==" : "=<") . " " . $role->toString() . ")"
+                "Tried to perform forbidden action with role " . $currentRole->toString() . "(required " .
+                ($strict ? "==" : "=<") . " " . $role->toString() . ")"
             );
             $this->deferredResponse(403)->error( // Forbidden
                 "Il semblerait que vous n'ayez pas les permissions nécéssaires . ",
             )
-                    ->redirect("/user/login")
-                    ->send();
+                ->redirect("/user/login")
+                ->send();
         }
     }
 

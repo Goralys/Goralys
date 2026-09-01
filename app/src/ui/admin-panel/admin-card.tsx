@@ -19,13 +19,13 @@ import { usePasswordModal } from "@/app/src/ui/modals/password/password-modal-pr
 import { useToast } from "@/app/src/ui/toast/toast-provider";
 import { ReactElement } from "react";
 
-interface AdminCardProps {
+interface Props {
     admin: User;
     onUpdateAction: () => void;
     syncKey: string;
 }
 
-export default function AdminCard({ admin, onUpdateAction, syncKey }: AdminCardProps): ReactElement {
+export default function AdminCard({ admin, onUpdateAction, syncKey }: Props): ReactElement {
     const password = usePasswordModal();
     const toast = useToast();
 

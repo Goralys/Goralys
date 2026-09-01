@@ -7,19 +7,14 @@ import { ReactElement, useRef, useState } from "react";
 import { QuestionMarkCircleIcon } from "@heroicons/react/24/outline";
 import { useModalClose } from "@/app/src/lib/modals";
 
-interface DraftModalProps {
+interface Props {
     visible: boolean;
     onCancelAction: () => void;
     onChooseDraftAction: (file: File | null) => void;
     onCloseModalAction: () => void;
 }
 
-export default function DraftModalElement({
-    visible,
-    onChooseDraftAction,
-    onCancelAction,
-    onCloseModalAction,
-}: DraftModalProps): ReactElement {
+export default function DraftModalElement({ visible, onChooseDraftAction, onCancelAction, onCloseModalAction }: Props): ReactElement {
     const [draftFile, setDraftFile] = useState<File | null>(null);
     const modalRef = useRef<HTMLDivElement>(null);
 
