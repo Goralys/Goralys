@@ -3,14 +3,14 @@ import { TextArea } from "@/app/src/ui/inputs/text-area";
 import { ChangeEventHandler, ReactElement, RefObject } from "react";
 import { ChevronRightIcon } from "@heroicons/react/24/outline";
 
-interface CommentTeacherProps {
+interface Props {
     subjectData: Subject;
     disabled: boolean;
     ref?: RefObject<HTMLTextAreaElement | null>;
     onChange?: ChangeEventHandler<HTMLTextAreaElement>;
 }
 
-export default function CommentTeacher({ subjectData, disabled, ref, onChange }: CommentTeacherProps): ReactElement {
+export default function CommentTeacher({ subjectData, disabled, ref, onChange }: Props): ReactElement {
     const visible = subjectData.status === "submitted";
 
     if (!visible) {

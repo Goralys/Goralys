@@ -9,6 +9,7 @@ namespace Goralys\App\HTTP\Guard;
 
 use Goralys\App\Context\AppContext;
 use Goralys\App\HTTP\Guard\Interface\GuardInterface;
+use Goralys\App\HTTP\JSON\Services\HttpJsonResponder;
 use Goralys\App\HTTP\Request\Interfaces\RequestInterface;
 use Goralys\App\HTTP\Response\DeferredResponse;
 use Goralys\App\HTTP\Response\Interfaces\DeferredResponseInterface;
@@ -51,7 +52,8 @@ final class HttpGuard implements GuardInterface
             return null;
         }
 
-        return new DeferredResponse($this->context, 403)->toast( // Unauthorized
+        $json = new HttpJsonResponder();
+        return new DeferredResponse($this->context, $json, 403)->toast( // Unauthorized
             ToastType::WARNING,
             "Mauvais utilisateur",
             "Il semblerait que vous ne soyez pas le bon utilisateur",

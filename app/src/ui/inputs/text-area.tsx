@@ -4,7 +4,7 @@ import { clsx } from "clsx";
 import React, { ChangeEventHandler, ReactElement, RefObject, useState } from "react";
 import { useAutoResize } from "@/app/src/lib/inputs";
 
-interface TextAreaProps {
+interface Props {
     defaultValue?: string;
     disabled?: boolean;
     ref?: RefObject<HTMLTextAreaElement | null>;
@@ -26,7 +26,7 @@ export function TextArea({
     defaultValue,
     onChangeAction,
     maxLength,
-}: TextAreaProps): ReactElement {
+}: Props): ReactElement {
     const setRef = useAutoResize(ref);
     const [currentValue, setCurrentValue] = useState<string>(defaultValue ?? "");
 

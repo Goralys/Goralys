@@ -11,9 +11,9 @@ use Goralys\Kernel\GoralysKernel;
 use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
 use Goralys\Shared\Exception\GoralysRuntimeException;
 
-// ================================================
+// ==================================================
 // [SECTION] Flash toast
-// ================================================
+// ==================================================
 Routes::get('toast/flash', function (GoralysKernel $kernel) {
     try {
         $kernel->logger->debug(

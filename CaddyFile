@@ -1,0 +1,4 @@
+api.goralys.test {
+    tls internal
+    reverse_proxy localhost:80
+}

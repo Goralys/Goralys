@@ -2,140 +2,134 @@
 
 namespace Goralys\Tests\Unit\App;
 
+use Goralys\App\HTTP\Request\GoralysRequest;
 use Goralys\Shared\Exception\Request\InvalidInputException;
-use Goralys\Tests\Fakes\FakeGoralysRequest;
 use PHPUnit\Framework\TestCase;
 
 final class GoralysRequestTest extends TestCase
 {
-    private FakeGoralysRequest $request;
+    private GoralysRequest $request;
 
     protected function setUp(): void
     {
-        $this->request = new FakeGoralysRequest();
+        $this->request = new GoralysRequest();
     }
 
-    // get()
-
-    public function testGetReturnsNullForMissingKey(): void
+    protected function tearDown(): void
     {
-        $this->assertNull($this->request->param('missing'));
+        unset($_POST);
+        unset($_GET);
+        unset($_SERVER);
     }
 
-    public function testGetTrimsStringValues(): void
+    public function testReturnsNullForMissingParam()
     {
-        $this->request->setInput(['name' => '  John  ']);
-        $this->assertSame('John', $this->request->param('name'));
+        $_POST = [];
+        $this->setUp();
+        self::assertSame(null, $this->request->param("missing"));
     }
 
-    public function testGetReturnsInt(): void
+    public function testTrimsParams()
     {
-        $this->request->setInput(['age' => 42]);
-        $this->assertSame(42, $this->request->param('age'));
+        $_POST = ["foo" => "              almost trimmed    "];
+        $this->setUp();
+        self::assertSame("almost trimmed", $this->request->param("foo"));
     }
 
-    public function testGetReturnsFloat(): void
+    public function testReadsGetIfPostEmpty()
     {
-        $this->request->setInput(['score' => 3.14]);
-        $this->assertSame(3.14, $this->request->param('score'));
+        $_POST = [];
+        $_GET = ["foo" => "bar"];
+        $this->setUp();
+        self::assertSame("bar", $this->request->param("foo"));
     }
 
-    public function testGetReturnsBoolTrue(): void
+    public function testGetOverwritesPost() // derived from merge order in the class
     {
-        $this->request->setInput(['active' => true]);
-        $this->assertSame(true, $this->request->param('active'));
+        $_POST = ["foo" => "bar"];
+        $_GET = ["foo" => "bar1"];
+        $this->setUp();
+        self::assertSame("bar1", $this->request->param("foo"));
     }
 
-    public function testGetReturnsBoolFalse(): void
+    public function testNonStringValuesRemains()
     {
-        $this->request->setInput(['active' => false]);
-        $this->assertSame(false, $this->request->param('active'));
+        $_POST = ["foo" => true];
+        $_GET = ["bar" => 3];
+        $this->setUp();
+        self::assertIsBool($this->request->param("foo"));
+        self::assertSame(true, $this->request->param("foo"));
+        self::assertIsInt($this->request->param("bar"));
+        self::assertSame(3, $this->request->param("bar"));
     }
 
-    // validate() — happy path
-
-    /**
-     * @throws InvalidInputException
-     */
-    public function testValidateReturnsValidatedData(): void
+    public function testReturnsNullForMissingHeader()
     {
-        $this->request->setInput(['username' => 'john']);
-        $result = $this->request->validate(['username' => ['required']]);
-        $this->assertSame(['username' => 'john'], $result);
+        $_SERVER = [];
+        $this->setUp();
+        self::assertSame(null, $this->request->header("missing"));
     }
 
-    /**
-     * @throws InvalidInputException
-     */
-    public function testValidatePassesWithMultipleFields(): void
+    public function testHeaderWorks()
     {
-        $this->request->setInput(['username' => 'john', 'password' => 'secret']);
-        $result = $this->request->validate([
-            'username' => ['required'],
-            'password' => ['required'],
-        ]);
-        $this->assertSame(['username' => 'john', 'password' => 'secret'], $result);
-    }
-
-    /**
-     * @throws InvalidInputException
-     */
-    public function testValidatePassesMinConstraint(): void
-    {
-        $this->request->setInput(['password' => 'strongpass']);
-        $result = $this->request->validate(['password' => ['required', 'min:6']]);
-        $this->assertSame(['password' => 'strongpass'], $result);
+        $_SERVER["HTTP_X_FOO"] = "bar";
+        $this->setUp();
+        self::assertSame("bar", $this->request->header("X-Foo"));
     }
 
     /**
      * @throws InvalidInputException
      */
-    public function testValidateIncludesOptionalFieldWhenPresent(): void
+    public function testValidateRequired()
     {
-        $this->request->setInput(['note' => 'hello']);
-        $result = $this->request->validate(['note' => []]);
-        $this->assertSame(['note' => 'hello'], $result);
+        $_POST = ["foo" => "bar"];
+        $this->setUp();
+        self::assertSame(["foo" => "bar"], $this->request->validate(["foo" => ["required"]]));
     }
 
     /**
      * @throws InvalidInputException
      */
-    public function testValidateIncludesOptionalFieldAsNullWhenAbsent(): void
+    public function testValidateMin()
     {
-        $this->request->setInput([]);
-        $result = $this->request->validate(['note' => []]);
-        $this->assertSame(['note' => null], $result);
+        $_POST = ["foo" => "bar"];
+        $this->setUp();
+        self::assertSame(["foo" => "bar"], $this->request->validate(["foo" => ["min:3"]]));
     }
 
-    // validate() — required failures
-
-    public function testValidateThrowsWhenRequiredFieldMissing(): void
+    public function testValidateThrowsForMissingRequired()
     {
+        $_POST = ["foo1" => "bar"];
+        $this->setUp();
         $this->expectException(InvalidInputException::class);
-        $this->request->setInput([]);
-        $this->request->validate(['username' => ['required']]);
+        $this->expectExceptionMessage("foo is required");
+        $this->request->validate(["foo" => ["required"]]);
     }
 
-    public function testValidateThrowsWhenRequiredFieldIsEmptyString(): void
+    public function testValidateThrowsForNullRequired()
     {
+        $_POST = ["foo" => null];
+        $this->setUp();
         $this->expectException(InvalidInputException::class);
-        $this->request->setInput(['username' => '   ']);
-        $this->request->validate(['username' => ['required']]);
+        $this->expectExceptionMessage("foo is required");
+        $this->request->validate(["foo" => ["required"]]);
     }
 
-    public function testValidateThrowsWhenRequiredFieldIsNull(): void
+    public function testValidateThrowsForEmptyRequired()
     {
+        $_POST = ["foo" => "    "];
+        $this->setUp();
         $this->expectException(InvalidInputException::class);
-        $this->request->setInput(['username' => null]);
-        $this->request->validate(['username' => ['required']]);
+        $this->expectExceptionMessage("foo cannot be empty");
+        $this->request->validate(["foo" => ["required"]]);
     }
 
-    // validate() — min failures
-
-    public function testValidateThrowsWhenValueIsBelowMin(): void
+    public function testValidateThrowsForLessThanMin()
     {
+        $_POST = ["foo" => "bar"];
+        $this->setUp();
         $this->expectException(InvalidInputException::class);
-        $this->request->setInput(['password' => 'abc']);
-        $this->request->validate(['password' => ['required', 'min:6']]);
+        $this->expectExceptionMessage("foo is too short (min 4)");
+        $this->request->validate(["foo" => ["min:4"]]);
     }
 }

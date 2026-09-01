@@ -5,12 +5,12 @@ import { useToast } from "@/app/src/ui/toast/toast-provider";
 import { ArrowUpTrayIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 
-interface InputZipFileProps {
+interface Props {
     text: string;
     onFileSelected: CallableFunction;
 }
 
-export default function InputZipFile({ text, onFileSelected }: InputZipFileProps): ReactElement {
+export default function InputZipFile({ text, onFileSelected }: Props): ReactElement {
     const [fileName, setFileName] = useState<string | null>(null);
     const [dragging, setDragging] = useState(false);
     const toast = useToast();

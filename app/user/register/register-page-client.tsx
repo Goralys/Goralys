@@ -8,10 +8,10 @@ import { ReactElement } from "react";
 
 export default function RegisterPageClient(): ReactElement {
     return (
-        <div className="flex grow content-center justify-center items-center">
-            <div className="grid w-5xl gap-1 grid-cols-2">
-                <Card className="flex-row h-79 bg-sky-300">
-                    <Image src="/user/register.svg" alt="Login illustration." width={200} height={150} />
+        <div className="flex grow content-center justify-center items-center min-h-screen">
+            <div className="grid sm:w-5xl sm:ml-auto ml-2 sm:mr-auto mr-2 w-full gap-1 sm:grid-cols-2 grid-rows-2">
+                <Card className="flex-row sm:h-79 h-fit p-1 bg-sky-300 order-2 sm:order-1">
+                    <Image className="h-auto sm:w-50 w-40" src="/user/register.svg" alt="Login illustration." width={200} height={150} />
 
                     <div className="flex flex-col">
                         <h1 className="text-xl">Bienvenue chez Goralys !</h1>

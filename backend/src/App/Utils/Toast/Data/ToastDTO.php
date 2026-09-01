@@ -14,12 +14,12 @@ final class ToastDTO
 {
     /**
      * @param array<string, mixed> $toastInfo The toast notification payload data.
-     * @param string $redirect The URL to redirect to after displaying the toast.
+     * @param ?string $redirect The URL to redirect to after displaying the toast, or `null` if no redirect is needed.
      * @param bool   $flash Whether the toast should be stored as a flash notification.
      */
     public function __construct(
         public readonly array $toastInfo,
-        public string $redirect,
+        public ?string $redirect,
         public readonly bool $flash = false,
     ) {
     }

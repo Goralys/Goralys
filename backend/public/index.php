@@ -1,12 +1,10 @@
 <?php
 
-use Goralys\App\Router\GoralysRouter;
-
 require __DIR__ . "/../vendor/autoload.php";
 require __DIR__ . "/../src/Kernel/bootstrap.php";
 
 $kernel = bootKernel();
-$router = new GoralysRouter($kernel);
+$router = $kernel->router;
 
 (require __DIR__ . "/../API/api.php")();
 

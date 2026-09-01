@@ -7,16 +7,14 @@
 
 namespace Goralys\App\User\Controllers;
 
+use DateMalformedStringException;
 use Goralys\App\User\Data\UserCollection;
 use Goralys\App\User\Data\UserGetDTO;
-use Goralys\App\User\Data\UsernameTable;
 use Goralys\Core\User\Data\Enums\UserRole;
 use Goralys\Core\User\Data\UserFullDTO;
-use Goralys\Core\User\Data\UserLoginDTO;
 use Goralys\Core\User\Data\VirtualUserDTO;
 use Goralys\Core\User\Repository\Interfaces\UserRepositoryInterface;
 use Goralys\Core\User\Repository\UserRepository;
-use Goralys\Core\User\Services\LoginService;
 use Goralys\Core\User\Services\UsernameManager;
 use Goralys\Platform\DB\Interfaces\DbContainerInterface;
 use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
@@ -64,8 +62,9 @@ final class UserController
         // clean username list first
         if ($raw = file(Config::USER::USERNAME_LIST_PATH, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES)) {
             $result = array_filter($raw, function ($line) {
-                [$fullName, $username] = explode("=", $line);
-                if (is_string($fullName) && is_string($username)) {
+                $parts = explode("=", $line);
+                [, $username] = $parts;
+                if (count($parts) === 2) {
                     return str_contains($username, Config::USER::ADMIN_SUFFIX);
                 }
                 return false;
@@ -78,6 +77,7 @@ final class UserController
     /**
      * Returns all non-admin users from the database.
      * @return UserCollection The users (teachers and students).
+     * @throws DateMalformedStringException
      */
     public function getAll(): UserCollection
     {
@@ -116,6 +116,7 @@ final class UserController
     /**
      * Returns all admin users from the database.
      * @return UserCollection The users (admins).
+     * @throws DateMalformedStringException
      */
     public function getAdmins(): UserCollection
     {
@@ -132,16 +133,29 @@ final class UserController
     }
 
     /**
-     * Adds a new admin inside the database.
-     * @param FullNameDTO $name The full name of the admin to add.
+     * Adds a new user inside the database.
+     * @param FullNameDTO $name The full name of the user to add.
+     * @param UserRole $role The user's role.
+     * @param string ...$topics The user's topics. This is only required for students and teachers.
      * @return ?string The admin's username on success, null otherwise.
-     * @throws GoralysUserException
+     * @throws GoralysUserException|GoralysRuntimeException If the user cannot be created.
      */
-    public function addAdmin(FullNameDTO $name): ?string
+    public function addUser(FullNameDTO $name, UserRole $role, string ...$topics): ?string
     {
-        $table = new UsernameTable();
-        $username = $table->resolve($name, UserRole::ADMIN);
-        return ($this->repo->whitelist($username, $name) && $this->repo->addAdmin($username)) ? $username : null;
+        $username = $this->usernames->bucket->resolve($name, UserRole::ADMIN);
+
+        if (!$this->repo->whitelist($username, $name)) {
+            return null;
+        }
+
+        $success = match ($role) {
+            UserRole::ADMIN => $this->repo->addAdmin($username),
+            UserRole::TEACHER => $this->repo->addTeacher($username, ...$topics),
+            UserRole::STUDENT => $this->repo->addStudent($username, ...$topics),
+            default => false,
+        };
+
+        return $success ? $username : null;
     }
 
     /**
@@ -152,19 +166,13 @@ final class UserController
      */
     public function revokeAdmin(string $publicId): bool
     {
-        return $this->repo->revokeAdmin($this->usernames->get($publicId));
-    }
+        $target = $this->usernames->get($publicId);
 
-    /**
-     * Checks if a password is correct for the current user.
-     * @param string $password The password to check.
-     * @return bool Whether the password is correct.
-     * @throws UserNotFoundException If the user does not exist.
-     */
-    public function validatePassword(string $password): bool
-    {
-        $service = new LoginService($this->logger, $this->repo);
-        return $service->checkPassword(new UserLoginDTO($_SESSION[Config::SESSION::USERNAME], $password));
+        if (!$this->usernames->bucket->remove($target)) {
+            return false;
+        }
+
+        return $this->repo->revokeAdmin($target);
     }
 
     /**
@@ -188,9 +196,8 @@ final class UserController
      */
     public function replaceTeacher(string $publicId, string $newName): ?string
     {
-        $table = new UsernameTable();
         $old = $this->usernames->get($publicId);
-        $new = $table->resolve($newName);
+        $new = $this->usernames->bucket->resolve($newName);
         return ($this->repo->softDelete($old) && $this->repo->replaceTeacher($old, $new)) ? $new : null;
     }
 
@@ -207,7 +214,40 @@ final class UserController
             LoggerInitiator::CORE,
             "Attempting to delete user " . $target . " (initiator: " . $_SESSION[Config::SESSION::USERNAME]
         );
+
+        if (!$this->usernames->bucket->remove($target)) {
+            return false;
+        }
+
         return $this->repo->hardDelete($target);
+    }
+
+    /**
+     * Returns the role of a given user.
+     * @param string $username The username of the target user.
+     * @return ?UserRole The role of the user of `null` if the user does not exist.
+     */
+    public function role(string $username): ?UserRole
+    {
+        return $this->repo->getRoleForUsername($username);
+    }
+
+    /**
+     * Updates a user's full name.
+     * This function also deletes the old username and generates a brand new one.
+     * @param string $username The username of the targeted user.
+     * @param FullNameDTO $new The new full name of the user.
+     * @return string|null The new username if the operation is successfull, `null` elsewhise.
+     * @throws GoralysUserException If the new username could not be generated.
+     */
+    public function setFullName(string $username, FullNameDTO $new): ?string
+    {
+        $newUsername = $this->usernames->bucket->resolve($new);
+        if (!$this->usernames->bucket->remove($username)) {
+            return null;
+        }
+
+        return $this->repo->setFullName($username, $new) && $this->repo->setUsername($username, $newUsername);
     }
 
     /**
@@ -250,5 +290,25 @@ final class UserController
         }
         unset($_SESSION[Config::SESSION::EMAIL]);
         return true;
+    }
+
+    /**
+     * Retrieves a user's profile based on his public id.
+     * @param string $publicId The user's public id.
+     * @return ?UserFullDTO The complete profile of the user or `null` if the user does not exist.
+     */
+    public function getProfile(string $publicId): ?UserFullDTO
+    {
+        try {
+            return $this->repo->getByPublicId($publicId);
+        } catch (UserNotFoundException) {
+            try {
+                return $this->repo->getVirtualByPublicId($publicId);
+            } catch (UserNotFoundException | DateMalformedStringException) {
+                return null;
+            }
+        } catch (DateMalformedStringException) {
+            return null;
+        }
     }
 }

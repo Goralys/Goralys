@@ -17,13 +17,12 @@ class LoginServiceTest extends TestCase
 
     public function testLoginNoUser()
     {
-        $this->repo->setGetResult(null);
+        $this->repo->setLoginDTOResult(null);
 
-        try {
-            $this->service->login(new UserLoginDTO("j.doe1", "foo"));
-        } catch (UserNotFoundException $e) {
-            self::assertEquals("No such user : j.doe1", $e->getMessage());
-        }
+        $this->expectException(UserNotFoundException::class);
+        $this->expectExceptionMessage("No such user : j.doe1");
+
+        $this->service->login(new UserLoginDTO("j.doe1", "foo"));
     }
 
     /**
@@ -31,7 +30,7 @@ class LoginServiceTest extends TestCase
      */
     public function testLoginInvalidPassword()
     {
-        $this->repo->setGetResult(new UserLoginDTO("j.doe1", "bar"));
+        $this->repo->setLoginDTOResult(new UserLoginDTO("j.doe1", "bar"));
         self::assertFalse($this->service->login(new UserLoginDTO("j.doe1", "foo")));
     }
 
@@ -40,13 +39,13 @@ class LoginServiceTest extends TestCase
      */
     public function testLoginWorks()
     {
-        $this->repo->setGetResult(new UserLoginDTO("j.doe1", password_hash("foo", PASSWORD_DEFAULT)));
+        $this->repo->setLoginDTOResult(new UserLoginDTO("j.doe1", password_hash("foo", PASSWORD_DEFAULT)));
         self::assertTrue($this->service->login(new UserLoginDTO("j.doe1", "foo")));
     }
 
     public function testCheckPasswordNoUser(): void
     {
-        $this->repo->setGetResult(null);
+        $this->repo->setLoginDTOResult(null);
 
         try {
             $this->service->checkPassword(new UserLoginDTO("j.doe1", "foo"));
@@ -61,7 +60,7 @@ class LoginServiceTest extends TestCase
      */
     public function testCheckPasswordInvalidPassword(): void
     {
-        $this->repo->setGetResult(new UserLoginDTO("j.doe1", password_hash("correct", PASSWORD_DEFAULT)));
+        $this->repo->setLoginDTOResult(new UserLoginDTO("j.doe1", password_hash("correct", PASSWORD_DEFAULT)));
         self::assertFalse($this->service->checkPassword(new UserLoginDTO("j.doe1", "wrong")));
     }
 
@@ -70,7 +69,7 @@ class LoginServiceTest extends TestCase
      */
     public function testCheckPasswordWorks(): void
     {
-        $this->repo->setGetResult(new UserLoginDTO("j.doe1", password_hash("foo", PASSWORD_DEFAULT)));
+        $this->repo->setLoginDTOResult(new UserLoginDTO("j.doe1", password_hash("foo", PASSWORD_DEFAULT)));
         self::assertTrue($this->service->checkPassword(new UserLoginDTO("j.doe1", "foo")));
     }
 

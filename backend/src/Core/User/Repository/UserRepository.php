@@ -7,6 +7,8 @@
 
 namespace Goralys\Core\User\Repository;
 
+use DateMalformedStringException;
+use DateTime;
 use Exception;
 use Goralys\Core\User\Data\Enums\UserRole;
 use Goralys\Core\User\Data\UserCreateDTO;
@@ -17,6 +19,8 @@ use Goralys\Core\User\Repository\Interfaces\UserRepositoryInterface;
 use Goralys\Platform\DB\Interfaces\DbContainerInterface;
 use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
 use Goralys\Platform\Logger\Interfaces\LoggerInterface;
+use Goralys\Shared\Exception\DB\GoralysDBException;
+use Goralys\Shared\Exception\GoralysRuntimeException;
 use Goralys\Shared\Exception\User\UserNotFoundException;
 use Goralys\Shared\User\Data\FullNameDTO;
 use mysqli_result;
@@ -46,12 +50,12 @@ final class UserRepository implements UserRepositoryInterface
      * Get a user's info with its username.
      * @param string $username The user's username.
      * @return UserFullDTO The user's info.
-     * @throws UserNotFoundException If the user is invalid.
+     * @throws UserNotFoundException|DateMalformedStringException If the user is invalid.
      */
     public function getByUsername(string $username): UserFullDTO
     {
         $result = $this->db->fetch(
-            "select id, u.username, role, firstname, lastname, email from users u
+            "select id, u.username, role, firstname, lastname, email, created_at from users u
                    left join emails e on u.username = e.username
                    right outer join users_info ui on ui.username = u.username
                    where u.username = ?",
@@ -67,7 +71,7 @@ final class UserRepository implements UserRepositoryInterface
      * it is in charge of the logging process.
      * @param mysqli_result $result The result from the database.
      * @return UserFullDTO All the user's info.
-     * @throws UserNotFoundException If the user is invalid.
+     * @throws UserNotFoundException|DateMalformedStringException If the user is invalid.
      */
     private function buildUserFromResult(mysqli_result $result): UserFullDTO
     {
@@ -87,6 +91,7 @@ final class UserRepository implements UserRepositoryInterface
      * It is in charge of the logging process.
      * @param array $row The row from the database result.
      * @return UserFullDTO All the user's info.
+     * @throws DateMalformedStringException If the user's creation date could not be parsed correctly.
      */
     private function buildUserFromRow(array $row): UserFullDTO
     {
@@ -97,10 +102,26 @@ final class UserRepository implements UserRepositoryInterface
         return new UserFullDTO(
             (int) $row['id'],
             $row['username'],
+            $this->getPublicIdForUsername($row['username']) ?? "",
             UserRole::fromString($row['role']),
             new FullNameDTO($row['firstname'], $row['lastname']),
             $row['email'] ?? "",
+            new DateTime($row['created_at'])
         );
+    }
+
+    /**
+     * Retrieves the public id of a user from its username.
+     * @param string $username The username of the user.
+     * @return ?string The public id on success, `null` on failure.
+     */
+    public function getPublicIdForUsername(string $username): ?string
+    {
+        return $this->db->fetch(
+            "select public_id from public_ids where username = ?",
+            "s",
+            $username,
+        )->fetch_assoc()['public_id'] ?? null;
     }
 
     /**
@@ -249,6 +270,12 @@ final class UserRepository implements UserRepositoryInterface
                        union
                        select username from admins_list)",
             );
+            $this->db->runNoArgs(
+                "delete from users_info where username not in (
+                       select username from users where role = 'admin'
+                       union
+                       select username from admins_list)",
+            );
             $this->db->runNoArgs("delete from users where role <> 'admin'");
             $this->db->commit();
             return true;
@@ -262,12 +289,12 @@ final class UserRepository implements UserRepositoryInterface
      * Get a user's info with its public id.
      * @param string $uuid The public id of the user.
      * @return UserFullDTO The info of the user.
-     * @throws UserNotFoundException If the user does not exist in the DB.
+     * @throws UserNotFoundException|DateMalformedStringException If the user does not exist in the DB.
      */
     public function getByPublicId(string $uuid): UserFullDTO
     {
         $result = $this->db->fetch(
-            "select u.id, u.username, u.role, ui.firstname, ui.lastname, e.email 
+            "select u.id, u.username, u.role, u.created_at, ui.firstname, ui.lastname, e.email 
                    from users u
                    join users_info ui on ui.username = u.username
                    join public_ids pi on u.username = pi.username
@@ -275,6 +302,42 @@ final class UserRepository implements UserRepositoryInterface
                    where pi.public_id = ?",
             "s",
             $uuid,
+        );
+
+        return $this->buildUserFromResult($result);
+    }
+
+    /**
+     * This function is used to get a non-created user's ("virtual" user) info.
+     * However, as the user is not created yet, it cannot retrieve the complete info.
+     * Thus, it uses some defaults for values that cannot be retrieved.
+     * The rule are the following:
+     * - int: -1
+     * - string: ""
+     * These rules are then used by the frontend to inform the user that some data is not available on the requested
+     * user.
+     * @param string $uuid The user's public UUID.
+     * @return UserFullDTO The full user record.
+     * @throws UserNotFoundException | DateMalformedStringException If the user does not exist.
+     */
+    public function getVirtualByPublicId(string $uuid): UserFullDTO
+    {
+        $result = $this->db->fetch(
+            "select -1 as id, ui.username, ui.firstname, ui.lastname, '' as email, date('1970-01-01') as created_at,
+                   case
+                       when exists (select 1 from student_topics st where st.student_username = pi.username)
+                           then 'student'
+                       when exists (select 1 from topic_teachers tt where tt.teacher_username = pi.username)
+                           then 'teacher'
+                       when exists (select 1 from admins_list al where al.username = pi.username)
+                           then 'admin'
+                       else 'unknown'
+                   end as role
+                   from public_ids pi
+                   join users_info ui on ui.username = pi.username
+                   where pi.public_id = ?",
+            "s",
+            $uuid
         );
 
         return $this->buildUserFromResult($result);
@@ -295,20 +358,6 @@ final class UserRepository implements UserRepositoryInterface
     }
 
     /**
-     * Retrieves the public id of a user from its username.
-     * @param string $username The username of the user.
-     * @return ?string The public id on success, `null` on failure.
-     */
-    public function getPublicIdForUsername(string $username): ?string
-    {
-        return $this->db->fetch(
-            "select public_id from public_ids where username = ?",
-            "s",
-            $username,
-        )->fetch_assoc()['public_id'] ?? null;
-    }
-
-    /**
      * @param string $publicId The user's public id.
      * @return ?string The user's username, or null if the user does not exist.
      */
@@ -322,13 +371,43 @@ final class UserRepository implements UserRepositoryInterface
     }
 
     /**
+     * Updates a given user's username inside the database.
+     * @param string $target The targeted user's username.
+     * @param string $new The new username for the user.
+     * @return bool Whether the operation was successful.
+     */
+    public function setUsername(string $target, string $new): bool
+    {
+        // propagates via fk cascades
+        return $this->db->run("update users_info set username = ? where username = ?", "ss", $new, $target);
+    }
+
+    /**
+     * Updates a given user's full name inside the database.
+     * @param string $target The targeted user's username.
+     * @param FullNameDTO $new The new fullname for the user.
+     * @return bool Whether the operation was successful.
+     */
+    public function setFullName(string $target, FullNameDTO $new): bool
+    {
+        return $this->db->run(
+            "update users_info set firstname = ?, lastname = ? where username = ?",
+            "sss",
+            $new->first,
+            $new->last,
+            $target
+        );
+    }
+
+    /**
      * Returns all the users inside the database.
      * @return UserFullDTO[] The users.
+     * @throws DateMalformedStringException
      */
     public function getAll(): array
     {
         $result = $this->db->fetchNoArgs(
-            "select id, u.username, firstname, lastname, role 
+            "select id, u.username, firstname, lastname, role, u.created_at 
                    from users u
                    join users_info ui on ui.username = u.username
                    where role <> 'admin'"
@@ -341,6 +420,7 @@ final class UserRepository implements UserRepositoryInterface
      * result, it is in charge of the logging process.
      * @param mysqli_result $result The result from the database.
      * @return UserFullDTO[] All the users' info.
+     * @throws DateMalformedStringException
      */
     private function buildUsersFromResult(mysqli_result $result): array
     {
@@ -368,7 +448,7 @@ final class UserRepository implements UserRepositoryInterface
 
     /**
      * Unlike {@see UserRepository::softDelete()}, this deletes a user from all the database's tables.
-     * This is used to completely remove a user and its associated subjects and topics (teachers only).
+     * This is used to completely remove a user and its associated subjects (students) and topics (teachers).
      * @param string $username The user's username.
      * @return bool Whether the deletion was successful.
      */
@@ -376,8 +456,11 @@ final class UserRepository implements UserRepositoryInterface
     {
         $this->db->beginTransaction();
         try {
-            //cascades to student_topics and topics_teachers (see data_structure.sql for further info)
-            $this->db->run(
+            // Check the README.md at the project's root to have a better understanding of the cascading effects
+            // mentioned bellow. Or, if you hate yourself, you can check the raw schema at backend/data_structure.sql
+
+            // cascades to student_topics and topic_teachers, ignore topics shared by multiple teachers
+            $this->db->runIgnoreNoOps(
                 "delete from topics where id in (
                 select topic_id from topic_teachers where teacher_username = ?
                 and topic_id not in (
@@ -389,14 +472,17 @@ final class UserRepository implements UserRepositoryInterface
                 $username,
             );
 
-            $this->db->run("delete from student_topics where student_username = ?", "s", $username);
-            $this->db->run("delete from users where username = ?", "s", $username);
-            $this->db->run("delete from public_ids where username = ?", "s", $username);
+            // cascades to all other tables
+            if (!$this->db->run("delete from users_info where username= ?", "s", $username)) {
+                $this->db->rollback();
+                return false;
+            }
 
             $this->db->commit();
             return true;
-        } catch (Exception) {
+        } catch (GoralysDBException $e) {
             $this->db->rollback();
+            $this->logger->error(LoggerInitiator::CORE, "Failed to hard-delete user $username: " . $e->getMessage());
             return false;
         }
     }
@@ -440,11 +526,13 @@ final class UserRepository implements UserRepositoryInterface
     public function getVirtual(): array
     {
         $result = $this->db->fetchNoArgs(
-            "select distinct all_ids.username, all_ids.role from (
+            "select distinct ui.firstname, ui.lastname, all_ids.username, all_ids.role from (
                    select student_username as username, 'student' as role from student_topics
                    union
                    select teacher_username as username, 'teacher' as role from topic_teachers
-                   ) as all_ids where all_ids.username not in (select username from users)",
+                   ) as all_ids
+                     join users_info ui on ui.username = all_ids.username
+                     where all_ids.username not in (select username from users)",
         );
 
         return $this->buildVirtualUsersFromResult($result);
@@ -479,6 +567,7 @@ final class UserRepository implements UserRepositoryInterface
         return new VirtualUserDTO(
             $row['username'],
             UserRole::fromString($row['role']),
+            new FullNameDTO($row['firstname'], $row['lastname'])
         );
     }
 
@@ -499,11 +588,12 @@ final class UserRepository implements UserRepositoryInterface
     /**
      * Returns all admins from the database.
      * @return UserFullDTO[] The admins.
+     * @throws DateMalformedStringException
      */
     public function getAdmins(): array
     {
         $result = $this->db->fetchNoArgs(
-            "select id, u.username, firstname, lastname, role 
+            "select id, u.username, firstname, lastname, role , u.created_at
                    from users u
                    join users_info ui on ui.username = u.username
                    where role = 'admin'"
@@ -542,6 +632,46 @@ final class UserRepository implements UserRepositoryInterface
             $this->db->rollback();
             return false;
         }
+    }
+
+    /**
+     * Creates a new teacher in the database.
+     * @param string $username The new teacher's username.
+     * @param string ...$topics The teacher's assigned topics.
+     * @return bool Whether the creation was successful.
+     * @throws GoralysRuntimeException If the teacher has no topics.
+     */
+    public function addTeacher(string $username, string ...$topics): bool
+    {
+        if (count($topics) === 0) {
+            throw new GoralysRuntimeException("Teachers must have at least one subject");
+        }
+
+        $query = "insert into topic_teachers (topic_id, teacher_username) values (?, ?)";
+        $query .= str_repeat(", (?, ?)", count($topics) - 1);
+        $params = array_map(fn($t) => [$t, $username], $topics);
+        return $this->db->run($query, str_repeat("s", count($topics) * 2), $params);
+    }
+
+    /**
+     * Creates a new student in the database.
+     * @param string $username The new student's username.
+     * @param string ...$topics The topics stutied by the student.
+     * @return bool Whether the creation was successful.
+     * @throws GoralysRuntimeException If the student has no topics.
+     */
+    public function addStudent(string $username, string ...$topics): bool
+    {
+        if (count($topics) === 0) {
+            throw new GoralysRuntimeException("Students must have at least one subject");
+        }
+
+        $query = "insert into student_topics 
+                  (student_username, topic_id, subject, subject_status, last_rejected, teacher_comment, draft_path)
+                  values (?, ?, null, 0, null, null, null)";
+        $query .= str_repeat(", (?, ?, null, 0, null, null, null)", count($topics) - 1);
+        $params = array_map(fn($s) => [$username, $s], $topics);
+        return $this->db->run($query, str_repeat("s", count($topics) * 2), $params);
     }
 
     /**
@@ -588,7 +718,7 @@ final class UserRepository implements UserRepositoryInterface
      */
     public function setEmail(string $username, string $email): bool
     {
-        return $this->db->run(
+        return $this->db->runIgnoreNoOps(
             "insert into emails (username, email) values (?, ?)
                    on duplicate key update email = values(email)",
             "ss",
@@ -620,7 +750,7 @@ final class UserRepository implements UserRepositoryInterface
      */
     public function whitelist(string $username, FullNameDTO $fullName): bool
     {
-        return $this->db->run(
+        return $this->db->runIgnoreNoOps(
             "insert ignore into users_info (username, firstname, lastname) values (?, ?, ?)",
             "sss",
             $username,

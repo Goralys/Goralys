@@ -26,7 +26,7 @@ export const SubjectStatusConfig: Record<
     submitted: {
         label: "Envoyée",
         helper: {
-            student: "Cette question est en attente de validation, vous ne pouvez plus la modifiée.",
+            student: "Cette question est en attente de validation, vous ne pouvez plus la modifier.",
             teacher: "Cette question est en attente de validation.",
             admin: "Cette question est en attente de validation.",
             none: "Role invalide",

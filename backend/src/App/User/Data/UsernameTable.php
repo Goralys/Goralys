@@ -18,6 +18,8 @@ final class UsernameTable
 {
     /** @var array<string, string> */
     private array $table = [];
+    /** @var array<string, string> */
+    private array $reverse = [];
 
     public function __construct()
     {
@@ -29,11 +31,14 @@ final class UsernameTable
 
         $raw = file(Config::USER::USERNAME_LIST_PATH, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
         foreach ($raw as $line) {
-            [$fullName, $username] = explode("=", $line);
-            if (is_string($fullName) && is_string($username)) {
-                $suffix = str_contains($username, Config::USER::ADMIN_SUFFIX) ? Config::USER::ADMIN_SUFFIX : "";
-                $this->table[$fullName . $suffix] = $username;
+            $parts = explode("=", $line);
+            if (count($parts) !== 2) {
+                continue;
             }
+
+            [$fullName, $username] = $parts;
+            $this->table[$fullName] = $username;
+            $this->reverse[$username] = $fullName;
         }
     }
 
@@ -75,7 +80,7 @@ final class UsernameTable
         // Test all 10 possibilities.
         $found = false;
         for ($i = 0; $i < 10; $i++) {
-            if (!in_array($base . (($number + $i) % 10), array_values($this->table))) {
+            if (!isset($this->reverse[$base . (($number + $i) % 10)])) {
                 $number = ($number + $i) % 10;
                 $found = true;
                 break;
@@ -84,9 +89,54 @@ final class UsernameTable
         if (!$found) {
             throw new GoralysUserException("To many users with username base: $base");
         }
-        $username = $base . $number;
-        file_put_contents(Config::USER::USERNAME_LIST_PATH, PHP_EOL . $fullName . "=" . $username, FILE_APPEND);
+        $username = $base . $suffix . $number;
+        file_put_contents(
+            Config::USER::USERNAME_LIST_PATH,
+            PHP_EOL . $fullName . $suffix . "=" . $username,
+            FILE_APPEND
+        );
+        $this->reverse[$username] = $fullName . $suffix;
         return $this->table[$fullName . $suffix] = $username;
+    }
+
+    public function remove(string $username): bool
+    {
+        if (!isset($this->reverse[$username])) {
+            return false;
+        }
+
+        $fullName = $this->reverse[$username];
+
+        $raw = file(Config::USER::USERNAME_LIST_PATH, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        if (!$raw) {
+            return false;
+        }
+
+        $lineNumber = null;
+        foreach ($raw as $i => $line) {
+            [$f, $u] = array_map('trim', explode("=", $line)); // f = fullName, u = username
+            if ($u === $username && $f === $fullName) {
+                $lineNumber = $i;
+                break;
+            }
+        }
+
+        if ($lineNumber === null) {
+            return false;
+        }
+
+        unset($raw[$lineNumber]);
+        if (
+            !file_put_contents(Config::USER::USERNAME_LIST_PATH, $raw
+            |> array_values(...)
+            |> (fn($x) => implode(PHP_EOL, $x)))
+        ) {
+            return false;
+        }
+
+        unset($this->table[$fullName]);
+        unset($this->reverse[$fullName]);
+        return true;
     }
 
     /**

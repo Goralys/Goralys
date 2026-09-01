@@ -1,6 +1,6 @@
 {
     "name": "@goralys/core",
-    "version": "1.2.2",
+    "version": "1.6.4",
     "license": "LGPL-2.1-or-later",
     "description": "Shared business logic for the Goralys web application",
     "repository": {
@@ -27,9 +27,11 @@
         "access": "public"
     },
     "scripts": {
+        "prebuild": "pnpm barrel",
         "build": "tsup",
         "typeCheck": "tsgo --noEmit",
-        "dev": "tsup --watch"
+        "dev": "tsup --watch",
+        "barrel": "node -e \"require('fs').rmSync('./src/index.ts',{force:true})\" && barrelsby -d ./src -l top"
     },
     "peerDependencies": {
         "react": ">=18"

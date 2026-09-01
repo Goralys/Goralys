@@ -15,13 +15,13 @@ import React, { ReactElement } from "react";
 import { usePasswordModal } from "@/app/src/ui/modals/password/password-modal-provider";
 import { useToast } from "@/app/src/ui/toast/toast-provider";
 
-interface SubjectsAdminCardProps {
+interface Props {
     subjectData: Subject;
     onUpdateAction: () => void;
     syncKey: string;
 }
 
-export default function AdminCard({ subjectData, onUpdateAction, syncKey }: SubjectsAdminCardProps): ReactElement {
+export default function AdminCard({ subjectData, onUpdateAction, syncKey }: Props): ReactElement {
     const password = usePasswordModal();
     const toast = useToast();
 

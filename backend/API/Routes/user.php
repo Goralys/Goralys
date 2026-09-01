@@ -10,33 +10,40 @@ use Goralys\App\HTTP\Middleware\CSRFMiddleware;
 use Goralys\App\HTTP\Middleware\DbMiddleware;
 use Goralys\App\HTTP\Middleware\MiddlewareSets;
 use Goralys\App\HTTP\Middleware\RateLimitMiddleware;
+use Goralys\App\HTTP\Middleware\RoleMiddleware;
 use Goralys\App\HTTP\Request\Interfaces\RequestInterface;
 use Goralys\App\Router\Options\RouterOptions;
 use Goralys\App\Router\Routes;
+use Goralys\App\User\Controllers\AuthController;
+use Goralys\App\User\Data\RevokeTokenDTO;
+use Goralys\App\User\Data\TokenCreateDTO;
+use Goralys\App\User\Data\TokenLoginDTO;
 use Goralys\App\Utils\Toast\Data\Enums\ToastType;
+use Goralys\Core\User\Data\Enums\UserRole;
 use Goralys\Core\User\Data\UserLoginDTO;
 use Goralys\Core\User\Data\UserRegisterDTO;
 use Goralys\Kernel\GoralysKernel;
 use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
 use Goralys\Platform\Mail\Config\MailerConfig;
 use Goralys\Shared\Config\GoralysConfig;
+use Goralys\Shared\Config\GoralysConfig as Config;
 use Goralys\Shared\Exception\User\GoralysUserException;
 use Goralys\Shared\Lib\GoralysLib as Lib;
 use Goralys\Shared\Lib\String\StringCase;
 use Goralys\Shared\User\Data\FullNameDTO;
 
-// ================================================
+// ==================================================
 // [SECTION] Profile
-// ================================================
+// ==================================================
 Routes::get('user/profile', function (GoralysKernel $kernel) {
     $data = [
-        "username"   => trim($_SESSION[GoralysConfig::SESSION::USERNAME]),
-        "full_name"  => trim($_SESSION[GoralysConfig::SESSION::FULL_NAME]),
-        "role"       => trim($_SESSION[GoralysConfig::SESSION::ROLE]),
-        "public_id"  => trim($_SESSION[GoralysConfig::SESSION::PUBLIC_ID]),
+        "username" => trim($_SESSION[GoralysConfig::SESSION::USERNAME]),
+        "fullName" => trim($_SESSION[GoralysConfig::SESSION::FULL_NAME]),
+        "role" => trim($_SESSION[GoralysConfig::SESSION::ROLE]),
+        "publicId" => trim($_SESSION[GoralysConfig::SESSION::PUBLIC_ID]),
         ...(isset($_SESSION[GoralysConfig::SESSION::EMAIL])
-                ? ["email" => trim($_SESSION[GoralysConfig::SESSION::EMAIL])]
-                : []
+            ? ["email" => trim($_SESSION[GoralysConfig::SESSION::EMAIL])]
+            : []
         ),
     ];
 
@@ -61,7 +68,6 @@ Routes::get('user/role', function (GoralysKernel $kernel) {
         "Accessed data of user: " . $_SESSION[GoralysConfig::SESSION::USERNAME],
     );
 
-
     $kernel->response()->json(
         [
             "success" => true,
@@ -72,6 +78,20 @@ Routes::get('user/role', function (GoralysKernel $kernel) {
     ->middleware(...RateLimitMiddleware::for("get-role"))
     ->middleware(...AuthMiddleware::weak());
 
+Routes::get('users/profile/any', function (GoralysKernel $kernel, RequestInterface $request) {
+    $t = $request->param("target"); // public id
+
+    $data = $kernel->users->getProfile($t);
+
+    if (!$data) {
+        $kernel->response(400)->json(['success' => false]);
+    }
+
+    $kernel->response()->json($data);
+}, ...RouterOptions::$INPUT::require("target"))
+    ->middlewares(...MiddlewareSets::adminPanelRoute("get-user-profile"))
+    ->middleware(...DbMiddleware::require());
+
 Routes::put("user/email", function (GoralysKernel $kernel, RequestInterface $request) {
     if (!$kernel->users->setEmail($request->param("email"))) {
         $kernel->deferredResponse(500)->toast( // Bad Request
@@ -79,7 +99,7 @@ Routes::put("user/email", function (GoralysKernel $kernel, RequestInterface $req
             "Adresse mail",
             "Nous n'avons pas pu mettre à jour votre adresse mail, veuillez réessayer ultérieurement.",
         )
-            ->redirect("/user/profile")
+            ->redirect("/user/me")
             ->send();
     }
 
@@ -88,7 +108,7 @@ Routes::put("user/email", function (GoralysKernel $kernel, RequestInterface $req
         "Adresse mail",
         "Votre adresse mail a bien été mise à jour.",
     )
-        ->redirect("/user/profile")
+        ->redirect("/user/me")
         ->send();
 }, ...RouterOptions::$INPUT::require("email"))
     ->middleware(...RateLimitMiddleware::for("email-update"))
@@ -103,7 +123,7 @@ Routes::delete("user/email", function (GoralysKernel $kernel) {
             "Adresse mail",
             "Nous n'avons pas pu supprimer votre adresse mail, veuillez réessayer ultérieurement.",
         )
-            ->redirect("/user/profile")
+            ->redirect("/user/me")
             ->send();
     }
 
@@ -112,7 +132,7 @@ Routes::delete("user/email", function (GoralysKernel $kernel) {
         "Adresse mail",
         "Votre adresse mail a bien été supprimée.",
     )
-        ->redirect("/user/profile")
+        ->redirect("/user/me")
         ->send();
 })
     ->middleware(...RateLimitMiddleware::for("email-update"))
@@ -120,9 +140,9 @@ Routes::delete("user/email", function (GoralysKernel $kernel) {
     ->middleware(...AuthMiddleware::weak())
     ->middleware(...DbMiddleware::require());
 
-// ================================================
+// ==================================================
 // [SECTION] Auth
-// ================================================
+// ==================================================
 Routes::post('user/register', function (GoralysKernel $kernel, RequestInterface $request) {
     $registerData = new UserRegisterDTO(
         $request->param("user-name"),
@@ -146,8 +166,8 @@ Routes::post('user/register', function (GoralysKernel $kernel, RequestInterface 
         ->redirect("/user/login")
         ->send();
 }, ...RouterOptions::$INPUT::require("user-name", "password"),
-   ...RouterOptions::$INPUT::onFailure("Veuillez remplir tous les champs obligatoire", "/user/register"),
-   ...RouterOptions::$TOAST::flash())
+    ...RouterOptions::$INPUT::onFailure("Veuillez remplir tous les champs obligatoire", "/user/register"),
+    ...RouterOptions::$TOAST::flash())
     ->middleware(...CSRFMiddleware::form('register', '/user/register'))
     ->middleware(...DbMiddleware::require());
 
@@ -158,13 +178,26 @@ Routes::post('user/login', function (GoralysKernel $kernel, RequestInterface $re
     );
 
     if (!$kernel->auth->login($userData)) {
-        $kernel->deferredResponse(401)->toast(
+        $kernel->deferredResponse(401)->toast( // Unauthorized
             ToastType::ERROR,
             "Connexion",
             "Mot de passe ou identifiant incorrect.",
         )
             ->redirect("/user/login")
             ->send();
+    }
+
+    if ($request->param("client_context") === "mobile") {
+        if (in_array(UserRole::fromString($_SESSION[Config::SESSION::ROLE]), AuthController::MOBILE_FORBIDDEN_ROLES)) {
+            $kernel->auth->softLogout();
+            $kernel->deferredResponse(401)->toast( // Unauthorized
+                ToastType::INFO,
+                "Plateforme invalide",
+                "Veuillez vous connecter sur un ordinateur."
+            )
+                ->redirect("/")
+                ->send();
+        }
     }
 
     $kernel->deferredResponse()->toast(
@@ -175,8 +208,8 @@ Routes::post('user/login', function (GoralysKernel $kernel, RequestInterface $re
         ->redirect("/subject")
         ->action("login-success")
         ->send();
-}, ...RouterOptions::$INPUT::require("username", "password"),
-   ...RouterOptions::$TOAST::flash())
+}, ...RouterOptions::$INPUT::require("username", "password", "client_context"),
+    ...RouterOptions::$TOAST::flash())
     ->middleware(...RateLimitMiddleware::for(
         'login',
         '/user/login',
@@ -193,9 +226,131 @@ Routes::post('user/logout', function (GoralysKernel $kernel) {
     ->middleware(...CSRFMiddleware::form('logout'))
     ->middleware(...DbMiddleware::require());
 
-// ================================================
+// --------------------------------------------------
+// [SUB SECTION] Auth tokens
+// --------------------------------------------------
+Routes::post('user/token/create', function (GoralysKernel $kernel, RequestInterface $request) {
+    $name = $request->param("name");
+    $data = new TokenCreateDTO($_SESSION[Config::SESSION::USERNAME], $name);
+    if (!$token = $kernel->auth->createToken($data)) {
+        $kernel->db->rollback();
+        $kernel->deferredResponse(412)->toast( // Precondition failed
+            ToastType::ERROR,
+            "Création du jeton",
+            "Votre jeton d'authentification n'a pas pu être créé, veuillez réessayer ultérieurement.",
+        )
+            ->redirect("/user/login")
+            ->send();
+    }
+    $kernel->deferredResponse()->toast(
+        ToastType::SUCCESS,
+        "Création du jeton",
+        "Votre jeton d'authentification a bien été créé pour votre appareil ($name)."
+    )
+        ->redirect("/subject")
+        ->json(['token' => $token])
+        ->send();
+}, ...RouterOptions::$INPUT::require("name"))
+    ->middleware(...RateLimitMiddleware::for('create-auth-token'))
+    ->middleware(...CSRFMiddleware::form('create-auth-token'))
+    ->middleware(...AuthMiddleware::require())
+    ->middleware(...DbMiddleware::require());
+
+Routes::post('user/token/login', function (GoralysKernel $kernel, RequestInterface $request) {
+    $u = $request->param("username");
+    $t = $request->param("token");
+    $data = new TokenLoginDTO($u, $t);
+    if (!$newToken = $kernel->auth->tokenLogin($data)) {
+        $kernel->db->rollback();
+        $kernel->deferredResponse(401)->toast( // Unauthorized
+            ToastType::ERROR,
+            "Connexion",
+            "Votre jeton d'authentification n'a pas pu être utilisé pour vous connecter,
+            veuillez réessayer ultérieurement.",
+        )
+            ->redirect("/user/login")
+            ->send();
+    }
+
+    $kernel->deferredResponse()->toast(
+        ToastType::SUCCESS,
+        "Connexion",
+        "Vous avez bien été connecté à votre compte."
+    )
+        ->redirect("/subject")
+        ->action("login-success")
+        ->json(['token' => $newToken])
+        ->send();
+}, ...RouterOptions::$INPUT::require("username", "token"))
+    ->middleware(...RateLimitMiddleware::for('login-auth-token'))
+    ->middleware(...CSRFMiddleware::form('login-auth-token'))
+    ->middleware(...DbMiddleware::transaction());
+
+Routes::get('user/tokens', function (GoralysKernel $kernel) {
+    $u = $_SESSION[Config::SESSION::USERNAME];
+    $kernel->response()->json($kernel->auth->getTokens($u));
+})
+    ->middleware(...RateLimitMiddleware::for('get-auth-tokens'))
+    ->middleware(...CSRFMiddleware::form('get-auth-tokens'))
+    ->middleware(...AuthMiddleware::require())
+    ->middleware(...DbMiddleware::require());
+
+Routes::get('user/tokens/any', function (GoralysKernel $kernel, RequestInterface $request) {
+    $u = $kernel->usernames->get($request->param("pubId"));
+    $kernel->response()->json($kernel->auth->getTokens($u));
+}, ...RouterOptions::$INPUT::require("pubId"))
+    ->middleware(...RateLimitMiddleware::for('get-auth-tokens'))
+    ->middleware(...CSRFMiddleware::form('get-auth-tokens'))
+    ->middleware(...AuthMiddleware::require())
+    ->middleware(...RoleMiddleware::require(UserRole::ADMIN, true))
+    ->middleware(...DbMiddleware::require());
+
+Routes::delete('user/token', function (GoralysKernel $kernel, RequestInterface $request) {
+    $u = $_SESSION[Config::SESSION::USERNAME];
+    $name = $request->param("name");
+    $data = new RevokeTokenDTO($u, $name);
+    if (!$kernel->auth->revokeToken($data)) {
+        $kernel->db->rollback();
+        $kernel->response(412)->json(["success" => false]);
+    }
+
+    $kernel->response()->json(["success" => true]);
+}, ...RouterOptions::$INPUT::require("name"))
+    ->middleware(...RateLimitMiddleware::for('revoke-auth-token'))
+    ->middleware(...CSRFMiddleware::form('revoke-auth-token'))
+    ->middleware(...AuthMiddleware::require())
+    ->middleware(...DbMiddleware::require());
+
+Routes::delete('user/token/any', function (GoralysKernel $kernel, RequestInterface $request) {
+    $u = $kernel->usernames->get($request->param("target"));
+    $name = $request->param("name");
+    $data = new RevokeTokenDTO($u, $name);
+    $redirect = "/admin/user?u=" . urlencode($u);
+    if (!$kernel->auth->revokeToken($data)) {
+        $kernel->db->rollback();
+        $kernel->deferredResponse(412)->toast(
+            ToastType::ERROR,
+            "Révocation du jeton",
+            "Le jeton de l'utilisateur n'a pas pu être révoqué."
+        )
+            ->redirect($redirect)
+            ->send();
+    }
+
+    $kernel->deferredResponse()->toast(
+        ToastType::SUCCESS,
+        "Révocation du jeton",
+        "Le jeton de l'utilisateur a bien été révoqué."
+    )
+        ->redirect($redirect)
+        ->send();
+}, ...RouterOptions::$INPUT::require("target", "name"))
+    ->middlewares(...MiddlewareSets::adminPanelRoute("revoke-auth-token"))
+    ->middleware(...DbMiddleware::require());
+
+// ==================================================
 // [SECTION] Admin actions
-// ================================================
+// ==================================================
 Routes::get('users/all', function (GoralysKernel $kernel) {
     $kernel->response()->json($kernel->users->getAll());
 })
@@ -205,20 +360,83 @@ Routes::get('users/all', function (GoralysKernel $kernel) {
 Routes::get('users/virtual', function (GoralysKernel $kernel) {
     $kernel->response()->json($kernel->users->getVirtual());
 })
-        ->middlewares(...MiddlewareSets::adminPanelRoute('get-virtual-users', fetch: true))
-        ->middleware(...DbMiddleware::require());
+    ->middlewares(...MiddlewareSets::adminPanelRoute('get-virtual-users', fetch: true))
+    ->middleware(...DbMiddleware::require());
 
 Routes::get('admins/all', function (GoralysKernel $kernel) {
     $kernel->response()->json($kernel->users->getAdmins());
 })
-        ->middlewares(...MiddlewareSets::adminPanelRoute('get-all-admins', fetch: true))
-        ->middleware(...DbMiddleware::require());
+    ->middlewares(...MiddlewareSets::adminPanelRoute('get-all-admins', fetch: true))
+    ->middleware(...DbMiddleware::require());
 
 Routes::get('admins/virtual', function (GoralysKernel $kernel) {
     $kernel->response()->json($kernel->users->getAdminsVirtual());
 })
-        ->middlewares(...MiddlewareSets::adminPanelRoute('get-virtual-admins', fetch: true))
-        ->middleware(...DbMiddleware::require());
+    ->middlewares(...MiddlewareSets::adminPanelRoute('get-virtual-admins', fetch: true))
+    ->middleware(...DbMiddleware::require());
+
+Routes::put("user/name", function (GoralysKernel $kernel, RequestInterface $request) {
+    $t = $request->param("target");
+    $redirect = "/admin/user?u=" . urlencode($t);
+
+    if (
+        !$kernel->users->setFullName($t, new FullNameDTO(
+            $request->param("first-name"),
+            $request->param("last-name")
+        ))
+    ) {
+        $kernel->deferredResponse(400)->toast( // Bad Request
+            ToastType::ERROR,
+            "Nom de l'utilisateur",
+            "Nous n'avons pas pu mettre à jour le nom de l'utilisateur, veuillez réessayer ultérieurement.",
+        )
+            ->redirect($redirect)
+            ->send();
+    }
+
+    $kernel->deferredResponse()->toast( // OK
+        ToastType::SUCCESS,
+        "Nom de l'utilisateur",
+        "Le nom de l'utilisateur a bien été mise à jour.",
+    )
+        ->redirect($redirect)
+        ->send();
+}, ...RouterOptions::$INPUT::require("target", "first-name", "last-name"))
+    ->middlewares(...MiddlewareSets::adminPanelRoute("set-user-full-name", "/admin/user"))
+    ->middleware(...DbMiddleware::require());
+
+// --------------------------------------------------
+// [SUBSECTION] User creation
+// --------------------------------------------------
+
+// Not in use right now, planned for 3.3.0
+Routes::post("user/student", function (GoralysKernel $kernel, RequestInterface $request) {
+    $fn = new FullNameDTO($request->param("first-name"), $request->param("last-name"));
+    $topics = $request->param("topics");
+
+    if (!is_array($topics)) {
+        $topics = [$topics];
+    }
+
+    $u = $kernel->users->addUser($fn, ...$topics);
+
+    if (!$u) {
+        $kernel->db->rollback();
+        $kernel->deferredResponse(400)->toast(
+            ToastType::ERROR,
+            "Ajout de l'élève",
+            "L'élève n'a pas pu être ajouté."
+        );
+    }
+
+    $kernel->deferredResponse()->toast(
+        ToastType::SUCCESS,
+        "Ajout de l'élève",
+        "L'élève a bien été ajouté."
+    );
+}, ...RouterOptions::$INPUT::require("first-name", "last-name", "topics"))
+    ->middlewares(...MiddlewareSets::adminPanelRoute("create-student"))
+    ->middleware(...DbMiddleware::transaction());
 
 // --------------------------------------------------
 // [SUB SECTION] Admins create and revoke
@@ -230,29 +448,30 @@ Routes::post('admin/create', function (GoralysKernel $kernel, RequestInterface $
         "L'administrateur n'a pas pu être créé, trop d'administrateurs ont les mêmes initiales."
     );
 
-    if (!$kernel->users->validatePassword($request->param("admin-password"))) {
+    if (!$kernel->auth->validatePassword($request->param("admin-password"))) {
         $kernel->deferredResponse(501)->toast( // Unauthorized
             ToastType::WARNING,
             "Mot de passe",
             "Veuillez saisir le bon mot de passe",
         )
-                ->redirect("/admin/admin")
-                ->send();
+            ->redirect("/admin/admin")
+            ->send();
     }
 
-    $result = $kernel->users->addAdmin(
+    $result = $kernel->users->addUser(
         new FullNameDTO(
             trim($request->param("first-name")),
             trim(Lib::STRING::sanitize($request->param("last-name"), StringCase::UPPER))
-        )
+        ),
+        UserRole::ADMIN
     );
 
     if (!$result) {
         $kernel->deferredResponse(500)->error(
             "L'administrateur n'a pas pu être créé, il existe peut-être déjà.",
         )
-                ->redirect("/admin/user")
-                ->send();
+            ->redirect("/admin/user")
+            ->send();
     }
 
     $kernel->deferredResponse()->toast(
@@ -260,21 +479,21 @@ Routes::post('admin/create', function (GoralysKernel $kernel, RequestInterface $
         "Remplacement",
         "L'administrateur a bien été créé. Il peut désormais créer un compte avec l'identifiant $result.",
     )
-            ->redirect("/admin/user")
-            ->send();
+        ->redirect("/admin/user")
+        ->send();
 }, ...RouterOptions::$INPUT::require("first-name", "last-name", "admin-password"))
-        ->middlewares(...MiddlewareSets::adminPanelRoute('create-admin', '/admin/admin'))
-        ->middleware(...DbMiddleware::transaction());
+    ->middlewares(...MiddlewareSets::adminPanelRoute('create-admin', '/admin/admin'))
+    ->middleware(...DbMiddleware::transaction());
 
 Routes::delete('admin/revoke', function (GoralysKernel $kernel, RequestInterface $request) {
-    if (!$kernel->users->validatePassword($request->param("admin-password"))) {
+    if (!$kernel->auth->validatePassword($request->param("admin-password"))) {
         $kernel->deferredResponse(401)->toast( // Unauthorized
             ToastType::WARNING,
             "Mot de passe",
             "Veuillez saisir le bon mot de passe",
         )
-                ->redirect("/admin/admin")
-                ->send();
+            ->redirect("/admin/admin")
+            ->send();
     }
 
     if ($request->param("target") === $_SESSION[GoralysConfig::SESSION::PUBLIC_ID]) {
@@ -283,8 +502,8 @@ Routes::delete('admin/revoke', function (GoralysKernel $kernel, RequestInterface
             "Suppression",
             "Vous ne pouvez pas vous révoquez vous-même",
         )
-                ->redirect("/admin/admin")
-                ->send();
+            ->redirect("/admin/admin")
+            ->send();
     }
 
     $kernel->users->revokeAdmin($request->param("target"));
@@ -294,26 +513,26 @@ Routes::delete('admin/revoke', function (GoralysKernel $kernel, RequestInterface
         "Suppression",
         "L'administrateur a bien été révoqué.",
     )
-            ->redirect("/admin/user")
-            ->send();
+        ->redirect("/admin/user")
+        ->send();
 }, ...RouterOptions::$INPUT::require("target", "admin-password"))
-        ->middlewares(...MiddlewareSets::adminPanelRoute('revoke-admin', '/admin/admin'))
-        ->middleware(...DbMiddleware::transaction());
+    ->middlewares(...MiddlewareSets::adminPanelRoute('revoke-admin', '/admin/admin'))
+    ->middleware(...DbMiddleware::transaction());
 
 // --------------------------------------------------
 // [SUB SECTION] Users reset/delete
 // --------------------------------------------------
 
 Routes::patch('users/reset', function (GoralysKernel $kernel, RequestInterface $request) {
-    if (!$kernel->users->validatePassword($request->param("admin-password"))) {
+    if (!$kernel->auth->validatePassword($request->param("admin-password"))) {
         $kernel->logger->debug(LoggerInitiator::APP, "Terminating reset password !");
         $kernel->deferredResponse(501)->toast( // Unauthorized
             ToastType::WARNING,
             "Mot de passe",
             "Veuillez saisir le bon mot de passe",
         )
-                ->redirect("/admin/user")
-                ->send();
+            ->redirect("/admin/user?u=" . urlencode($request->param("target")))
+            ->send();
     }
 
     $target = $request->param("target"); // (public id)
@@ -322,15 +541,14 @@ Routes::patch('users/reset', function (GoralysKernel $kernel, RequestInterface $
         $kernel->deferredResponse(500)->error(
             "Le compte n'a pas pu être réinitialisé.",
         )
-                ->redirect("/admin/user")
-                ->send();
+            ->redirect("/admin/users")
+            ->send();
     }
 
     $message = "Le compte a bien été réinitialisé, l'utilisateur peut maintenant le recréer.";
 
     if ($email) {
-        $registerLink = $kernel->env->getByKey("ORIGIN_DOMAIN")
-                        . "/user/register?id=" . $kernel->usernames->get($target);
+        $registerLink = $kernel->getOriginDomain() . "/user/register?id=" . $kernel->usernames->get($target);
         $kernel->mailer->sendMail(
             MailerConfig::BASE_ALIAS,
             "Goralys - Réinitialisation du compte",
@@ -351,29 +569,29 @@ Routes::patch('users/reset', function (GoralysKernel $kernel, RequestInterface $
         "Compte",
         $message,
     )
-            ->redirect("/admin/user")
-            ->send();
+        ->redirect("/admin/users")
+        ->send();
 }, ...RouterOptions::$INPUT::require("target", "admin-password"))
-        ->middlewares(...MiddlewareSets::adminPanelRoute('reset-account'))
-        ->middleware(...DbMiddleware::require());
+    ->middlewares(...MiddlewareSets::adminPanelRoute('reset-account'))
+    ->middleware(...DbMiddleware::require());
 
 Routes::delete('users', function (GoralysKernel $kernel, RequestInterface $request) {
-    if (!$kernel->users->validatePassword($request->param("admin-password"))) {
+    if (!$kernel->auth->validatePassword($request->param("admin-password"))) {
         $kernel->deferredResponse(501)->toast( // Unauthorized
             ToastType::WARNING,
             "Mot de passe",
             "Veuillez saisir le bon mot de passe",
         )
-                ->redirect("/admin/user")
-                ->send();
+            ->redirect("/admin/user?u=" . urlencode($request->param("target")))
+            ->send();
     }
 
     if (!$kernel->users->delete($request->param("target"))) {
         $kernel->deferredResponse(500)->error(
             "L'utilisateur n'a pas pu être supprimé.",
         )
-                ->redirect("/admin/user")
-                ->send();
+            ->redirect("/admin/users")
+            ->send();
     }
 
     $kernel->deferredResponse()->toast(
@@ -381,25 +599,25 @@ Routes::delete('users', function (GoralysKernel $kernel, RequestInterface $reque
         "Suppression du compte",
         "L'utilisateur a bien été supprimé",
     )
-            ->redirect("/admin/user")
-            ->send();
+        ->redirect("/admin/users")
+        ->send();
 }, ...RouterOptions::$INPUT::require("target", "admin-password"))
-        ->middlewares(...MiddlewareSets::adminPanelRoute('delete-users', rateLimit: "delete-users"))
-        ->middleware(...DbMiddleware::transaction());
+    ->middlewares(...MiddlewareSets::adminPanelRoute('delete-users', rateLimit: "delete-users"))
+    ->middleware(...DbMiddleware::transaction());
 
 // --------------------------------------------------
 // [SUB SECTION] User replacement
 // --------------------------------------------------
 
 Routes::put('users/teacher/replace', function (GoralysKernel $kernel, RequestInterface $request) {
-    if (!$kernel->users->validatePassword($request->param("admin-password"))) {
+    if (!$kernel->auth->validatePassword($request->param("admin-password"))) {
         $kernel->deferredResponse(501)->toast( // Unauthorized
             ToastType::WARNING,
             "Mot de passe",
             "Veuillez saisir le bon mot de passe",
         )
-                ->redirect("/admin/user")
-                ->send();
+            ->redirect("/admin/user")
+            ->send();
     }
 
     $result = $kernel->users->replaceTeacher(
@@ -412,8 +630,8 @@ Routes::put('users/teacher/replace', function (GoralysKernel $kernel, RequestInt
         $kernel->deferredResponse(500)->error(
             "Le professeur n'a pas pu être remplacé.",
         )
-                ->redirect("/admin/user")
-                ->send();
+            ->redirect("/admin/users")
+            ->send();
     }
 
     $kernel->deferredResponse()->toast(
@@ -421,21 +639,20 @@ Routes::put('users/teacher/replace', function (GoralysKernel $kernel, RequestInt
         "Remplacement",
         "Le professeur a bien été remplacé. Il peut désormais créer un compte avec l'identifiant $result.",
     )
-            ->redirect("/admin/user")
-            ->send();
+        ->redirect("/admin/users")
+        ->send();
 }, ...RouterOptions::$INPUT::require("target", "first-name", "last-name", "admin-password"))
-        ->middlewares(...MiddlewareSets::adminPanelRoute('replace-teacher'))
-        ->middleware(...DbMiddleware::transaction());
+    ->middlewares(...MiddlewareSets::adminPanelRoute('replace-teacher'))
+    ->middleware(...DbMiddleware::transaction());
 
 Routes::get('users/username', function (GoralysKernel $kernel, RequestInterface $request) {
-    if (!$kernel->users->validatePassword($request->param("admin-password"))) {
+    if (!$kernel->auth->validatePassword($request->param("admin-password"))) {
         $kernel->deferredResponse(501)->toast( // Unauthorized
             ToastType::WARNING,
             "Mot de passe",
             "Veuillez saisir le bon mot de passe",
         )
-                ->redirect("/admin/user")
-                ->send();
+            ->send();
     }
 
     $kernel->deferredResponse()->toast(
@@ -443,8 +660,7 @@ Routes::get('users/username', function (GoralysKernel $kernel, RequestInterface 
         "Identifiant",
         "Identifiant pour ce compte: " . $kernel->usernames->get($request->param("target")),
     )
-            ->redirect("/admin/user")
-            ->send();
+        ->send();
 })
-        ->middlewares(...MiddlewareSets::adminPanelRoute('get-username'))
-        ->middleware(...DbMiddleware::require());
+    ->middlewares(...MiddlewareSets::adminPanelRoute('get-username'))
+    ->middleware(...DbMiddleware::require());

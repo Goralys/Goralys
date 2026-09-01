@@ -67,7 +67,7 @@ final readonly class SupportController
     {
         try {
             return $this->repo->getTicket($id);
-        } catch (GoralysRuntimeException) {
+        } catch (GoralysRuntimeException | DateMalformedStringException) {
             return null;
         }
     }

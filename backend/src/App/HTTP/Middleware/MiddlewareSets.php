@@ -72,7 +72,7 @@ final class MiddlewareSets
      */
     public static function adminPanelRoute(
         string $action,
-        string $redirect = "/admin/user",
+        string $redirect = "/admin/users",
         bool $fetch = false,
         ?string $rateLimit = null
     ): array {

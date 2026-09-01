@@ -20,10 +20,13 @@ final class FakeGoralysRequest implements RequestInterface
         if (is_string($v)) {
             return trim($v);
         }
-        if (is_scalar($v) || is_bool($v)) {
-            return $v;
-        }
         return $v;
+    }
+
+    public function header(string $key): ?string
+    {
+        $headerKey = "HTTP_" . strtoupper(str_replace("-", "_", $key));
+        return $_SERVER[$headerKey] ?? null;
     }
 
     public function validate(array $rules): array

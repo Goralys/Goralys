@@ -1,9 +1,9 @@
 import { clsx } from "clsx";
-import React, { useState, FormEventHandler, ReactElement } from "react";
+import React, { FormEventHandler, ReactElement, useState } from "react";
 
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 
-interface InputProps {
+interface Props {
     autocomplete?: string;
     disabled?: boolean;
     helper?: string;
@@ -29,7 +29,7 @@ export function FloatingInput({
     defaultValue,
     value,
     onInput,
-}: InputProps): ReactElement {
+}: Props): ReactElement {
     const [show, setShow] = useState<boolean>(!password);
     const [isAutofilled, setIsAutofilled] = useState(false);
 

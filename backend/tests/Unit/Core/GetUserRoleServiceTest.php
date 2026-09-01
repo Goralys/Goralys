@@ -15,13 +15,12 @@ class GetUserRoleServiceTest extends TestCase
 
     public function testGetRoleByUsernameNoUser()
     {
-        $this->repo->setGetResult(null);
+        $this->repo->setRoleResult(null);
 
-        try {
-            $this->service->getRoleByUsername("j.doe1");
-        } catch (UserNotFoundException $e) {
-            self::assertEquals("No such user : j.doe1", $e->getMessage());
-        }
+        $this->expectException(UserNotFoundException::class);
+        $this->expectExceptionMessage("No such user : j.doe1");
+
+        $this->service->getRoleByUsername("j.doe1");
     }
 
     /**
@@ -29,7 +28,7 @@ class GetUserRoleServiceTest extends TestCase
      */
     public function testGetRoleByUsernameRoleUnknown()
     {
-        $this->repo->setGetResult(UserRole::UNKNOWN);
+        $this->repo->setRoleResult(UserRole::UNKNOWN);
         self::assertEquals(UserRole::UNKNOWN, $this->service->getRoleByUsername("j.doe1"));
     }
 
@@ -38,7 +37,7 @@ class GetUserRoleServiceTest extends TestCase
      */
     public function testGetRoleByUsernameWorks()
     {
-        $this->repo->setGetResult(UserRole::STUDENT);
+        $this->repo->setRoleResult(UserRole::STUDENT);
         self::assertEquals(UserRole::STUDENT, $this->service->getRoleByUsername("j.doe1"));
     }
 

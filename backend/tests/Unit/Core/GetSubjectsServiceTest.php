@@ -3,6 +3,7 @@
 namespace Goralys\Tests\Unit\Core;
 
 use DateMalformedStringException;
+use DateTime;
 use Goralys\Core\Subjects\Services\GetSubjectsService;
 use Goralys\Core\User\Data\Enums\UserRole;
 use Goralys\Core\User\Data\UserFullDTO;
@@ -131,7 +132,7 @@ class GetSubjectsServiceTest extends TestCase
         $this->mysqliResult->expects($this->atLeastOnce())
             ->method('fetch_assoc')
             ->willReturnOnConsecutiveCalls(...$subjects);
-        $this->repo->setGetResult($this->mysqliResult);
+        $this->repo->setQueryResult($this->mysqliResult);
 
         // Preparing the data
         $actual = json_encode($this->service->getAllSubjects(), JSON_UNESCAPED_UNICODE)
@@ -200,7 +201,7 @@ class GetSubjectsServiceTest extends TestCase
         $this->mysqliResult->expects($this->atLeastOnce())
             ->method('fetch_assoc')
             ->willReturnOnConsecutiveCalls(...$subjects);
-        $this->repo->setGetResult($this->mysqliResult);
+        $this->repo->setQueryResult($this->mysqliResult);
 
         // Preparing the data
         $actual = $this->stripTokens(json_decode(json_encode(
@@ -279,7 +280,7 @@ class GetSubjectsServiceTest extends TestCase
         $this->mysqliResult->expects($this->atLeastOnce())
             ->method('fetch_assoc')
             ->willReturnOnConsecutiveCalls(...$subjects);
-        $this->repo->setGetResult($this->mysqliResult);
+        $this->repo->setQueryResult($this->mysqliResult);
 
         // Preparing the data
         $actual = $this->stripTokens(json_decode(json_encode(
@@ -288,6 +289,53 @@ class GetSubjectsServiceTest extends TestCase
         ), true));
 
         self::assertSame($expected, $actual);
+    }
+
+    private function seedUsers(): void
+    {
+        $this->userRepo->setPublicId("j.doe1", "u1");
+        $this->userRepo->setUser("u1", new UserFullDTO(
+            id: 1,
+            username: "j.doe1",
+            publicId: "u1",
+            role: UserRole::TEACHER,
+            fullName: new FullNameDTO("J.", "DOE"),
+            email: "jhon.doe@exemplemail.com",
+            createdAt: new DateTime(),
+        ));
+
+        $this->userRepo->setPublicId("m.smith2", "u2");
+        $this->userRepo->setUser("u2", new UserFullDTO(
+            id: 2,
+            username: "m.smith2",
+            publicId: "u2",
+            role: UserRole::TEACHER,
+            fullName: new FullNameDTO("M.", "SMITH"),
+            email: "merry.smith@exemplemail.com",
+            createdAt: new DateTime(),
+        ));
+
+        $this->userRepo->setPublicId("e.doe3", "u3");
+        $this->userRepo->setUser("u3", new UserFullDTO(
+            id: 3,
+            username: "e.doe3",
+            publicId: "u3",
+            role: UserRole::STUDENT,
+            fullName: new FullNameDTO("E.", "DOE"),
+            email: "emma.doe@exemplemail.com",
+            createdAt: new DateTime(),
+        ));
+
+        $this->userRepo->setPublicId("l.dupont4", "u4");
+        $this->userRepo->setUser("u4", new UserFullDTO(
+            id: 4,
+            username: "l.dupont4",
+            publicId: "u4",
+            role: UserRole::STUDENT,
+            fullName: new FullNameDTO("L.", "DUPONT"),
+            email: "laurent.dupont@exemplemail.com",
+            createdAt: new DateTime(),
+        ));
     }
 
     protected function setUp(): void
@@ -307,45 +355,6 @@ class GetSubjectsServiceTest extends TestCase
         );
 
         $this->seedUsers();
-    }
-
-    private function seedUsers(): void
-    {
-        $this->userRepo->setPublicId("j.doe1", "u1");
-        $this->userRepo->setUser("u1", new UserFullDTO(
-            1,
-            "j.doe1",
-            UserRole::TEACHER,
-            new FullNameDTO("J.", "DOE"),
-            "jhon.doe@exemplemail.com"
-        ));
-
-        $this->userRepo->setPublicId("m.smith2", "u2");
-        $this->userRepo->setUser("u2", new UserFullDTO(
-            2,
-            "m.smith2",
-            UserRole::TEACHER,
-            new FullNameDTO("M.", "SMITH"),
-            "merry.smith@exemplemail.com"
-        ));
-
-        $this->userRepo->setPublicId("e.doe3", "u3");
-        $this->userRepo->setUser("u3", new UserFullDTO(
-            3,
-            "e.doe3",
-            UserRole::STUDENT,
-            new FullNameDTO("E.", "DOE"),
-            "emma.doe@exemplemail.com"
-        ));
-
-        $this->userRepo->setPublicId("l.dupont4", "u4");
-        $this->userRepo->setUser("u4", new UserFullDTO(
-            4,
-            "l.dupont4",
-            UserRole::STUDENT,
-            new FullNameDTO("L.", "DUPONT"),
-            "laurent.dupont@exemplemail.com"
-        ));
     }
 
     protected function tearDown(): void

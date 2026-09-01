@@ -51,11 +51,13 @@ goralys-core/dist
 /backend/vendor
 /backend/RateLimiter
 /backend/migration.sql
-/backend/Users
 
 # IDE
 /.idea
 /.vscode
+
+# reverse proxy / certificates
+/.certs
 
 deploy-local.bat
 flush-logs.bat

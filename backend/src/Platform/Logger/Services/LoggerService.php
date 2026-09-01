@@ -40,19 +40,35 @@ final class LoggerService
      * - error
      * - fatal
      * @param string $message The message to log.
+     * @param ?array $logStore A special array that contains all the logs. The new log will be appended to this array
+     * using the following format: ["initiator" => <initiator>, "level" => <type>, "message" => <message>,
+     * "timestamp" => <now>]. All fields in the array are strings.
+     * NOTE: this array is currently only used for testing but is also useful for future audit features.
      * @return void
      */
     final public static function log(
         LoggerInitiator $initiator,
         LoggerType $type,
         string $message,
+        ?array &$logStore
     ): void {
-        if ($type === LoggerType::Debug && LoggerConfigLoader::getGoralysEnv() !== 'dev') {
+        if ($type === LoggerType::Debug && LoggerConfigLoader::getGoralysEnv() === 'prod') {
             return;
+        }
+
+        if (!is_dir(LoggerService::$logDirectory)) {
+            mkdir(LoggerService::$logDirectory, 0755, true);
         }
 
         $filename = LoggerConfigLoader::getInitiatorFile($initiator);
         $time = date("Y-m-d H:i:s");
+
+        $logStore[] = [
+            "initiator" => $initiator->toString(),
+            "level" => $type->toString(),
+            "message" => $message,
+            "timestamp" => $time
+        ];
 
         // Logs to the layer-specific log file
         if ($file = fopen(LoggerService::$logDirectory . $filename . ".log", "a")) {

@@ -7,6 +7,7 @@
 
 namespace Goralys\Platform\DB\Services;
 
+use DateTime;
 use Goralys\Platform\DB\Data\StmtDto;
 use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
 use Goralys\Platform\Logger\Interfaces\LoggerInterface;
@@ -59,6 +60,9 @@ final class PrepareService
             $refs = [];
 
             foreach ($args as &$a) {
+                if ($a instanceof DateTime) {
+                    $a = $a->format('Y-m-d H:i:s');
+                }
                 $refs[] = &$a;
             }
 
