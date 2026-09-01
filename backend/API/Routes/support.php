@@ -20,7 +20,7 @@ use Goralys\Platform\Mail\Config\MailerConfig;
 use Goralys\Shared\Config\GoralysConfig;
 
 Routes::post("support/contact", function (GoralysKernel $kernel, RequestInterface $request) {
-    $fullName = $_SESSION[GoralysConfig::SESSION::FULL_NAME] ?? "Anonyme";
+    $fullName = $_SESSION[GoralysConfig::SESSION::FULL_NAME] ?? $request->param("full-name") ?? "Anonyme";
     [$reason, $message] = [SupportReason::fromString($request->param("reason")), $request->param("message")];
     $id = $kernel->support->createTicket($reason, $request->param("user-email"), $message);
 

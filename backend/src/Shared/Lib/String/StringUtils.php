@@ -62,7 +62,7 @@ final class StringUtils
         $parts = explode(" ", $full)
                     |> (fn($x) => array_map(fn(string $s) => trim($s), $x))
                     |> (fn($x) => array_filter($x, fn(string $s) => $s !== ''))
-                    |> (fn($x) => array_map(fn(string $s) => str_replace("--", "-", $s), $x));
+                    |> (fn($x) => array_map(fn(string $s) => preg_replace("/-+/", "-", $s), $x));
 
         $lastNameParts = array_values(array_filter($parts, fn($n) => strtoupper($n) === $n));
         $firstNameParts = array_values(array_filter($parts, fn($n) => strtoupper($n) !== $n));

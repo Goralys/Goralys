@@ -92,7 +92,7 @@ final class TopicsRepository implements TopicsRepositoryInterface
     {
         $tables = [
             "student_topics",
-            "students_classrooms",
+            "students_classroom",
             "topic_teachers",
             "topics",
         ];
