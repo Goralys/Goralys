@@ -29,6 +29,7 @@ export function SubjectInputTeacher({ id, label, helper, subjectData, onChangeAc
         window.location.href = buildApiUrl(
             "subjects/draft",
             {
+                "high-school-token": process.env.NEXT_PUBLIC_API_TOKEN ?? null,
                 teacher: subjectData.teacherToken,
                 student: subjectData.studentToken,
                 topic: subjectData.topic,

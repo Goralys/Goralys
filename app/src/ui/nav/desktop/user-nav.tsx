@@ -39,7 +39,7 @@ export default function UserNav(): ReactElement {
             setLoggedIn(isLoggedIn);
 
             let name = isLoggedIn ? ((cookiesGet(FULL_NAME_KEY) ?? "") as string) : "Se connecter";
-            if (name.length > 25) name = name.substring(0, 22) + "...";
+            if (name.length > 17) name = name.substring(0, 15) + "...";
             setText(name);
         });
 

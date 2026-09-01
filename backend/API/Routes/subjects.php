@@ -203,7 +203,7 @@ Routes::post('subjects/submit', function (GoralysKernel $kernel, RequestInterfac
     if (!$subjectResult) {
         $kernel->db->rollback();
         $kernel->deferredResponse(500)->error( // Internal server error
-            "Une erreur interne est survenue lors de l'enregistrement de votre question, 
+            "Une erreur interne est survenue lors de l'envoi de votre question, 
             veuillez réessayer ultérieurement.",
         )
             ->send();
