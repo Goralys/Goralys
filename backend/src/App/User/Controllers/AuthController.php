@@ -63,12 +63,11 @@ final class AuthController
      * @param float $sessionLifetimeMultiplier The lifetime multiplier of the PHP session.
      */
     public function __construct(
-        LoggerInterface      $logger,
+        LoggerInterface $logger,
         DbContainerInterface $db,
-        int                  $sessionLifetime,
-        float                $sessionLifetimeMultiplier,
-    )
-    {
+        int $sessionLifetime,
+        float $sessionLifetimeMultiplier,
+    ) {
         $this->logger = $logger;
         $this->db = $db;
         $this->sessionLifetime = $sessionLifetime;
