@@ -5,7 +5,7 @@ import React, { ChangeEventHandler, ReactElement, RefObject, useState } from "re
 import { useAutoResize } from "@/app/src/lib/inputs";
 import { Subject } from "@goralys/core";
 
-interface SubjectTextAreaProps {
+interface Props {
     defaultValue?: string;
     disabled?: boolean;
     ref?: RefObject<HTMLTextAreaElement | null>;
@@ -29,7 +29,7 @@ export function SubjectTextArea({
     onChangeAction,
     subjectData,
     animate,
-}: SubjectTextAreaProps): ReactElement {
+}: Props): ReactElement {
     const setRef = useAutoResize(ref);
     const [currentValue, setCurrentValue] = useState<string>(defaultValue ?? "");
 

@@ -2,7 +2,7 @@
 
 import { createContext, ReactElement, ReactNode, useCallback, useContext, useMemo, useState } from "react";
 import ToastElement from "@/app/src/ui/toast/toast-element";
-import { storageSet, Toast } from "@goralys/core";
+import { FLASH_TOAST_KEY, storageSet, Toast } from "@goralys/core";
 import { createPortal } from "react-dom";
 
 export type ToastContext = {
@@ -18,7 +18,7 @@ export function ToastProvider({ children }: { children: ReactNode }): ReactEleme
 
     const cacheToast = useCallback((toastInput: Toast, duration: number = 5500) => {
         if (!toastInput.expires) toastInput.expires = Date.now() + duration;
-        storageSet("flash_toast", JSON.stringify(toastInput));
+        storageSet(FLASH_TOAST_KEY, JSON.stringify(toastInput));
     }, []);
 
     const showToast = useCallback(

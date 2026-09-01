@@ -1,15 +1,15 @@
 "use client";
 
-import { reasonsConfig, SupportTicket, buildApiUrl } from "@goralys/core";
+import { buildApiUrl, reasonsConfig, SupportTicket } from "@goralys/core";
 import React, { ReactElement } from "react";
 import { TextArea } from "@/app/src/ui/inputs/text-area";
 import { Button } from "@/app/src/ui/button";
 
-interface SupportTicketCardProps {
+interface Props {
     ticket: SupportTicket;
 }
 
-export default function SupportTicketCard({ ticket }: SupportTicketCardProps): ReactElement {
+export default function SupportTicketCard({ ticket }: Props): ReactElement {
     return (
         <div className="h-fit w-200 flex flex-col bg-sky-200 gap-1 gap-y-3 p-1 mt-1">
             <div className="flex flex-row w-full justify-between">

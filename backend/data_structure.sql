@@ -1,5 +1,5 @@
 -- goralys database schema
--- version 3.0.1
+-- version 3.2.0
 
 set foreign_key_checks = 0;
 
@@ -36,6 +36,30 @@ create table users
 ) engine = innodb;
 
 -- -----------------------------------------------------
+-- auth_tokens table
+-- This table is restricted to the mobile app and is
+-- used to provide an alternative auth method
+-- This table is purely used for auth purposes
+-- -----------------------------------------------------
+drop table if exists auth_tokens;
+create table auth_tokens
+(
+    username   varchar(32)  not null, -- e.g. "j.dupont3", fk -> users_info.username
+    token_hash varchar(255) not null,
+    name       varchar(64)  not null,
+    created_at datetime default current_timestamp,
+    expires_at datetime     not null,
+
+    primary key (username, name),
+
+    unique key (username, token_hash),
+
+    foreign key (username) references users_info (username)
+        on delete cascade
+        on update cascade
+) engine = innodb;
+
+-- -----------------------------------------------------
 -- users_info table (names source of truth)
 -- This table is used to get accurate and "official" (no user input) data for the subjects export
 -- -----------------------------------------------------
@@ -55,7 +79,7 @@ create table users_info
 drop table if exists emails;
 create table emails
 (
-    username varchar(32)  not null unique, -- fk -> users.username
+    username varchar(32)  not null unique primary key, -- fk -> users.username
     email    varchar(255) not null unique,
 
     foreign key (username) references users (username)
@@ -71,7 +95,7 @@ create table tickets
 (
     id         bigint auto_increment                                                     not null unique primary key,
     reason     enum ('password-forgot', 'subject-error', 'personal-info-error', 'other') not null,
-    opener     varchar(32), -- fk -> users.username
+    opener     varchar(32)                                                               not null, -- fk -> users.username
     email      varchar(255),
     message    varchar(255),
     created_at timestamp default current_timestamp,
@@ -132,6 +156,7 @@ create table student_topics
 -- student_classroom table
 -- This table is used to retrieve the classroom of students for the subjects export
 -- -----------------------------------------------------
+drop table if exists students_classroom;
 create table students_classroom
 (
     username varchar(32) not null unique, -- fk -> student_topics.student_username

@@ -20,9 +20,9 @@ use Goralys\Kernel\GoralysKernel;
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-// ================================================
+// ==================================================
 // [SECTION] Subjects getters
-// ================================================
+// ==================================================
 Routes::get('subjects/admin', function (GoralysKernel $kernel) {
     $result = $kernel->subjects->getForRole(UserRole::ADMIN);
     $kernel->response()->json($result);
@@ -40,6 +40,25 @@ Routes::get('subjects/student', function (GoralysKernel $kernel) {
     $kernel->response()->json($result);
 })
         ->middlewares(...MiddlewareSets::subjectsRoute('get-student-subjects', UserRole::STUDENT));
+
+Routes::get('subjects/any', function (GoralysKernel $kernel, RequestInterface $request) {
+    $u = $kernel->usernames->get($request->param("target"));
+    $role = $kernel->users->role($u);
+
+    if (!$role) {
+        $kernel->deferredResponse(400)->toast( // Bad Request
+            ToastType::WARNING,
+            "Utilisateur",
+            "Cet utilisateur n'existe pas."
+        )
+            ->redirect("/admin/users")
+            ->send();
+    }
+
+    $kernel->response()->json($kernel->subjects->getForRole($role, $u));
+}, ...RouterOptions::$INPUT::require("target"))
+        ->middlewares(...MiddlewareSets::adminPanelRoute("get-user-subjects", fetch: true))
+        ->middleware(...DbMiddleware::require());
 
 // --------------------------------------------------
 // [SUB SECTION] Get draft
@@ -62,15 +81,15 @@ Routes::get('subjects/draft', function (GoralysKernel $kernel, RequestInterface 
             veuillez réessayer ultérieurement.",
         "/subject/",
     ),
-    ...RouterOptions::$TOAST::flash(),)
+    ...RouterOptions::$TOAST::flash())
         ->middleware(...RateLimitMiddleware::for('get-student-draft', '/subject/'))
         ->middleware(...AuthMiddleware::require())
         ->middleware(...RoleMiddleware::require(UserRole::TEACHER, true))
         ->middleware(...DbMiddleware::require());
 
-// ================================================
+// ==================================================
 // [SECTION] Subject modifiers/setters
-// ================================================
+// ==================================================
 Routes::post('subjects/export', function (GoralysKernel $kernel) {
     $kernel->subjects->cleanExports(); // Cleans all previous exports
     $kernel->subjects->prepareExports();
@@ -87,7 +106,7 @@ Routes::post('subjects/export', function (GoralysKernel $kernel) {
         ));
 
 Routes::patch('subjects/status', function (GoralysKernel $kernel, RequestInterface $request) {
-    if (!$kernel->users->validatePassword($request->param("admin-password"))) {
+    if (!$kernel->auth->validatePassword($request->param("admin-password"))) {
         $kernel->deferredResponse(501)->toast( // Unauthorized
             ToastType::WARNING,
             "Mot de passe",
@@ -184,7 +203,7 @@ Routes::post('subjects/submit', function (GoralysKernel $kernel, RequestInterfac
     if (!$subjectResult) {
         $kernel->db->rollback();
         $kernel->deferredResponse(500)->error( // Internal server error
-            "Une erreur interne est survenue lors de l'enregistrement de votre question, 
+            "Une erreur interne est survenue lors de l'envoi de votre question, 
             veuillez réessayer ultérieurement.",
         )
             ->send();

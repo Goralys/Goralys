@@ -10,49 +10,57 @@ use mysqli_result;
 class FakeSubjectsRepository implements SubjectsRepositoryInterface
 {
     private bool $updateResult = true;
-    private mixed $getResult = null;
+    private ?mysqli_result $queryResult = null;
+    private ?StudentDTO $studentInfo = null;
 
     /**
      * Set the result for update operations.
-     * @param mixed $updateResult
      */
-    public function setUpdateResult(mixed $updateResult): void
+    public function setUpdateResult(bool $updateResult): void
     {
         $this->updateResult = $updateResult;
     }
 
     /**
-     * Set the result for get/find operations.
-     * @param mixed $getResult
+     * Set the mysqli_result returned by the find/get query methods
+     * (findByStudent, findByTeacher, findAll, getStatus, getDraftPath).
      */
-    public function setGetResult(mixed $getResult): void
+    public function setQueryResult(mysqli_result $queryResult): void
     {
-        $this->getResult = $getResult;
+        $this->queryResult = $queryResult;
+    }
+
+    /**
+     * Set the result returned by {@see getStudentInfo()}.
+     */
+    public function setStudentInfo(StudentDTO $studentInfo): void
+    {
+        $this->studentInfo = $studentInfo;
     }
 
     public function findByStudent(string $studentUsername): mysqli_result
     {
-        return $this->getResult;
+        return $this->queryResult;
     }
 
     public function findByTeacher(string $teacherUsername): mysqli_result
     {
-        return $this->getResult;
+        return $this->queryResult;
     }
 
     public function findAll(): mysqli_result
     {
-        return $this->getResult;
+        return $this->queryResult;
     }
 
     public function getStatus(string $teacherUsername, string $studentUsername, string $topic): mysqli_result
     {
-        return $this->getResult;
+        return $this->queryResult;
     }
 
     public function getDraftPath(string $teacherUsername, string $studentUsername, string $topic): mysqli_result
     {
-        return $this->getResult;
+        return $this->queryResult;
     }
 
     public function updateSubject(
@@ -106,6 +114,6 @@ class FakeSubjectsRepository implements SubjectsRepositoryInterface
 
     public function getStudentInfo(string $username): StudentDTO
     {
-        return $this->getResult;
+        return $this->studentInfo;
     }
 }

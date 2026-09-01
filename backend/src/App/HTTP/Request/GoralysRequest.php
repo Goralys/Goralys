@@ -33,6 +33,12 @@ final class GoralysRequest implements RequestInterface
 
         // GET requests
         if (!empty($_GET)) {
+            // optimize by skipping array_merge
+            if (empty($this->input)) {
+                $this->input = $_GET;
+                return;
+            }
+
             $this->input = array_merge($this->input, $_GET);
         }
     }
@@ -42,15 +48,26 @@ final class GoralysRequest implements RequestInterface
      * Reads the inputs of the request and returns the desired value.
      * By default, it falls back to `null` if the input doesn't exit.
      * @param string $key The name of the input to read.
-     * @return int|float|string|bool|null The value of the input.
+     * @return int|float|string|bool|array|null The value of the input.
      */
-    public function param(string $key): int|float|string|bool|null
+    public function param(string $key): int|float|string|bool|array|null
     {
         $v = $this->input[$key] ?? null;
         if (is_string($v)) {
             return trim($v);
         }
         return $v;
+    }
+
+    /**
+     * Gets the header of the request.
+     * @param string $key The name of the header.
+     * @return ?string The headers of the request.
+     */
+    public function header(string $key): ?string
+    {
+        $key = "HTTP_" . strtoupper(str_replace("-", "_", $key));
+        return $_SERVER[$key] ?? null;
     }
 
     /**
@@ -81,7 +98,7 @@ final class GoralysRequest implements RequestInterface
                     }
                 }
 
-                if (str_starts_with($constraint, 'min')) {
+                if (str_starts_with($constraint, 'min') && is_string($value)) {
                     $min = (int) explode(":", $constraint)[1];
                     if (strlen($value) < $min) {
                         throw new InvalidInputException("$k is too short (min $min)");

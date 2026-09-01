@@ -21,7 +21,7 @@ export default function HomePage(): ReactElement {
     return (
         <div className="flex flex-col min-h-screen w-full">
             <div className="self-center w-3/4 mt-11 flex flex-col-reverse landing-page:flex-row landing-page:gap-10 landing-page:items-start">
-                <div className="landing-page:order-2 w-150 landing-page:w-1/2">
+                <div className="landing-page:order-2 sm:w-150 w-75 landing-page:w-1/2">
                     <Image
                         src="/affiche/affiche.png"
                         alt="Affiche du Grand Oral"
@@ -32,10 +32,10 @@ export default function HomePage(): ReactElement {
                 </div>
 
                 <div className="landing-page:order-1 landing-page:w-1/2">
-                    <h1 className="font-bold text-5xl mb-5">Bienvenue sur Goralys,</h1>
+                    <h1 className="font-bold sm:text-5xl text-3xl mb-5">Bienvenue sur Goralys,</h1>
                     <p className="mb-2.5">L&#39;application de gestion du Grand Oral au lycée Auguste et Jean Renoir.</p>
                     <p>Cette plateforme a été entièrement développée par Sami Saubion, élève du lycée.</p>
-                    <h2 className="font-bold text-2xl mb-3 mt-2">Vous avez un problème ?</h2>
+                    <h2 className="font-bold sm:text-2xl text-xl mb-3 mt-2">Vous avez un problème ?</h2>
                     <p>
                         Contactez le{" "}
                         <Link className="text-sky-600 underline hover:text-sky-800 transition-colors duration-200" href="/support/contact">
@@ -53,7 +53,7 @@ export default function HomePage(): ReactElement {
                     alt="Logo du lycée Auguste et Jean Renoir"
                     width={75}
                     height={10}
-                    className="h-auto w-auto"
+                    className="h-auto sm:w-auto w-10"
                 />
                 <p className="text-xs opacity-70 self-center">
                     © 2026 Sami Saubion — AGPL-3.0 —

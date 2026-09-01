@@ -62,7 +62,7 @@ final class StringUtils
         $parts = explode(" ", $full)
                     |> (fn($x) => array_map(fn(string $s) => trim($s), $x))
                     |> (fn($x) => array_filter($x, fn(string $s) => $s !== ''))
-                    |> (fn($x) => array_map(fn(string $s) => str_replace("--", "-", $s), $x));
+                    |> (fn($x) => array_map(fn(string $s) => preg_replace("/-+/", "-", $s), $x));
 
         $lastNameParts = array_values(array_filter($parts, fn($n) => strtoupper($n) === $n));
         $firstNameParts = array_values(array_filter($parts, fn($n) => strtoupper($n) !== $n));
@@ -70,5 +70,18 @@ final class StringUtils
         return $getRaw
                 ? [$firstNameParts, $lastNameParts]
                 : [implode(" ", $firstNameParts), implode(" ", $lastNameParts)];
+    }
+
+    /**
+     * Obfuscates a string by only showing the first characters and then a random number of asterisks (*).
+     * @param string $_s The string to obfuscate.
+     * @param int $n The number of characters to show before the asterisks.
+     * @param int $min The minimum number of asterisks (default = 3).
+     * @param int $max The maximum number of asterisks (default = 7).
+     * @return string The obfuscated string.
+     */
+    public static function obfuscate(string $_s, int $n, int $min = 3, int $max = 7): string
+    {
+        return substr($_s, 0, $n) . str_repeat('*', max($min, strlen($_s) - rand($min, $max) - $n));
     }
 }

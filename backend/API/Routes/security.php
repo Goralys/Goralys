@@ -11,9 +11,9 @@ use Goralys\App\Router\Options\RouterOptions;
 use Goralys\App\Router\Routes;
 use Goralys\Kernel\GoralysKernel;
 
-// ================================================
+// ==================================================
 // [SECTION] CSRF
-// ================================================
+// ==================================================
 Routes::post('csrf', function (GoralysKernel $kernel, RequestInterface $request) {
     $formId = $request->param("form");
 

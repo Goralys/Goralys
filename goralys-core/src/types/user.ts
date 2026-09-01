@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: LGPL-3.0-or-later
  */
 
+import { PHPDateTime } from "@/types/utils";
+
 export type UserRole = {
     role: "admin" | "teacher" | "student" | "none";
 };
@@ -11,10 +13,20 @@ export const USER_ROLES = ["admin", "teacher", "student", "none"] as const satis
 
 export type UserData = {
     username: string;
-    full_name: string;
+    fullName: string;
     role: UserRole["role"];
-    public_id: string;
+    publicId: string;
     email: string | null | undefined;
+};
+
+export type UserProfile = {
+    id: number;
+    username: string;
+    pubId: string;
+    fullName: string;
+    role: UserRole["role"];
+    email: string;
+    createdAt: PHPDateTime;
 };
 
 export type User = {
@@ -31,4 +43,13 @@ export type UserEvent = "login" | "logout" | "register";
 export type ConfirmOptions = {
     title: string;
     message: string;
+};
+
+export type AuthTokenContext = "admin-panel" | "profile";
+
+export type AuthToken = {
+    username: string;
+    name: string;
+    expires: PHPDateTime;
+    created: PHPDateTime;
 };

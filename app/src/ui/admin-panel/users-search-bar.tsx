@@ -10,13 +10,13 @@ const roleFields: Record<UserRoleFilter, string> = {
     teacher: "Professeurs",
 };
 
-interface UsersSearchBarProps {
+interface Props {
     type: "real" | "virtual";
     users: User[] | null;
     setCurrentUsers: React.Dispatch<React.SetStateAction<User[] | null>>;
 }
 
-export function UsersSearchBar({ type, users, setCurrentUsers }: UsersSearchBarProps): ReactElement {
+export function UsersSearchBar({ type, users, setCurrentUsers }: Props): ReactElement {
     const [currentRole, setCurrentRole] = useState<UserRoleFilter>("all");
     const [searchText, setSearchText] = useState("");
 

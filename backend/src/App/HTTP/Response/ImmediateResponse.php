@@ -7,6 +7,8 @@
 
 namespace Goralys\App\HTTP\Response;
 
+use Goralys\App\Context\AppContext;
+use Goralys\App\Context\Data\Client;
 use Goralys\App\HTTP\Files\Interface\FileResponder;
 use Goralys\App\HTTP\JSON\Interfaces\JsonResponder;
 use Goralys\App\HTTP\Response\Interfaces\ImmediateResponseInterface;
@@ -27,19 +29,27 @@ final class ImmediateResponse implements ImmediateResponseInterface
     private LoggerInterface $logger;
     private FileResponder $files;
     private JsonResponder $json;
+    private AppContext $context;
 
     /**
      * @param int $code The HTTP code of the response.
      * @param LoggerInterface $logger The injected logger.
      * @param FileResponder $files The injected FileResponder service.
      * @param JsonResponder $json The injected JsonResponder service.
+     * @param AppContext $context The injected application context.
      */
-    public function __construct(int $code, LoggerInterface $logger, FileResponder $files, JsonResponder $json)
-    {
+    public function __construct(
+        int $code,
+        LoggerInterface $logger,
+        FileResponder $files,
+        JsonResponder $json,
+        AppContext $context
+    ) {
         $this->code = $code;
         $this->logger = $logger;
         $this->files = $files;
         $this->json = $json;
+        $this->context = $context;
     }
 
     /**
@@ -127,7 +137,11 @@ final class ImmediateResponse implements ImmediateResponseInterface
      */
     public function redirect(string $dest): never
     {
-        header("Location: " . $dest);
+        if ($this->context->client === Client::WEB) {
+            header("Location: " . $dest);
+        } elseif ($this->context->client === Client::MOBILE) {
+            $this->json->send(["redirect" => $dest]);
+        }
         $this->logger->debug(LoggerInitiator::APP, "Redirected client to: " . $dest);
         exit;
     }

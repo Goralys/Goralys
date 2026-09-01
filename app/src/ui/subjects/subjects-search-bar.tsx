@@ -1,17 +1,17 @@
 import { FloatingInput } from "@/app/src/ui/inputs/floating-input";
-import React, { FormEvent, ReactElement, useEffect, useState } from "react";
-import { searchFields, Subject, SubjectsSearchField, getLongFromShort } from "@goralys/core";
+import React, { ReactElement, SubmitEvent, useEffect, useState } from "react";
+import { getLongFromShort, searchFields, Subject, SubjectsSearchField } from "@goralys/core";
 
-interface SubjectsSearchBarProps {
+interface Props {
     subjects: Subject[] | null;
     setCurrentSubjects: React.Dispatch<React.SetStateAction<Subject[] | null>>;
 }
 
-export function SubjectsSearchBar({ subjects, setCurrentSubjects }: SubjectsSearchBarProps): ReactElement {
+export function SubjectsSearchBar({ subjects, setCurrentSubjects }: Props): ReactElement {
     const [currentField, setCurrentField] = useState<SubjectsSearchField>("all");
     const [searchText, setSearchText] = useState("");
 
-    const handleSearch = (e: FormEvent<HTMLInputElement>): void => {
+    const handleSearch = (e: SubmitEvent<HTMLInputElement>): void => {
         const value = e.currentTarget.value;
         setSearchText(value);
     };

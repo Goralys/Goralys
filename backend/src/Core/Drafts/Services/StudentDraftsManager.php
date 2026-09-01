@@ -12,6 +12,7 @@ use Goralys\App\HTTP\Files\GoralysFileManager;
 use Goralys\Core\Subjects\Repository\Interfaces\SubjectsRepositoryInterface;
 use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
 use Goralys\Platform\Logger\Interfaces\LoggerInterface;
+use Goralys\Shared\Config\GoralysConfig as Config;
 use Goralys\Shared\Exception\GoralysRuntimeException;
 
 /**
@@ -48,7 +49,7 @@ final class StudentDraftsManager
     public function update(string $studentUsername, string $teacherUsername, string $topicName): bool
     {
         $this->emptyDir($studentUsername, $teacherUsername);
-        $uploadDir = realpath(__DIR__ . "/../../../../Assets/StudentsDrafts/$teacherUsername/$studentUsername/") ?: "";
+        $uploadDir = realpath(Config::DIRECTORIES::ASSETS . "StudentsDrafts/$teacherUsername/$studentUsername/") ?: "";
 
         $file = $this->fileManager->get("draft-file");
 
@@ -86,7 +87,7 @@ final class StudentDraftsManager
      */
     private function emptyDir(string $studentUsername, string $teacherUsername): void
     {
-        $fullDir = __DIR__ . "/../../../../Assets/StudentsDrafts/$teacherUsername/$studentUsername/";
+        $fullDir = Config::DIRECTORIES::ASSETS . "StudentsDrafts/$teacherUsername/$studentUsername/";
 
         if (is_dir($fullDir)) {
             foreach (new DirectoryIterator($fullDir) as $file) {

@@ -9,8 +9,8 @@ namespace Goralys\Platform\Logger;
 
 use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
 use Goralys\Platform\Logger\Data\Enums\LoggerType;
-use Goralys\Platform\Logger\Services\LoggerService;
 use Goralys\Platform\Logger\Interfaces\LoggerInterface;
+use Goralys\Platform\Logger\Services\LoggerService;
 
 /**
  * The main logger class.
@@ -18,6 +18,8 @@ use Goralys\Platform\Logger\Interfaces\LoggerInterface;
  */
 final class GoralysLogger implements LoggerInterface
 {
+    private array $logs = [];
+
     /**
      * Initializes the logger and its sub-services.
      * The backend/Logs directory must exist, else the logger will fail silently,
@@ -92,6 +94,7 @@ final class GoralysLogger implements LoggerInterface
             $initiator,
             LoggerType::Info,
             $message,
+            $this->logs
         );
     }
 
@@ -108,6 +111,7 @@ final class GoralysLogger implements LoggerInterface
             $initiator,
             LoggerType::Debug,
             $message,
+            $this->logs
         );
     }
 
@@ -123,6 +127,7 @@ final class GoralysLogger implements LoggerInterface
             $initiator,
             LoggerType::Warning,
             $message,
+            $this->logs
         );
     }
 
@@ -138,6 +143,7 @@ final class GoralysLogger implements LoggerInterface
             $initiator,
             LoggerType::Error,
             $message,
+            $this->logs
         );
     }
 
@@ -153,6 +159,16 @@ final class GoralysLogger implements LoggerInterface
             $initiator,
             LoggerType::Fatal,
             $message,
+            $this->logs
         );
+    }
+
+    /**
+     * Returns all the logs stored by the logger.
+     * @return array The list of all logs registered by the logger.
+     */
+    public function store(): array
+    {
+        return $this->logs;
     }
 }

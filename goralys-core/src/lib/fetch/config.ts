@@ -5,6 +5,8 @@
 
 export interface GoralysClientConfig {
     apiDomain: string;
+    getSchoolToken: () => string;
+    isNative: boolean;
 }
 
 let config: GoralysClientConfig | null = null;
@@ -14,8 +16,6 @@ export function configureGoralysClient(cfg: GoralysClientConfig): void {
 }
 
 export function getGoralysClientConfig(): GoralysClientConfig {
-    if (!config) {
-        throw new Error("Goralys client not configured. Call configureGoralysClient() first.");
-    }
+    if (!config) throw new Error("Goralys client not configured. Call configureGoralysClient() first.");
     return config;
 }

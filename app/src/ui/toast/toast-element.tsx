@@ -1,10 +1,10 @@
 "use client";
 
 import { clsx } from "clsx";
-import { CheckCircleIcon, ExclamationCircleIcon, XCircleIcon, InformationCircleIcon } from "@heroicons/react/24/outline";
+import { CheckCircleIcon, ExclamationCircleIcon, InformationCircleIcon, XCircleIcon } from "@heroicons/react/24/outline";
 import { ReactElement } from "react";
 
-interface ToastProps {
+interface Props {
     type: "info" | "warning" | "error" | "success";
     title: string;
     message: string;
@@ -18,11 +18,11 @@ const icons = {
     error: <XCircleIcon className="size-14 p-0 -ml-1.5 -mr-1.5 text-red-600" />,
 };
 
-export default function ToastElement({ type, title, message, visible }: ToastProps): ReactElement {
+export default function ToastElement({ type, title, message, visible }: Props): ReactElement {
     return (
         <div
             className={clsx(
-                "fixed flex gap-2 p-3 h-22 w-115 bg-sky-300 rounded shadow overflow-hidden left-1/2 -translate-x-1/2 top-1 ",
+                "fixed flex gap-2 p-3 h-22 sm:w-115 w-95 bg-sky-300 rounded shadow overflow-hidden left-1/2 -translate-x-1/2 top-1 ",
                 "after:absolute after:left-0 after:top-0 after:h-full after:w-1.25 after:content-['']",
                 "transition-all duration-500 z-10",
                 {

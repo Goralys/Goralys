@@ -220,7 +220,22 @@ final class SubjectsRepository implements SubjectsRepositoryInterface
             $teacherUsername,
             $studentUsername,
             $topic,
-        );
+        ) || $this->db->fetch(
+            "select 1 from student_topics st 
+            join topics t on st.topic_id = t.id
+            join topic_teachers tt on t.id = tt.topic_id
+            where tt.teacher_username = ?
+            and st.student_username = ?
+            and t.name = ?
+            and (st.subject_status = 0 or st.subject_status = 2)
+            and st.subject = ?",
+            "ssss",
+            $teacherUsername,
+            $studentUsername,
+            $topic,
+            $newSubject
+        )->num_rows > 0; // check if the subject was already the same, in which case return true
+        // note: this query always returns at least 1 row unless the first one fails
     }
 
     /**
@@ -322,7 +337,7 @@ final class SubjectsRepository implements SubjectsRepositoryInterface
 
     public function flushDraftPath(string $teacherUsername, string $studentUsername, string $topic): bool
     {
-        return $this->db->run(
+        return $this->db->runIgnoreNoOps(
             "update student_topics st
             join topics t on t.id = st.topic_id
             join topic_teachers tt on t.id = tt.topic_id

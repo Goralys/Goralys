@@ -2,15 +2,16 @@ import { ReactElement, useState } from "react";
 import { FloatingInput } from "@/app/src/ui/inputs/floating-input";
 import { Button } from "@/app/src/ui/button";
 
-interface ReplaceTeacherElementProps {
+interface Props {
     onReplaceAction: (firstName: string, lastName: string) => void;
+    dropDown?: boolean;
 }
 
-export default function ReplaceTeacherElement({ onReplaceAction }: ReplaceTeacherElementProps): ReactElement {
+export default function ReplaceTeacherElement({ onReplaceAction, dropDown = true }: Props): ReactElement {
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
 
-    return (
+    return dropDown ? (
         <details className="group/details">
             <summary className="flex flex-row cursor-pointer">
                 <svg
@@ -39,5 +40,15 @@ export default function ReplaceTeacherElement({ onReplaceAction }: ReplaceTeache
 
             <Button type="button" text="Remplacer" onClick={() => onReplaceAction(firstName, lastName)} />
         </details>
+    ) : (
+        <>
+            <div className="flex flex-col gap-2 mt-2">
+                <p className="-mb-2">Entrer le nom du nouveau professeur</p>
+                <FloatingInput id="replace-teacher-firstname" label="Prénom" onInput={(e) => setFirstName(e.currentTarget.value)} />
+                <FloatingInput id="replace-teacher-lastname" label="Nom" onInput={(e) => setLastName(e.currentTarget.value)} />
+            </div>
+
+            <Button type="button" text="Remplacer" onClick={() => onReplaceAction(firstName, lastName)} />
+        </>
     );
 }

@@ -8,7 +8,7 @@
 namespace Goralys\App\User\Data\Enums;
 
 /**
- * This enum is used to represent the status of the user's authentification.
+ * This enum is used to represent the status of the user's authentication.
  * There are three statuses possible:
  * - {@see UserAuthStatus::AUTHENTICATED} When the user is already authenticated.
  * - {@see UserAuthStatus::SESSION_EXPIRED} When the user's session has expired (1 hour by default).

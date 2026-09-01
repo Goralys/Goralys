@@ -8,7 +8,7 @@
 import { buildApiUrl, fetchCsrfClient, goralysFetchClient } from "@/lib/fetch/fetch.client";
 import { UserData } from "@/types/user";
 import { EMAIL_KEY, FULL_NAME_KEY, PERSISTANT_COOKIES, PERSISTANT_LOCALS, PUB_ID_KEY, ROLE_KEY, USERNAME_KEY } from "@/lib/config";
-import { storageKeyAt, storageRemove, storageSize } from "@/lib/storage/storage-adapter";
+import { storageKeyAt, storageKeys, storageRemove, storageSize } from "@/lib/storage/storage-adapter";
 import { cookiesGetAll, cookiesRemove, cookiesSet } from "@/lib/storage/cookies-adapter";
 
 export async function cacheUserDataClient(): Promise<void> {
@@ -21,18 +21,31 @@ export async function cacheUserDataClient(): Promise<void> {
     const data = (await res.json())["data"] as UserData;
 
     cookiesSet(USERNAME_KEY, data.username, "/", 1.5 * 60 * 60);
-    cookiesSet(FULL_NAME_KEY, data.full_name, "/", 1.5 * 60 * 60);
+    cookiesSet(FULL_NAME_KEY, data.fullName, "/", 1.5 * 60 * 60);
     cookiesSet(ROLE_KEY, data.role, "/", 1.5 * 60 * 60);
-    cookiesSet(PUB_ID_KEY, data.public_id, "/", 1.5 * 60 * 60);
+    cookiesSet(PUB_ID_KEY, data.publicId, "/", 1.5 * 60 * 60);
     if (data?.email) cookiesSet(EMAIL_KEY, data.email, "/", 1.5 * 60 * 60);
     else cookiesRemove(EMAIL_KEY);
 }
 
+function arrayAny<T>(arr: T[], cond: (v: T) => boolean): boolean {
+    for (let i = 0; i < arr.length; i++) {
+        if (cond(arr[i])) return true;
+    }
+
+    return false;
+}
+
 export function emptyUserCacheClient(): void {
     // Invalidate old local cache
-    for (let i: number = 0; i < storageSize(); i++) {
-        const key = storageKeyAt(i)!; // 'i' must be a valid index (see loop above)
-        if (!PERSISTANT_LOCALS.includes(key)) storageRemove(key);
+    while (arrayAny(storageKeys(), (k) => !PERSISTANT_LOCALS.includes(k))) {
+        for (let i = 0; i < storageSize(); i++) {
+            const key = storageKeyAt(i)!; // 'i' must be a valid index (see loop above)
+            if (!PERSISTANT_LOCALS.includes(key)) {
+                storageRemove(key);
+                break;
+            }
+        }
     }
 
     Object.keys(cookiesGetAll()).forEach((name) => {

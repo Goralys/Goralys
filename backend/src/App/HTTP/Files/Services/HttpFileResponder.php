@@ -8,6 +8,7 @@
 namespace Goralys\App\HTTP\Files\Services;
 
 use Goralys\App\HTTP\Files\Interface\FileResponder;
+use Goralys\Shared\Config\GoralysConfig as Config;
 use Goralys\Shared\Exception\Files\InvalidFileException;
 use Goralys\Shared\Exception\GoralysRuntimeException;
 
@@ -29,14 +30,16 @@ class HttpFileResponder implements FileResponder
             throw new InvalidFileException("$path is not a valid file and could not be sent");
         }
 
-        $baseDir = realpath(__DIR__ . "/../../../../../Assets");
+        $baseDir = realpath(Config::DIRECTORIES::ASSETS);
+        $tmpDir = realpath(sys_get_temp_dir());
         if ($baseDir === false) {
             throw new GoralysRuntimeException("Base directory could not be resolved");
         }
 
         if (
             !str_starts_with($realpath, $baseDir . DIRECTORY_SEPARATOR)
-            && pathinfo($path, PATHINFO_EXTENSION) !== "tmp"
+            && !((pathinfo($path, PATHINFO_EXTENSION) === "tmp")
+                  || str_starts_with($path, $tmpDir . DIRECTORY_SEPARATOR))
         ) {
             throw new GoralysRuntimeException("Unauthorized file access");
         }

@@ -4,13 +4,13 @@ import { FloatingInput } from "@/app/src/ui/inputs/floating-input";
 import React, { FormEvent, ReactElement, useEffect, useState } from "react";
 import { User } from "@goralys/core";
 
-interface AdminsSearchBarProps {
+interface Props {
     type: "real" | "virtual";
     admins: User[] | null;
     setCurrentAdminsAction: React.Dispatch<React.SetStateAction<User[] | null>>;
 }
 
-export function AdminsSearchBar({ type, admins, setCurrentAdminsAction }: AdminsSearchBarProps): ReactElement {
+export function AdminsSearchBar({ type, admins, setCurrentAdminsAction }: Props): ReactElement {
     const [searchText, setSearchText] = useState("");
 
     const handleSearch = (e: FormEvent<HTMLInputElement>): void => {

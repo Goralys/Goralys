@@ -16,4 +16,14 @@ enum LoggerInitiator: string
     case CORE = "CORE";
     case PLATFORM = "PLATFORM";
     case KERNEL = "KERNEL";
+
+    public function toString(): string
+    {
+        return match ($this) {
+            LoggerInitiator::APP => "App",
+            LoggerInitiator::CORE => "Core",
+            LoggerInitiator::PLATFORM => "Platform",
+            LoggerInitiator::KERNEL => "Kernel",
+        };
+    }
 }

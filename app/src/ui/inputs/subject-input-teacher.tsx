@@ -1,10 +1,10 @@
-import { getStatusHelper, Subject, buildApiUrl } from "@goralys/core";
+import { buildApiUrl, getStatusHelper, Subject } from "@goralys/core";
 import { ArrowDownTrayIcon } from "@heroicons/react/24/outline";
 import { SubjectTextArea } from "@/app/src/ui/inputs/subject-text-area";
 import Checkbox from "@/app/src/ui/inputs/checkbox";
 import React, { ChangeEventHandler, ReactElement } from "react";
 
-interface SubjectInputMultilineProps {
+interface Props {
     helper?: string;
     id: string;
     label: string;
@@ -13,7 +13,7 @@ interface SubjectInputMultilineProps {
     subjectData: Subject;
 }
 
-export function SubjectInputTeacher({ id, label, helper, subjectData, onChangeAction }: SubjectInputMultilineProps): ReactElement {
+export function SubjectInputTeacher({ id, label, helper, subjectData, onChangeAction }: Props): ReactElement {
     helper = getStatusHelper(subjectData.status, "teacher");
 
     const initialValue = subjectData.status == "rejected" ? (subjectData.lastRejected ?? "") : (subjectData.subject ?? "");
@@ -29,6 +29,7 @@ export function SubjectInputTeacher({ id, label, helper, subjectData, onChangeAc
         window.location.href = buildApiUrl(
             "subjects/draft",
             {
+                "high-school-token": process.env.NEXT_PUBLIC_API_TOKEN ?? null,
                 teacher: subjectData.teacherToken,
                 student: subjectData.studentToken,
                 topic: subjectData.topic,
@@ -39,7 +40,7 @@ export function SubjectInputTeacher({ id, label, helper, subjectData, onChangeAc
     };
 
     return (
-        <div className="relative mt-2 group min-w-50 mb-0">
+        <div className="relative mt-2 group min-w-50 mb-0 flex sm:block flex-col">
             <div className="flex flex-row">
                 <SubjectTextArea
                     id={id}
@@ -68,7 +69,7 @@ export function SubjectInputTeacher({ id, label, helper, subjectData, onChangeAc
             <div className="flex flex-row content-between w-full">
                 <Checkbox
                     id={`interdisciplinary-teacher-${subjectData.studentToken}-${subjectData.teacherToken}`}
-                    className="ml-auto -mt-7.5 mb-2.5 self-center"
+                    className="m-0 sm:ml-auto sm:-mt-7.5 mb-2.5 self-center"
                     label="Question transversale"
                     setValueAction={() => {}}
                     defaultValue={subjectData.interdisciplinary}

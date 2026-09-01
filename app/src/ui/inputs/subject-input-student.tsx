@@ -5,7 +5,7 @@ import { getStatusHelper, Subject } from "@goralys/core";
 import { SubjectTextArea } from "@/app/src/ui/inputs/subject-text-area";
 import Checkbox from "@/app/src/ui/inputs/checkbox";
 
-interface SubjectInputMultilineProps {
+interface Props {
     helper?: string;
     id: string;
     label: string;
@@ -21,7 +21,7 @@ export function SubjectInputStudent({
     subjectData,
     setIsInterdisciplinaryAction = (): void => {},
     onChangeAction,
-}: SubjectInputMultilineProps): ReactElement {
+}: Props): ReactElement {
     const initialValue = subjectData.status == "rejected" ? (subjectData.lastRejected ?? "") : (subjectData.subject ?? "");
     const MAX_CHARS = 250;
     helper = getStatusHelper(subjectData.status, "student");
@@ -35,7 +35,7 @@ export function SubjectInputStudent({
     };
 
     return (
-        <div className="relative mt-2 group min-w-50 mb-0">
+        <div className="relative mt-2 group min-w-50 mb-0 flex sm:block flex-col">
             <SubjectTextArea
                 id={id}
                 disabled={!editable}
@@ -50,7 +50,7 @@ export function SubjectInputStudent({
 
             <div className="flex flex-row content-between w-full">
                 <Checkbox
-                    className="m-0 -mt-7.5 ml-auto self-center"
+                    className="m-0 sm:-mt-7.5 sm:ml-auto self-center"
                     label="Question transversale"
                     setValueAction={setIsInterdisciplinaryAction}
                     defaultValue={subjectData.interdisciplinary}

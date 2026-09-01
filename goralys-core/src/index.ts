@@ -3,15 +3,18 @@
  */
 
 export * from "./config";
-export * from "./hooks/useSubjects";
-export * from "./hooks/useSupportTickets";
-export * from "./hooks/useUsers";
+export * from "./hooks/use-auth-tokens";
+export * from "./hooks/use-subjects";
+export * from "./hooks/use-support-tickets";
+export * from "./hooks/use-synced-ressource";
+export * from "./hooks/use-users-collection";
 export * from "./lib/asset";
 export * from "./lib/config";
 export * from "./lib/fools";
 export * from "./lib/utils";
 export * from "./lib/auth/auth-event";
 export * from "./lib/auth/check-auth";
+export * from "./lib/auth/fetch-auth-tokens";
 export * from "./lib/auth/user-event";
 export * from "./lib/fetch/config";
 export * from "./lib/fetch/fetch.client";
@@ -21,6 +24,7 @@ export * from "./lib/storage/cookies-adapter";
 export * from "./lib/storage/storage-adapter";
 export * from "./lib/subjects/subjects-utils";
 export * from "./lib/subjects/subjects.client";
+export * from "./lib/toast/config";
 export * from "./lib/user/user.client";
 export * from "./types/http";
 export * from "./types/subjects";

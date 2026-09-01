@@ -1,27 +1,41 @@
 import { Card } from "@/app/src/ui/card";
 import { Button } from "@/app/src/ui/button";
 import React, { ReactElement, useEffect, useState } from "react";
-import { cookiesGet, EMAIL_KEY, fetchCsrfClient, reasonsConfig, SupportReasons } from "@goralys/core";
+import { cookiesGet, EMAIL_KEY, fetchCsrfClient, reasonsConfig, SupportReasons, USERNAME_KEY } from "@goralys/core";
 import { TextArea } from "@/app/src/ui/inputs/text-area";
 import { FloatingInput } from "@/app/src/ui/inputs/floating-input";
 
 export default function SupportForm(): ReactElement {
+    const [loggedIn, setLoggedIn] = useState<boolean>(true);
     const [csrfToken, setCsrfToken] = useState<string | null>(null);
-    const requestUrl = `${process.env.NEXT_PUBLIC_API_DOMAIN}/support/contact`;
+    const requestUrl = `${process.env.NEXT_PUBLIC_API_DOMAIN}/support/contact?high-school-token=${process.env.NEXT_PUBLIC_API_TOKEN}`;
 
     const [reason, setReason] = useState<SupportReasons>("password-forgot");
 
     useEffect(() => {
-        const run = async (): Promise<void> => setCsrfToken(await fetchCsrfClient("support-ticket"));
+        const run = async (): Promise<void> => {
+            setCsrfToken(await fetchCsrfClient("support-ticket"));
+            setLoggedIn(!!cookiesGet(USERNAME_KEY));
+        };
 
         run().then();
     }, []);
 
     return (
-        <Card className="flex-col min-h-65 bg-sky-200">
+        <Card className="flex-col min-h-73 bg-sky-200 order-1 sm:order-2 h-fit">
             <h1 className="text-xl">Contactez le support Goralys</h1>
 
             <form className="relative flex flex-col h-full" method="POST" action={requestUrl} autoComplete="on">
+                {!loggedIn && (
+                    <FloatingInput
+                        id="full-name"
+                        label="Nom Complet"
+                        helper="Ce nom sera transmit à notre équipe afin de vous identifié"
+                        autocomplete="name"
+                        required={!loggedIn}
+                    />
+                )}
+
                 <FloatingInput
                     id="user-email"
                     label="Votre email"
@@ -37,6 +51,7 @@ export default function SupportForm(): ReactElement {
                     cursor-pointer outline-none focus:ring-0 text-base leading-5
                     text-heading pb-0 pr-5 subjects-search-select"
                         value={reason}
+                        name="raw-reason"
                         onChange={(e) => setReason(e.target.value as SupportReasons)}
                     >
                         {Object.entries(reasonsConfig).map(([key, { label }]) => (
@@ -57,7 +72,7 @@ export default function SupportForm(): ReactElement {
                 <input type="hidden" name="csrf-token" value={(csrfToken ? csrfToken : "no-token").trim()} />
                 <input type="hidden" name="reason" value={reason} />
 
-                <Button type="submit" text="Envoyer mon message" className="bottom-0 mt-2.5" />
+                <Button type="submit" text="Envoyer mon message" className="bottom-0 mt-2.5" disabled={!csrfToken} />
             </form>
         </Card>
     );
