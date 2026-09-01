@@ -322,7 +322,7 @@ final class SubjectsRepository implements SubjectsRepositoryInterface
 
     public function flushDraftPath(string $teacherUsername, string $studentUsername, string $topic): bool
     {
-        return $this->db->run(
+        return $this->db->runIgnoreNoOps(
             "update student_topics st
             join topics t on t.id = st.topic_id
             join topic_teachers tt on t.id = tt.topic_id
