@@ -48,17 +48,17 @@ mkcert -key-file ./.certs/_wildcard.goralys.test+1-key.pem -cert-file ./.certs/_
 ```
 
 Finally, you must also map `goralys.test` and its subdomains to your local machine, since this domain does not exist on
-the public internet. Edit your hosts file (`C:\Windows\System32\drivers\etc\hosts` on Windows, requires admin rights;
+the public internet. Edit your host file (`C:\Windows\System32\drivers\etc\hosts` on Windows, requires admin rights;
 `/etc/hosts` on Linux/macOS, requires `sudo`) and add:
 
 ```
 127.0.0.1 goralys.test
 127.0.0.1 api.goralys.test
-127.0.0.1 0492061z.goralys.test
+127.0.0.1 0492554k.goralys.test
 ```
 
 > [!NOTE]
-> `0492061z` is a sample high school code used for local testing (must exist in your `schools_list` INI file).
+> `0492554k` is a sample high school code used for local testing (must exist in your `schools_list` INI file).
 > Add one line per high school code you want to test locally.
 
 ### Installing GoralysCLI
@@ -88,7 +88,7 @@ Alternatively, you can clone this repo and build the project from source.
 
 > [!WARNING]
 > Do not trust any other sources than the two listed above.
-> Any non-official executable may contain malware !
+> Any non-official executable may contain malware!
 
 1. Run setup command:
     ```bash
@@ -112,7 +112,7 @@ Alternatively, you can clone this repo and build the project from source.
       pnpm dev --experimental-https --experimental-https-key ./.certs/_wildcard.goralys.test+1-key.pem --experimental-https-cert ./.certs/_wildcard.goralys.test+1.pem
       ```
 5. Access the app:
-    - Visit `https://0492061z.goralys.test:3000` (replace `0492061z` with any high school code configured in your hosts
+    - Visit `https://0492554k.goralys.test:3000` (replace `0492554k` with any high school code configured in your host
       file and `schools_list`). Visiting `https://localhost:3000` directly will **not** work — authentication will fail
       since the session cookie is scoped to `.goralys.test`.
 
