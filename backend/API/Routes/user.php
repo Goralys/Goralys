@@ -449,7 +449,7 @@ Routes::post('admin/create', function (GoralysKernel $kernel, RequestInterface $
     );
 
     if (!$kernel->auth->validatePassword($request->param("admin-password"))) {
-        $kernel->deferredResponse(501)->toast( // Unauthorized
+        $kernel->deferredResponse(401)->toast( // Unauthorized
             ToastType::WARNING,
             "Mot de passe",
             "Veuillez saisir le bon mot de passe",
@@ -526,7 +526,7 @@ Routes::delete('admin/revoke', function (GoralysKernel $kernel, RequestInterface
 Routes::patch('users/reset', function (GoralysKernel $kernel, RequestInterface $request) {
     if (!$kernel->auth->validatePassword($request->param("admin-password"))) {
         $kernel->logger->debug(LoggerInitiator::APP, "Terminating reset password !");
-        $kernel->deferredResponse(501)->toast( // Unauthorized
+        $kernel->deferredResponse(401)->toast( // Unauthorized
             ToastType::WARNING,
             "Mot de passe",
             "Veuillez saisir le bon mot de passe",
@@ -577,7 +577,7 @@ Routes::patch('users/reset', function (GoralysKernel $kernel, RequestInterface $
 
 Routes::delete('users', function (GoralysKernel $kernel, RequestInterface $request) {
     if (!$kernel->auth->validatePassword($request->param("admin-password"))) {
-        $kernel->deferredResponse(501)->toast( // Unauthorized
+        $kernel->deferredResponse(401)->toast( // Unauthorized
             ToastType::WARNING,
             "Mot de passe",
             "Veuillez saisir le bon mot de passe",
@@ -611,7 +611,7 @@ Routes::delete('users', function (GoralysKernel $kernel, RequestInterface $reque
 
 Routes::put('users/teacher/replace', function (GoralysKernel $kernel, RequestInterface $request) {
     if (!$kernel->auth->validatePassword($request->param("admin-password"))) {
-        $kernel->deferredResponse(501)->toast( // Unauthorized
+        $kernel->deferredResponse(401)->toast( // Unauthorized
             ToastType::WARNING,
             "Mot de passe",
             "Veuillez saisir le bon mot de passe",
@@ -647,7 +647,7 @@ Routes::put('users/teacher/replace', function (GoralysKernel $kernel, RequestInt
 
 Routes::get('users/username', function (GoralysKernel $kernel, RequestInterface $request) {
     if (!$kernel->auth->validatePassword($request->param("admin-password"))) {
-        $kernel->deferredResponse(501)->toast( // Unauthorized
+        $kernel->deferredResponse(401)->toast( // Unauthorized
             ToastType::WARNING,
             "Mot de passe",
             "Veuillez saisir le bon mot de passe",

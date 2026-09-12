@@ -107,7 +107,7 @@ Routes::post('subjects/export', function (GoralysKernel $kernel) {
 
 Routes::patch('subjects/status', function (GoralysKernel $kernel, RequestInterface $request) {
     if (!$kernel->auth->validatePassword($request->param("admin-password"))) {
-        $kernel->deferredResponse(501)->toast( // Unauthorized
+        $kernel->deferredResponse(401)->toast( // Unauthorized
             ToastType::WARNING,
             "Mot de passe",
             "Veuillez saisir le bon mot de passe",
