@@ -29,7 +29,7 @@
     "scripts": {
         "prebuild": "pnpm barrel",
         "build": "tsup",
-        "typeCheck": "tsgo --noEmit",
+        "typeCheck": "node ./node_modules/typescript-native/bin/tsc --noEmit",
         "dev": "tsup --watch",
         "barrel": "node -e \"require('fs').rmSync('./src/index.ts',{force:true})\" && barrelsby -d ./src -l top"
     },
@@ -37,11 +37,11 @@
         "react": ">=18"
     },
     "devDependencies": {
-        "@typescript/native-preview": "7.0.0-dev.20260705.1",
+        "typescript": "^6.0.3",
+        "typescript-native": "npm:typescript@^7.0.2",
         "barrelsby": "^2.8.1",
         "esbuild-plugin-tsconfig-paths": "^1.0.2",
         "react": "^18.0.0",
-        "tsup": "^8.0.0",
-        "typescript": "^5.0.0"
+        "tsup": "^8.0.0"
     }
 }
