@@ -29,7 +29,7 @@ final class InputOptions extends Option
         foreach ($_ as $v) {
             $rules[$v] = ['required'];
         }
-        return [['input' => $rules]];
+        return [[self::MAIN_KEY => $rules]];
     }
 
     /**
@@ -41,7 +41,7 @@ final class InputOptions extends Option
     public static function min(string $input, int $min): array
     {
         $rules = [$input => ["min:$min"]];
-        return [['input' => $rules]];
+        return [[self::MAIN_KEY => $rules]];
     }
 
     /**
@@ -52,7 +52,7 @@ final class InputOptions extends Option
      */
     public static function onFailure(string $message, string $redirect = "/"): array
     {
-        $rules = [self::FAIL_MESSAGE_KEY => $message, self::FAIL_REDIRECT_KEY => $redirect];
-        return [['input' => $rules]];
+        $rules = [self::FAIL_MESSAGE_KEY => [$message], self::FAIL_REDIRECT_KEY => [$redirect]];
+        return [[self::MAIN_KEY => $rules]];
     }
 }
