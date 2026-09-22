@@ -79,6 +79,7 @@ export function useSyncedResource<T>({ name, cacheKey, syncKey, fetcher, parse, 
 
             const res = await fetcher();
             if (res) await handleToastRequest(res, showToastRef.current, false);
+            if (!res?.ok) return; // runs finally, avoids caching failed fetches
             const raw = await res?.json();
 
             if (caching) {
