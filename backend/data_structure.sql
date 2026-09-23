@@ -115,6 +115,8 @@ create table admins_list
 
     primary key (username),
     foreign key (username) references users_info (username)
+        on delete cascade
+        on update cascade
 ) engine = innodb;
 
 -- -----------------------------------------------------
