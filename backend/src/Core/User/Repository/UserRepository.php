@@ -39,8 +39,8 @@ final class UserRepository implements UserRepositoryInterface
      * @param DbContainerInterface $db The injected database container.
      */
     public function __construct(
-            LoggerInterface $logger,
-            DbContainerInterface $db,
+        LoggerInterface $logger,
+        DbContainerInterface $db,
     ) {
         $this->logger = $logger;
         $this->db = $db;
@@ -55,12 +55,12 @@ final class UserRepository implements UserRepositoryInterface
     public function getByUsername(string $username): UserFullDTO
     {
         $result = $this->db->fetch(
-                "select id, u.username, role, firstname, lastname, email, created_at from users u
+            "select id, u.username, role, firstname, lastname, email, created_at from users u
                    left join emails e on u.username = e.username
                    right outer join users_info ui on ui.username = u.username
                    where u.username = ?",
-                "s",
-                $username,
+            "s",
+            $username,
         );
 
         return $this->buildUserFromResult($result);
@@ -77,8 +77,8 @@ final class UserRepository implements UserRepositoryInterface
     {
         if ($result->num_rows === 0) {
             $this->logger->error(
-                    LoggerInitiator::CORE,
-                    "Failed to fetch the user's data from the database.",
+                LoggerInitiator::CORE,
+                "Failed to fetch the user's data from the database.",
             );
             throw new UserNotFoundException("Invalid user provided.");
         }
@@ -96,20 +96,20 @@ final class UserRepository implements UserRepositoryInterface
     private function buildUserFromRow(array $row): UserFullDTO
     {
         $this->logger->info(
-                LoggerInitiator::CORE,
-                "User's data were successfully fetched for user : " . $row['username'] . " - Data:\n" . print_r(
-                        $row,
-                        true
-                ),
+            LoggerInitiator::CORE,
+            "User's data were successfully fetched for user : " . $row['username'] . " - Data:\n" . print_r(
+                $row,
+                true
+            ),
         );
         return new UserFullDTO(
-                (int)$row['id'],
-                $row['username'],
-                $this->getPublicIdForUsername($row['username']) ?? "",
-                UserRole::fromString($row['role']),
-                new FullNameDTO($row['firstname'], $row['lastname']),
-                $row['email'] ?? "",
-                new DateTime($row['created_at'])
+            (int)$row['id'],
+            $row['username'],
+            $this->getPublicIdForUsername($row['username']) ?? "",
+            UserRole::fromString($row['role']),
+            new FullNameDTO($row['firstname'], $row['lastname']),
+            $row['email'] ?? "",
+            new DateTime($row['created_at'])
         );
     }
 
@@ -121,9 +121,9 @@ final class UserRepository implements UserRepositoryInterface
     public function getPublicIdForUsername(string $username): ?string
     {
         return $this->db->fetch(
-                "select public_id from public_ids where username = ?",
-                "s",
-                $username,
+            "select public_id from public_ids where username = ?",
+            "s",
+            $username,
         )->fetch_assoc()['public_id'] ?? null;
     }
 
@@ -135,11 +135,11 @@ final class UserRepository implements UserRepositoryInterface
     public function save(UserCreateDTO $userData): bool
     {
         return $this->db->run(
-                "insert into users (username, password_hash, role) values (?, ?, ?)",
-                "sss",
-                $userData->username,
-                $userData->passwordHash,
-                $userData->role->toString(),
+            "insert into users (username, password_hash, role) values (?, ?, ?)",
+            "sss",
+            $userData->username,
+            $userData->passwordHash,
+            $userData->role->toString(),
         );
     }
 
@@ -151,10 +151,10 @@ final class UserRepository implements UserRepositoryInterface
     public function exists(string $username): bool
     {
         return $this->db->fetch(
-                        "select 1 from users where username = ? limit 1",
-                        "s",
-                        $username,
-                )->num_rows != 0;
+            "select 1 from users where username = ? limit 1",
+            "s",
+            $username,
+        )->num_rows != 0;
     }
 
     /**
@@ -165,10 +165,10 @@ final class UserRepository implements UserRepositoryInterface
     public function isUsernameValid(string $username): bool
     {
         return $this->db->fetch(
-                        "select 1 from users_info where username = ? limit 1",
-                        "s",
-                        $username,
-                )->num_rows != 0;
+            "select 1 from users_info where username = ? limit 1",
+            "s",
+            $username,
+        )->num_rows != 0;
     }
 
     /**
@@ -180,15 +180,15 @@ final class UserRepository implements UserRepositoryInterface
     public function getLoginDTO(string $username): ?UserLoginDTO
     {
         $result = $this->db->fetch(
-                "select password_hash from users where username = ?",
-                "s",
-                $username,
+            "select password_hash from users where username = ?",
+            "s",
+            $username,
         );
 
         if ($result->num_rows === 0) {
             $this->logger->warning(
-                    LoggerInitiator::CORE,
-                    "Failed to connect user, invalid username : " . $username,
+                LoggerInitiator::CORE,
+                "Failed to connect user, invalid username : " . $username,
             );
             return null;
         }
@@ -206,7 +206,7 @@ final class UserRepository implements UserRepositoryInterface
     public function getRoleForUsername(string $username): ?UserRole
     {
         $result = $this->db->fetch(
-                "select username, role from (
+            "select username, role from (
             select student_username as username, 'student' as role
             from student_topics
             union all
@@ -218,14 +218,14 @@ final class UserRepository implements UserRepositoryInterface
             ) as all_ids
             where username = ?
             limit 1",
-                "s",
-                $username,
+            "s",
+            $username,
         );
 
         if ($result->num_rows === 0) {
             $this->logger->error(
-                    LoggerInitiator::CORE,
-                    "No such user : " . $username,
+                LoggerInitiator::CORE,
+                "No such user : " . $username,
             );
             return null;
         }
@@ -242,16 +242,16 @@ final class UserRepository implements UserRepositoryInterface
     public function getFullNameForUsername(string $username): ?FullNameDTO
     {
         $result = $this->db->fetch(
-                "select firstname, lastname from users_info where username = ?
+            "select firstname, lastname from users_info where username = ?
             limit 1",
-                "s",
-                $username,
+            "s",
+            $username,
         );
 
         if ($result->num_rows === 0) {
             $this->logger->error(
-                    LoggerInitiator::CORE,
-                    "No such user : " . $username,
+                LoggerInitiator::CORE,
+                "No such user : " . $username,
             );
             return null;
         }
@@ -268,13 +268,13 @@ final class UserRepository implements UserRepositoryInterface
         $this->db->beginTransaction();
         try {
             $this->db->runNoArgs(
-                    "delete from public_ids where username not in (
+                "delete from public_ids where username not in (
                        select username from users where role = 'admin'
                        union
                        select username from admins_list)",
             );
             $this->db->runNoArgs(
-                    "delete from users_info where username not in (
+                "delete from users_info where username not in (
                        select username from users where role = 'admin'
                        union
                        select username from admins_list)",
@@ -297,14 +297,14 @@ final class UserRepository implements UserRepositoryInterface
     public function getByPublicId(string $uuid): UserFullDTO
     {
         $result = $this->db->fetch(
-                "select u.id, u.username, u.role, u.created_at, ui.firstname, ui.lastname, e.email 
+            "select u.id, u.username, u.role, u.created_at, ui.firstname, ui.lastname, e.email 
                    from users u
                    join users_info ui on ui.username = u.username
                    join public_ids pi on u.username = pi.username
                    left join emails e on u.username = e.username
                    where pi.public_id = ?",
-                "s",
-                $uuid,
+            "s",
+            $uuid,
         );
 
         return $this->buildUserFromResult($result);
@@ -326,7 +326,7 @@ final class UserRepository implements UserRepositoryInterface
     public function getVirtualByPublicId(string $uuid): UserFullDTO
     {
         $result = $this->db->fetch(
-                "select -1 as id, ui.username, ui.firstname, ui.lastname, '' as email, date('1970-01-01') as created_at,
+            "select -1 as id, ui.username, ui.firstname, ui.lastname, '' as email, date('1970-01-01') as created_at,
                    case
                        when exists (select 1 from student_topics st where st.student_username = pi.username)
                            then 'student'
@@ -339,8 +339,8 @@ final class UserRepository implements UserRepositoryInterface
                    from public_ids pi
                    join users_info ui on ui.username = pi.username
                    where pi.public_id = ?",
-                "s",
-                $uuid
+            "s",
+            $uuid
         );
 
         return $this->buildUserFromResult($result);
@@ -354,10 +354,10 @@ final class UserRepository implements UserRepositoryInterface
     public function isPublicIdValid(string $uuid): bool
     {
         return $this->db->fetch(
-                        "select 0 from public_ids where public_id = ?",
-                        "s",
-                        $uuid,
-                )->num_rows !== 0;
+            "select 0 from public_ids where public_id = ?",
+            "s",
+            $uuid,
+        )->num_rows !== 0;
     }
 
     /**
@@ -367,9 +367,9 @@ final class UserRepository implements UserRepositoryInterface
     public function getUsernameForPublicId(string $publicId): ?string
     {
         return $this->db->fetch(
-                "select username from public_ids where public_id = ?",
-                "s",
-                $publicId,
+            "select username from public_ids where public_id = ?",
+            "s",
+            $publicId,
         )->fetch_assoc()['username'] ?? null;
     }
 
@@ -394,11 +394,11 @@ final class UserRepository implements UserRepositoryInterface
     public function setFullName(string $target, FullNameDTO $new): bool
     {
         return $this->db->run(
-                "update users_info set firstname = ?, lastname = ? where username = ?",
-                "sss",
-                $new->first,
-                $new->last,
-                $target
+            "update users_info set firstname = ?, lastname = ? where username = ?",
+            "sss",
+            $new->first,
+            $new->last,
+            $target
         );
     }
 
@@ -410,7 +410,7 @@ final class UserRepository implements UserRepositoryInterface
     public function getAll(): array
     {
         $result = $this->db->fetchNoArgs(
-                "select id, u.username, firstname, lastname, role, u.created_at 
+            "select id, u.username, firstname, lastname, role, u.created_at 
                    from users u
                    join users_info ui on ui.username = u.username
                    where role <> 'admin'"
@@ -443,9 +443,9 @@ final class UserRepository implements UserRepositoryInterface
     public function softDelete(string $username): bool
     {
         return $this->db->run(
-                "delete from users where username = ?",
-                "s",
-                $username,
+            "delete from users where username = ?",
+            "s",
+            $username,
         );
     }
 
@@ -464,15 +464,15 @@ final class UserRepository implements UserRepositoryInterface
 
             // cascades to student_topics and topic_teachers, ignore topics shared by multiple teachers
             $this->db->runIgnoreNoOps(
-                    "delete from topics where id in (
+                "delete from topics where id in (
                 select topic_id from topic_teachers where teacher_username = ?
                 and topic_id not in (
                     select topic_id from topic_teachers where teacher_username <> ?
                 )
             )",
-                    "ss",
-                    $username,
-                    $username,
+                "ss",
+                $username,
+                $username,
             );
 
             // cascades to all other tables
@@ -502,16 +502,16 @@ final class UserRepository implements UserRepositoryInterface
         $this->db->beginTransaction();
         try {
             $this->db->run(
-                    "update topic_teachers set teacher_username = ? where teacher_username = ?",
-                    "ss",
-                    $new,
-                    $old
+                "update topic_teachers set teacher_username = ? where teacher_username = ?",
+                "ss",
+                $new,
+                $old
             );
             $this->db->run(
-                    "update public_ids set username = ?, public_id = uuid() where username = ?",
-                    "ss",
-                    $new,
-                    $old
+                "update public_ids set username = ?, public_id = uuid() where username = ?",
+                "ss",
+                $new,
+                $old
             );
 
             $this->db->commit();
@@ -529,7 +529,7 @@ final class UserRepository implements UserRepositoryInterface
     public function getVirtual(): array
     {
         $result = $this->db->fetchNoArgs(
-                "select distinct ui.firstname, ui.lastname, all_ids.username, all_ids.role from (
+            "select distinct ui.firstname, ui.lastname, all_ids.username, all_ids.role from (
                    select student_username as username, 'student' as role from student_topics
                    union
                    select teacher_username as username, 'teacher' as role from topic_teachers
@@ -564,13 +564,13 @@ final class UserRepository implements UserRepositoryInterface
     private function buildVirtualUserFromRow(array $row): VirtualUserDTO
     {
         $this->logger->info(
-                LoggerInitiator::CORE,
-                "Virtual user's data were successfully fetched for user : " . $row['username'],
+            LoggerInitiator::CORE,
+            "Virtual user's data were successfully fetched for user : " . $row['username'],
         );
         return new VirtualUserDTO(
-                $row['username'],
-                UserRole::fromString($row['role']),
-                new FullNameDTO($row['firstname'], $row['lastname'])
+            $row['username'],
+            UserRole::fromString($row['role']),
+            new FullNameDTO($row['firstname'], $row['lastname'])
         );
     }
 
@@ -596,7 +596,7 @@ final class UserRepository implements UserRepositoryInterface
     public function getAdmins(): array
     {
         $result = $this->db->fetchNoArgs(
-                "select id, u.username, firstname, lastname, role , u.created_at
+            "select id, u.username, firstname, lastname, role , u.created_at
                    from users u
                    join users_info ui on ui.username = u.username
                    where role = 'admin'"
@@ -612,7 +612,7 @@ final class UserRepository implements UserRepositoryInterface
     public function getVirtualAdmins(): array
     {
         $result = $this->db->fetchNoArgs(
-                "select al.username, ui.firstname, ui.lastname, 'admin' as role from admins_list al
+            "select al.username, ui.firstname, ui.lastname, 'admin' as role from admins_list al
                                  join users_info ui on al.username = ui.username
                 where al.username not in (select username from users)",
         );
@@ -707,9 +707,9 @@ final class UserRepository implements UserRepositoryInterface
     public function getEmail(string $username): ?string
     {
         $result = $this->db->fetch(
-                "select email from emails where username = ?",
-                "s",
-                $username
+            "select email from emails where username = ?",
+            "s",
+            $username
         );
         return $result->fetch_assoc()['email'] ?? null;
     }
@@ -723,11 +723,11 @@ final class UserRepository implements UserRepositoryInterface
     public function setEmail(string $username, string $email): bool
     {
         return $this->db->runIgnoreNoOps(
-                "insert into emails (username, email) values (?, ?)
+            "insert into emails (username, email) values (?, ?)
                    on duplicate key update email = values(email)",
-                "ss",
-                $username,
-                $email,
+            "ss",
+            $username,
+            $email,
         );
     }
 
@@ -739,9 +739,9 @@ final class UserRepository implements UserRepositoryInterface
     public function removeEmail(string $username): bool
     {
         return $this->db->run(
-                "delete from emails where username = ?",
-                "s",
-                $username,
+            "delete from emails where username = ?",
+            "s",
+            $username,
         );
     }
 
@@ -755,11 +755,11 @@ final class UserRepository implements UserRepositoryInterface
     public function whitelist(string $username, FullNameDTO $fullName): bool
     {
         return $this->db->runIgnoreNoOps(
-                "insert ignore into users_info (username, firstname, lastname) values (?, ?, ?)",
-                "sss",
-                $username,
-                $fullName->first,
-                $fullName->last
+            "insert ignore into users_info (username, firstname, lastname) values (?, ?, ?)",
+            "sss",
+            $username,
+            $fullName->first,
+            $fullName->last
         );
     }
 }
