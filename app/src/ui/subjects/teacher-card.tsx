@@ -144,14 +144,14 @@ export default function TeacherCard({ subjectData, onUpdateAction }: Props): Rea
                         text="Ne pas valider la question"
                         type="button"
                         onClick={rejectSubject}
-                        color="red"
+                        color="sky"
                     />
                     <Button
                         className="mb-1! mt-1! shadow-none!"
                         text="Valider la question"
                         type="button"
                         onClick={approveSubject}
-                        color="green"
+                        color="sky"
                     />
                 </>
             )}

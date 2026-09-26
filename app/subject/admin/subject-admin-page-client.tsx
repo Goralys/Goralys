@@ -19,6 +19,7 @@ import { SubjectsSearchBar } from "@/app/src/ui/subjects/subjects-search-bar";
 import { ReactElement, Suspense, useState } from "react";
 import AdminSubjectCardSkeleton from "@/app/src/ui/skeletons/subjects/admin-card";
 import { useConfirm } from "@/app/src/ui/modals/confirm/confirm-provider";
+import SubjectsFilter from "@/app/src/ui/subjects/subjects-filter";
 
 export default function SubjectAdminPageClient(): ReactElement {
     const modal = useImportTopicsModal();
@@ -138,6 +139,7 @@ export default function SubjectAdminPageClient(): ReactElement {
                     ) : (
                         <>
                             <SubjectsSearchBar subjects={subjects} setCurrentSubjects={setCurrentSubjects} />
+                            <SubjectsFilter subjects={subjects} setCurrentSubjects={setCurrentSubjects} />
                             <div className="flex flex-col gap-2 items-center w-full">
                                 {currentSubjects?.map((s, i) => (
                                     <AdminCard

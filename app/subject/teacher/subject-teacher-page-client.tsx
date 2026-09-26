@@ -5,6 +5,7 @@ import TeacherCard from "@/app/src/ui/subjects/teacher-card";
 import { SubjectsSearchBar } from "@/app/src/ui/subjects/subjects-search-bar";
 import { ReactElement, Suspense, useState } from "react";
 import TeacherCardSkeleton from "@/app/src/ui/skeletons/subjects/teacher-card";
+import SubjectsFilter from "@/app/src/ui/subjects/subjects-filter";
 
 export default function SubjectTeacherPageClient(): ReactElement {
     const { subjects, refetch, syncKey } = useSubjects("teacher");
@@ -19,7 +20,7 @@ export default function SubjectTeacherPageClient(): ReactElement {
 
     return (
         <div className="relative flex flex-col grow h-fit items-center top-10 min-h-screen">
-            <div className="h-auto w-fit p-2">
+            <div className="h-auto min-w-fit p-2 sm:w-200 w-96">
                 <p className="underline text-2xl self-start mb-3">Les questions de vos élèves :</p>
                 <Suspense fallback={<div className="flex flex-col gap-2">{skeletons}</div>}>
                     {subjects === null ? (
@@ -27,6 +28,7 @@ export default function SubjectTeacherPageClient(): ReactElement {
                     ) : (
                         <>
                             <SubjectsSearchBar subjects={subjects} setCurrentSubjects={setCurrentSubjects} />
+                            <SubjectsFilter subjects={subjects} setCurrentSubjects={setCurrentSubjects} />
                             <div className="flex flex-col gap-2">
                                 {currentSubjects?.map((s) => (
                                     <TeacherCard

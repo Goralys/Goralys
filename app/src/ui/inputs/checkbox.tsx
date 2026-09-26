@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactElement } from "react";
+import { ReactElement, useId } from "react";
 
 interface Props {
     id?: string;
@@ -12,18 +12,21 @@ interface Props {
 }
 
 export default function Checkbox({ id, label, setValueAction, defaultValue, className, disabled = false }: Props): ReactElement {
+    const generatedId = useId();
+    const checkBoxId = id || generatedId;
+
     return (
         <div className={`flex items-center gap-0.5 ${className ?? ""}`}>
             <label
                 className={`relative flex items-center justify-center rounded-full p-1 ${disabled ? "cursor-not-allowed" : "cursor-pointer"}`}
-                htmlFor="ripple-on"
+                htmlFor={checkBoxId}
                 data-ripple-dark="true"
             >
                 <input
                     disabled={disabled}
                     defaultChecked={defaultValue}
                     onChange={(e) => setValueAction(e.target.checked)}
-                    id={id}
+                    id={checkBoxId}
                     type="checkbox"
                     className="peer h-4 w-4 appearance-none rounded border border-sky-400
                     bg-white shadow hover:shadow-md transition-all
@@ -56,7 +59,7 @@ export default function Checkbox({ id, label, setValueAction, defaultValue, clas
                 </span>
             </label>
 
-            <label className={`text-black text-sm `} htmlFor="ripple-on">
+            <label className="text-black text-sm cursor-pointer" htmlFor={checkBoxId}>
                 {label}
             </label>
         </div>
