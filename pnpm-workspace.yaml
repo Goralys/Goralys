@@ -2,9 +2,6 @@ packages:
   - '.'
   - 'goralys-core'
 allowBuilds:
-  esbuild: true
+  esbuild: false
   sharp: true
   unrs-resolver: true
-
-ignoredBuiltDependencies:
-  - esbuild
