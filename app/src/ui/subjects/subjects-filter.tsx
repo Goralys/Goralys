@@ -5,14 +5,15 @@ import Checkbox from "@/app/src/ui/inputs/checkbox";
 interface Props {
     subjects: Subject[];
     setCurrentSubjects: (s: Subject[]) => void;
+    defaults?: Record<SubjectStatus, boolean>;
 }
 
-export default function SubjectsFilter({ subjects, setCurrentSubjects }: Props): ReactElement {
+export default function SubjectsFilter({ subjects, setCurrentSubjects, defaults }: Props): ReactElement {
     const DEFAULT_STATUS: Record<SubjectStatus, { default: boolean; label: string }> = {
-        not_submitted: { default: false, label: getStatusLabel("not_submitted") },
-        submitted: { default: true, label: getStatusLabel("submitted") },
-        rejected: { default: false, label: getStatusLabel("rejected") },
-        approved: { default: false, label: getStatusLabel("approved") },
+        not_submitted: { default: defaults?.not_submitted ?? false, label: getStatusLabel("not_submitted") },
+        submitted: { default: defaults?.submitted ?? true, label: getStatusLabel("submitted") },
+        rejected: { default: defaults?.rejected ?? false, label: getStatusLabel("rejected") },
+        approved: { default: defaults?.approved ?? false, label: getStatusLabel("approved") },
     };
 
     // status sort toggle

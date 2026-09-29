@@ -238,20 +238,9 @@ final class AuthController
             return false;
         }
 
-        $params = session_get_cookie_params();
-        session_unset();
-        session_destroy();
-
-        if (isset($_COOKIE[session_name()])) {
-            setcookie(session_name(), '', [
-                'expires' => time() - 3600,
-                'path' => $params['path'],
-                'domain' => $params['domain'],
-                'secure' => $params['secure'],
-                'httponly' => $params['httponly'],
-                'samesite' => $params['samesite'],
-            ]);
-        }
+        $_SESSION = [];
+        session_regenerate_id(true);
+        $_SESSION['LAST_ACTIVITY'] = time();
 
         return true;
     }

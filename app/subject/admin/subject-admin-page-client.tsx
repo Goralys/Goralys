@@ -139,7 +139,11 @@ export default function SubjectAdminPageClient(): ReactElement {
                     ) : (
                         <>
                             <SubjectsSearchBar subjects={subjects} setCurrentSubjects={setCurrentSubjects} />
-                            <SubjectsFilter subjects={subjects} setCurrentSubjects={setCurrentSubjects} />
+                            <SubjectsFilter
+                                subjects={subjects}
+                                setCurrentSubjects={setCurrentSubjects}
+                                defaults={{ submitted: true, not_submitted: true, rejected: true, approved: true }}
+                            />
                             <div className="flex flex-col gap-2 items-center w-full">
                                 {currentSubjects?.map((s, i) => (
                                     <AdminCard

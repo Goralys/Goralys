@@ -65,8 +65,8 @@ final class CSRFService
             $token = bin2hex(random_bytes(AppConfig::CSRF_TOKENS_SIZE));
             $_SESSION["csrf-tokens-table"][$formId] ??= [];
             $_SESSION["csrf-tokens-table"][$formId][] = [
-                "token" => $token,
-                "expires_at" => time() + 60 * 10
+                    "token" => $token,
+                    "expires_at" => time() + 60 * 10
             ];
 
             if (count($_SESSION["csrf-tokens-table"][$formId]) > AppConfig::MAX_CSRF_TOKENS) {
@@ -105,6 +105,10 @@ final class CSRFService
             $this->logger->error(
                 LoggerInitiator::APP,
                 "Foreign token form id encountered : " . $formId,
+            );
+            $this->logger->debug(
+                LoggerInitiator::APP,
+                "Session:\n" . print_r($_SESSION, true)
             );
             return false;
         }
