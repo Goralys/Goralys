@@ -17,21 +17,23 @@ use Goralys\Shared\Lib\String\StringCase;
 
 final class UsernameTable
 {
+    private const string NAME_KEY = "name";
+    private const string ADMIN_KEY = "isAdmin";
     /** @var array<string, string> */
     private array $table = [];
-    /** @var array<string, string> */
+    /** @var array<string, array{name: string, isAdmin: bool}> */
     private array $reverse = [];
 
     public function __construct()
     {
-        $this->resetCache();
+        $this->reloadCache();
     }
 
     /**
      * Resets the table's local cache and reads from the pool file.
      * @return void
      */
-    public function resetCache(): void
+    public function reloadCache(): void
     {
         $this->table = [];
         $this->reverse = [];
@@ -43,16 +45,12 @@ final class UsernameTable
             return;
         }
 
-        $raw = file($filePath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-        foreach ($raw as $line) {
-            $parts = explode("=", $line);
-            if (count($parts) !== 2) {
-                continue;
-            }
-
-            [$fullName, $username] = $parts;
-            $this->table[$fullName] = $username;
-            $this->reverse[$username] = $fullName;
+        $raw = file_get_contents($filePath);
+        $this->reverse = json_decode($raw, true) ?? [];
+        foreach ($this->reverse as $username => $info) {
+            $this->table[
+                    $info[self::NAME_KEY] . ($info[self::ADMIN_KEY] ? Config::USER::ADMIN_SUFFIX : "")
+            ] = $username;
         }
     }
 
@@ -109,7 +107,10 @@ final class UsernameTable
             PHP_EOL . $fullName . $suffix . "=" . $username,
             FILE_APPEND
         );
-        $this->reverse[$username] = $fullName . $suffix;
+        $this->reverse[$username] = [
+                self::NAME_KEY => $fullName,
+                self::ADMIN_KEY => $role === UserRole::ADMIN
+        ];
         return $this->table[$fullName . $suffix] = $username;
     }
 
@@ -169,13 +170,15 @@ final class UsernameTable
      */
     public function writePool(array $contents): bool
     {
-        $final = "";
         $filePath = Config::USER::USERNAME_LIST_PATH . "." . CurrentSchool::$CODE;
-        foreach ($contents as $username => $name) {
-            $suffix = str_contains($username, Config::USER::ADMIN_SUFFIX) ? Config::USER::ADMIN_SUFFIX : "";
-            $final .= $name . $suffix . "=" . $username . "\n";
-        }
-
-        return file_put_contents($filePath, $final);
+        array_walk(
+            $contents,
+            fn(&$fulName, $username) => $fulName = [
+                    self::NAME_KEY => (string)$fulName,
+                    self::ADMIN_KEY => str_contains($username, Config::USER::ADMIN_SUFFIX)
+            ]
+        );
+        // pretty print the data to make it human-readable and thus make debugging easier.
+        return file_put_contents($filePath, json_encode($contents, JSON_PRETTY_PRINT));
     }
 }

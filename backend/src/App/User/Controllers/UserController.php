@@ -318,14 +318,14 @@ final class UserController
      */
     public function syncUsernames(): bool
     {
-        $this->usernames->bucket->resetCache();
-        $raw = $this->repo->getUsernames();
-        $usernames = [];
-        foreach ($raw as $username => $fullName) {
-            $this->logger->debug(LoggerInitiator::APP, "({$username}, {$fullName})");
-            $usernames[$username] = $fullName;
+        $this->usernames->bucket->reloadCache();
+        $usernames = $this->repo->getUsernames();
+
+        if ($this->usernames->bucket->writePool($usernames)) { // write the synced data back to the pool.
+            $this->usernames->bucket->reloadCache();
+            return true;
         }
 
-        return $this->usernames->bucket->writePool($usernames); // write the synced data back to the pool.
+        return false;
     }
 }
