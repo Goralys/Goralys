@@ -5,6 +5,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+use Goralys\Kernel\Data\Enums\KernelType;
 use Goralys\Kernel\GoralysKernel;
 use Goralys\Platform\Loader\Services\EnvService;
 use Goralys\Platform\Loader\Services\HighSchoolsService;
@@ -231,9 +232,21 @@ function bootKernel(): GoralysKernel
     }
 
     error_log("KERNEL - 5: constructing GoralysKernel");
-    $kernel = new GoralysKernel(__DIR__ . "/../../");
-    $kernel->setHandlers();
+    $kernel = makeKernel();
     bootstrapAPI($kernel);
     error_log("KERNEL - 6: boot complete");
+    return $kernel;
+}
+
+/**
+ * Creates a kernel without a heavy bootstrap overhead. This method is particularly useful for cron jobs but is not
+ * intended for API use.
+ * @param KernelType $type The type of the kernel to create, by default, the kernel is created for the API.
+ * @return GoralysKernel The newly created kernel.
+ */
+function makeKernel(KernelType $type = KernelType::API): GoralysKernel
+{
+    $kernel = new GoralysKernel(__DIR__ . "/../../", type: $type);
+    $kernel->setHandlers();
     return $kernel;
 }

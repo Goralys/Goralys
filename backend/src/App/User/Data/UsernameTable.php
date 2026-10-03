@@ -8,6 +8,7 @@
 namespace Goralys\App\User\Data;
 
 use Goralys\App\Config\AppConfig;
+use Goralys\App\Context\Data\CurrentSchool;
 use Goralys\Core\User\Data\Enums\UserRole;
 use Goralys\Shared\Config\GoralysConfig as Config;
 use Goralys\Shared\Exception\User\GoralysUserException;
@@ -23,13 +24,26 @@ final class UsernameTable
 
     public function __construct()
     {
-        if (!file_exists(Config::USER::USERNAME_LIST_PATH)) {
-            mkdir(dirname(Config::USER::USERNAME_LIST_PATH), recursive: true);
-            file_put_contents(Config::USER::USERNAME_LIST_PATH, "");
+        $this->resetCache();
+    }
+
+    /**
+     * Resets the table's local cache and reads from the pool file.
+     * @return void
+     */
+    public function resetCache(): void
+    {
+        $this->table = [];
+        $this->reverse = [];
+        $filePath = Config::USER::USERNAME_LIST_PATH . "." . CurrentSchool::$CODE;
+
+        if (!file_exists($filePath)) {
+            mkdir(dirname($filePath), recursive: true);
+            file_put_contents($filePath, "");
             return;
         }
 
-        $raw = file(Config::USER::USERNAME_LIST_PATH, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        $raw = file($filePath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
         foreach ($raw as $line) {
             $parts = explode("=", $line);
             if (count($parts) !== 2) {
@@ -135,7 +149,7 @@ final class UsernameTable
         }
 
         unset($this->table[$fullName]);
-        unset($this->reverse[$fullName]);
+        unset($this->reverse[$username]);
         return true;
     }
 
@@ -145,5 +159,23 @@ final class UsernameTable
     public function all(): array
     {
         return $this->table;
+    }
+
+    /**
+     * Writes the provided usernames and names couples to the pool (username list file).
+     * @param array<string, string> $contents The usernames associated with the full name of the user
+     * (username = key and fullname = value).
+     * @return bool Wther the write as successful or not.
+     */
+    public function writePool(array $contents): bool
+    {
+        $final = "";
+        $filePath = Config::USER::USERNAME_LIST_PATH . "." . CurrentSchool::$CODE;
+        foreach ($contents as $username => $name) {
+            $suffix = str_contains($username, Config::USER::ADMIN_SUFFIX) ? Config::USER::ADMIN_SUFFIX : "";
+            $final .= $name . $suffix . "=" . $username . "\n";
+        }
+
+        return file_put_contents($filePath, $final);
     }
 }

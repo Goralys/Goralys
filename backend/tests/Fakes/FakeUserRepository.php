@@ -256,4 +256,9 @@ class FakeUserRepository implements UserRepositoryInterface
     {
         return $this->updateResult;
     }
+
+    public function getUsernames(): array
+    {
+        return [];
+    }
 }

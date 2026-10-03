@@ -17,6 +17,9 @@ final class LoggerConfigLoader
     private static array $loggerFiles;
     /* @var array<string, int> */
     private static array $filesLifeTime = [
+        "API" => 3,
+        "CRON" => 5,
+
         "APP" => 7,
         "CORE" => 14,
         "PLATFORM" => 20,
@@ -35,6 +38,9 @@ final class LoggerConfigLoader
     {
         if (!self::$isInitialized) {
             self::$loggerFiles = [
+                "API" => $_ENV["LOGGER_API_FILENAME"] ?? "Goralys_API",
+                "CRON" => $_ENV["LOGGER_CRON_FILENAME"] ?? "Goralys_Cron",
+
                 "APP" => $_ENV["LOGGER_APP_FILENAME"] ?? "Goralys_App",
                 "CORE" => $_ENV["LOGGER_CORE_FILENAME"] ?? "Goralys_Core",
                 "PLATFORM" => $_ENV["LOGGER_PLATFORM_FILENAME"] ?? "Goralys_Platform",

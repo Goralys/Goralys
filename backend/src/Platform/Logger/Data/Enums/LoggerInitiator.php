@@ -12,6 +12,9 @@ namespace Goralys\Platform\Logger\Data\Enums;
  */
 enum LoggerInitiator: string
 {
+    case API = "API";
+    case CRON = "CRON";
+
     case APP = "APP";
     case CORE = "CORE";
     case PLATFORM = "PLATFORM";
@@ -20,6 +23,9 @@ enum LoggerInitiator: string
     public function toString(): string
     {
         return match ($this) {
+            LoggerInitiator::API => "API",
+            LoggerInitiator::CRON => "CronJob",
+
             LoggerInitiator::APP => "App",
             LoggerInitiator::CORE => "Core",
             LoggerInitiator::PLATFORM => "Platform",

@@ -311,4 +311,21 @@ final class UserController
             return null;
         }
     }
+
+    /**
+     * Syncs the usernames between the database and the pool file.
+     * @return bool
+     */
+    public function syncUsernames(): bool
+    {
+        $this->usernames->bucket->resetCache();
+        $raw = $this->repo->getUsernames();
+        $usernames = [];
+        foreach ($raw as $username => $fullName) {
+            $this->logger->debug(LoggerInitiator::APP, "({$username}, {$fullName})");
+            $usernames[$username] = $fullName;
+        }
+
+        return $this->usernames->bucket->writePool($usernames); // write the synced data back to the pool.
+    }
 }

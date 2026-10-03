@@ -762,4 +762,22 @@ final class UserRepository implements UserRepositoryInterface
             $fullName->last
         );
     }
+
+    /**
+     * Returns all usernames in the database associated with the user's full name.
+     * @return array<FullNameDTO, string>
+     */
+    public function getUsernames(): array
+    {
+        $result = $this->db->fetchNoArgs(
+            "select username, firstname, lastname from users_info"
+        );
+
+        $arr = [];
+        while ($value = $result->fetch_assoc()) {
+            $arr[$value["username"]] = new FullNameDTO($value["firstname"], $value["lastname"]);
+        }
+
+        return $arr;
+    }
 }

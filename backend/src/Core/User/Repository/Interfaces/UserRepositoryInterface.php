@@ -228,4 +228,10 @@ interface UserRepositoryInterface
      * @return bool Whether the deletion was successful.
      */
     public function removeEmail(string $username): bool;
+
+    /**
+     * Returns all usernames in the database associated with the user's full name.
+     * @return array<FullNameDTO, string>
+     */
+    public function getUsernames(): array;
 }

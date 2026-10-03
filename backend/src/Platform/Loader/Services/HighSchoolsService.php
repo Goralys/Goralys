@@ -28,13 +28,24 @@ final class HighSchoolsService
 
         $this->schools = $result;
 
-        foreach ($this->schools as $school) {
-            $this->tokenToSchool[$school["TOKEN"]] = [
-                "NAME" => $school["NAME"],
-                "DOMAIN" => $school["DOMAIN"],
-                "DB" => $school["DB"],
+        foreach ($this->schools as $code => $info) {
+            $this->tokenToSchool[$info["TOKEN"]] = [
+                "CODE" => $code,
+                "NAME" => $info["NAME"],
+                "DOMAIN" => $info["DOMAIN"],
+                "DB" => $info["DB"],
             ];
         }
+    }
+
+    /**
+     * Gets the code for a given school.
+     * @param string $token The public token of the school to get the database for.
+     * @return ?string The code of the given school.
+     */
+    public function getCodeForSchool(string $token): ?string
+    {
+        return $this->tokenToSchool[$token]["CODE"] ?? null;
     }
 
     /**
@@ -73,8 +84,6 @@ final class HighSchoolsService
      */
     public function getAllSchools(): array
     {
-        return array_map(function ($school) {
-            return $school["NAME"];
-        }, $this->schools);
+        return array_map(fn($school) => $school["NAME"], $this->schools);
     }
 }

@@ -35,6 +35,7 @@ use Exception;
 use Goralys\App\Config\RateLimiterConfig;
 use Goralys\App\Context\AppContext;
 use Goralys\App\Context\Data\Client;
+use Goralys\App\Context\Data\CurrentSchool;
 use Goralys\App\Context\Data\ToastMode;
 use Goralys\App\HTTP\Files\GoralysFileManager;
 use Goralys\App\HTTP\Files\Interface\FileExtractor;
@@ -67,6 +68,7 @@ use Goralys\App\Utils\Toast\Data\Enums\ToastType;
 use Goralys\Core\User\Data\Enums\UserRole;
 use Goralys\Core\User\Repository\UserRepository;
 use Goralys\Core\User\Services\UsernameManager;
+use Goralys\Kernel\Data\Enums\KernelType;
 use Goralys\Kernel\Data\ErrorMessageConfig;
 use Goralys\Platform\DB\Facade\DbContainer;
 use Goralys\Platform\DB\Interfaces\DbContainerInterface;
@@ -152,8 +154,12 @@ class GoralysKernel
      * @param string $rootPath The path to the .env file and that is considered to be the root path for the kernel.
      * @param FileMover|null $mover The file mover used by the kernel.
      */
-    public function __construct(string $rootPath, ?FileMover $mover = null, bool $skipHighSchoolToken = false)
-    {
+    public function __construct(
+        string $rootPath,
+        ?FileMover $mover = null,
+        bool $skipHighSchoolToken = false,
+        KernelType $type = KernelType::API,
+    ) {
         $this->rootPath = $rootPath;
 
         $this->initEnv();
@@ -162,18 +168,38 @@ class GoralysKernel
         $this->initLogger();
         $this->sessionLifetime = $this->env->getByKey("PHP_SESSION_LIFETIME");
         $this->sessionLifetimeMultiplier = $this->env->getByKey("PHP_SESSION_LIFETIME_MULTIPLIER");
-        $client = Client::fromRequest($this->request());
-        $origin = match ($client) {
-            Client::MOBILE => "",
-            default => $this->getOriginDomain($skipHighSchoolToken),
-        };
-        $this->context = new AppContext(
-            ToastMode::DEFAULT,
-            $client,
-            !$skipHighSchoolToken,
-            trim($origin),
-            $this->env->getByKey("GORALYS_ENVIRONMENT") === "dev",
-        );
+
+        switch ($type) {
+            case KernelType::API:
+                CurrentSchool::$TOKEN = $this->request()->header("X-High-School-Token")
+                        ?? $this->request()->param("high-school-token");
+                CurrentSchool::$CODE = $this->highSchools->getCodeForSchool(CurrentSchool::$TOKEN);
+
+                $client = Client::fromRequest($this->request());
+                $origin = match ($client) {
+                    Client::MOBILE => "",
+                    default => $this->getOriginDomain($skipHighSchoolToken),
+                };
+
+                $this->context = new AppContext(
+                    ToastMode::DEFAULT,
+                    $client,
+                    !$skipHighSchoolToken,
+                    trim($origin),
+                    $this->env->getByKey("GORALYS_ENVIRONMENT") === "dev",
+                );
+                break;
+
+            case KernelType::CRON:
+                $this->context = new AppContext(
+                    ToastMode::DEFAULT,
+                    Client::WEB,
+                    false,
+                    "",
+                    false
+                );
+                break;
+        }
         $this->startSession();
         $this->initRouter();
 
@@ -657,9 +683,7 @@ class GoralysKernel
         }
 
         try {
-            $token = $this->request()->header("X-High-School-Token")
-                   ?? $this->request()->param("high-school-token");
-            return $this->db->connect($this->highSchools->getDbForSchool($token));
+            return $this->db->connect($this->highSchools->getDbForSchool(CurrentSchool::$TOKEN));
         } catch (Exception $e) {
             throw new GoralysConnectException("Could not connect to the database: " . $e->getMessage());
         }
