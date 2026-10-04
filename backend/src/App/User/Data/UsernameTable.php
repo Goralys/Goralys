@@ -20,9 +20,9 @@ final class UsernameTable
     private const string NAME_KEY = "name";
     private const string ADMIN_KEY = "isAdmin";
     /** @var array<string, string> */
-    private array $table = [];
+    private static array $table = [];
     /** @var array<string, array{name: string, isAdmin: bool}> */
-    private array $reverse = [];
+    private static array $reverse = [];
 
     public function __construct()
     {
@@ -35,8 +35,8 @@ final class UsernameTable
      */
     public function reloadCache(): void
     {
-        $this->table = [];
-        $this->reverse = [];
+        self::$table = [];
+        self::$reverse = [];
         $filePath = Config::USER::USERNAME_LIST_PATH . "." . CurrentSchool::$CODE;
 
         if (!file_exists($filePath)) {
@@ -46,9 +46,9 @@ final class UsernameTable
         }
 
         $raw = file_get_contents($filePath);
-        $this->reverse = json_decode($raw, true) ?? [];
-        foreach ($this->reverse as $username => $info) {
-            $this->table[
+        self::$reverse = json_decode($raw, true) ?? [];
+        foreach (self::$reverse as $username => $info) {
+            self::$table[
                     $info[self::NAME_KEY] . ($info[self::ADMIN_KEY] ? Config::USER::ADMIN_SUFFIX : "")
             ] = $username;
         }
@@ -64,8 +64,8 @@ final class UsernameTable
     public function resolve(string $fullName, UserRole $role = UserRole::UNKNOWN): string
     {
         $suffix = $role === UserRole::ADMIN ? Config::USER::ADMIN_SUFFIX : "";
-        if (isset($this->table[$fullName . $suffix])) {
-            return $this->table[$fullName . $suffix];
+        if (isset(self::$table[$fullName . $suffix])) {
+            return self::$table[$fullName . $suffix];
         }
         [$firstNameParts, $lastNameParts] = Lib::STRING::separateNames($fullName, true);
 
@@ -92,7 +92,7 @@ final class UsernameTable
         // Test all 10 possibilities.
         $found = false;
         for ($i = 0; $i < 10; $i++) {
-            if (!isset($this->reverse[$base . (($number + $i) % 10)])) {
+            if (!isset(self::$reverse[$base . (($number + $i) % 10)])) {
                 $number = ($number + $i) % 10;
                 $found = true;
                 break;
@@ -107,20 +107,20 @@ final class UsernameTable
             PHP_EOL . $fullName . $suffix . "=" . $username,
             FILE_APPEND
         );
-        $this->reverse[$username] = [
+        self::$reverse[$username] = [
                 self::NAME_KEY => $fullName,
                 self::ADMIN_KEY => $role === UserRole::ADMIN
         ];
-        return $this->table[$fullName . $suffix] = $username;
+        return self::$table[$fullName . $suffix] = $username;
     }
 
     public function remove(string $username): bool
     {
-        if (!isset($this->reverse[$username])) {
+        if (!isset(self::$reverse[$username])) {
             return false;
         }
 
-        $fullName = $this->reverse[$username];
+        $fullName = self::$reverse[$username];
 
         $raw = file(Config::USER::USERNAME_LIST_PATH, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
         if (!$raw) {
@@ -149,8 +149,8 @@ final class UsernameTable
             return false;
         }
 
-        unset($this->table[$fullName]);
-        unset($this->reverse[$username]);
+        unset(self::$table[$fullName]);
+        unset(self::$reverse[$username]);
         return true;
     }
 
@@ -159,7 +159,7 @@ final class UsernameTable
      */
     public function all(): array
     {
-        return $this->table;
+        return self::$table;
     }
 
     /**
@@ -180,5 +180,10 @@ final class UsernameTable
         );
         // pretty print the data to make it human-readable and thus make debugging easier.
         return file_put_contents($filePath, json_encode($contents, JSON_PRETTY_PRINT));
+    }
+
+    public function __destruct()
+    {
+        $this->writePool(array_map(fn($info) => $info[self::NAME_KEY], self::$reverse));
     }
 }
