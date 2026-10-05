@@ -28,4 +28,10 @@ interface MiddlewareInterface
      * @return mixed The response produced by the pipeline.
      */
     public function handle(GoralysKernel $kernel, callable $next): mixed;
+
+    /**
+     * Returns the name of the middleware.
+     * @return string The name of the middelware.
+     */
+    public static function name(): string;
 }

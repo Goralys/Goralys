@@ -12,13 +12,15 @@
     use Goralys\Kernel\GoralysKernel;
     use Goralys\Shared\Config\GoralysConfig;
 
-/**
+    /**
  * Middleware that enforces authentication before a route handler is executed.
  * Supports a "weak" mode that only clears the user-related fields inside the session on failure
  * instead of destroying it completely.
  */
 final class AuthMiddleware implements MiddlewareInterface
 {
+    private const string NAME = "auth";
+    private const string WEAK = "weak";
     private string $endpoint;
     private array $options;
 
@@ -38,7 +40,7 @@ final class AuthMiddleware implements MiddlewareInterface
      */
     public static function require(): array
     {
-        return ['auth'];
+        return [self::NAME];
     }
 
     /**
@@ -48,7 +50,7 @@ final class AuthMiddleware implements MiddlewareInterface
      */
     public static function weak(): array
     {
-        return ['auth', ['weak']];
+        return [self::NAME, [self::WEAK]];
     }
 
     /**
@@ -58,7 +60,7 @@ final class AuthMiddleware implements MiddlewareInterface
      */
     public function handle(GoralysKernel $kernel, callable $next): mixed
     {
-        if (in_array('weak', $this->options)) {
+        if (in_array(self::WEAK, $this->options)) {
             if (!$kernel->checkAuth()) {
                 foreach (GoralysConfig::SESSION::USER_CACHE as $key) {
                     unset($_SESSION[$key]);
@@ -76,5 +78,14 @@ final class AuthMiddleware implements MiddlewareInterface
         }
         $kernel->requireAuth($this->endpoint);
         return $next($kernel);
+    }
+
+    /**
+     * Returns the name of the middleware.
+     * @return string The name of the middelware.
+     */
+    public static function name(): string
+    {
+        return self::NAME;
     }
 }

@@ -15,6 +15,7 @@ use Goralys\Kernel\GoralysKernel;
  */
 final class CSRFMiddleware implements MiddlewareInterface
 {
+    private const string NAME = "csrf";
     private string $redirect;
     private string $formId;
 
@@ -36,7 +37,7 @@ final class CSRFMiddleware implements MiddlewareInterface
      */
     public static function form(string $formId, ?string $redirect = null): array
     {
-        return ['csrf', [$formId, $redirect]];
+        return [self::NAME, [$formId, $redirect]];
     }
 
     /**
@@ -49,5 +50,14 @@ final class CSRFMiddleware implements MiddlewareInterface
     {
         $kernel->requireCSRF($this->formId, $this->redirect);
         return $next($kernel);
+    }
+
+    /**
+     * Returns the name of the middleware.
+     * @return string The name of the middelware.
+     */
+    public static function name(): string
+    {
+        return self::NAME;
     }
 }

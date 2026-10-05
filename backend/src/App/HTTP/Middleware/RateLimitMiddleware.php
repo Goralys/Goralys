@@ -15,6 +15,7 @@ use Goralys\Kernel\GoralysKernel;
  */
 final class RateLimitMiddleware implements MiddlewareInterface
 {
+    private const string NAME = "rate-limit";
     private string $endpoint;
     private ?string $redirect;
     private ?string $message;
@@ -39,7 +40,7 @@ final class RateLimitMiddleware implements MiddlewareInterface
      */
     public static function for(string $endpoint, ?string $redirect = null, ?string $message = null): array
     {
-        return ['rate-limit', [$endpoint, $redirect, $message]];
+        return [self::NAME, [$endpoint, $redirect, $message]];
     }
 
     /**
@@ -57,5 +58,14 @@ final class RateLimitMiddleware implements MiddlewareInterface
         );
 
         return $next($kernel);
+    }
+
+    /**
+     * Returns the name of the middleware.
+     * @return string The name of the middelware.
+     */
+    public static function name(): string
+    {
+        return self::NAME;
     }
 }

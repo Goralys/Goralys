@@ -16,6 +16,7 @@ use Throwable;
  */
 final class DbMiddleware implements Interface\MiddlewareInterface
 {
+    private const string NAME = "db";
     private const string TRANSACTION = 'transaction';
     private array $options;
 
@@ -65,7 +66,7 @@ final class DbMiddleware implements Interface\MiddlewareInterface
      */
     public static function require(): array
     {
-        return ['db'];
+        return [self::NAME];
     }
 
     /**
@@ -74,6 +75,15 @@ final class DbMiddleware implements Interface\MiddlewareInterface
      */
     public static function transaction(): array
     {
-        return ['db', [self::TRANSACTION]];
+        return [self::NAME, [self::TRANSACTION]];
+    }
+
+    /**
+     * Returns the name of the middleware.
+     * @return string The name of the middelware.
+     */
+    public static function name(): string
+    {
+        return self::NAME;
     }
 }

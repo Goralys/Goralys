@@ -17,6 +17,7 @@ use Goralys\Kernel\GoralysKernel;
  */
 final class RoleMiddleware implements MiddlewareInterface
 {
+    private const string NAME = "role";
     private UserRole $role;
     private bool $strict;
 
@@ -38,7 +39,7 @@ final class RoleMiddleware implements MiddlewareInterface
      */
     public static function require(UserRole $role, bool $strict = false): array
     {
-        return ['role', [$role, $strict]];
+        return [self::NAME, [$role, $strict]];
     }
 
     /**
@@ -51,5 +52,14 @@ final class RoleMiddleware implements MiddlewareInterface
     {
         $kernel->requireRole($this->role, $this->strict);
         return $next($kernel);
+    }
+
+    /**
+     * Returns the name of the middleware.
+     * @return string The name of the middelware.
+     */
+    public static function name(): string
+    {
+        return self::NAME;
     }
 }

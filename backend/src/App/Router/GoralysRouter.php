@@ -7,12 +7,7 @@
 
 namespace Goralys\App\Router;
 
-use Goralys\App\HTTP\Middleware\AuthMiddleware;
-use Goralys\App\HTTP\Middleware\CSRFMiddleware;
-use Goralys\App\HTTP\Middleware\DbMiddleware;
 use Goralys\App\HTTP\Middleware\Interface\MiddlewareInterface;
-use Goralys\App\HTTP\Middleware\RateLimitMiddleware;
-use Goralys\App\HTTP\Middleware\RoleMiddleware;
 use Goralys\App\HTTP\Request\Interfaces\RequestInterface;
 use Goralys\App\Router\Data\Route;
 use Goralys\App\Router\Interfaces\RouterInterface;
@@ -33,13 +28,7 @@ final class GoralysRouter implements RouterInterface
     private GoralysKernel $kernel; // router should be the only class with this dependency.
 
     /** @var array<string, class-string<MiddlewareInterface>>  */
-    private array $middlewaresMap = [
-        'auth' => AuthMiddleware::class,
-        'role' => RoleMiddleware::class,
-        'rate-limit' => RateLimitMiddleware::class,
-        'csrf' => CSRFMiddleware::class,
-        'db' => DbMiddleware::class,
-    ];
+    private array $middlewaresMap = [];
 
     private ?array $knownFormIds = null;
 
@@ -48,6 +37,7 @@ final class GoralysRouter implements RouterInterface
      */
     public function __construct(GoralysKernel $kernel)
     {
+        $this->middlewaresMap = MiddlewareRegistry::discoverMiddlewares();
         $this->kernel = $kernel;
     }
 
