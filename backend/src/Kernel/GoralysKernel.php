@@ -32,6 +32,7 @@ namespace Goralys\Kernel;
 
 use ErrorException;
 use Exception;
+use Goralys\App\Cache\ClassDiscoverer;
 use Goralys\App\Config\RateLimiterConfig;
 use Goralys\App\Context\AppContext;
 use Goralys\App\Context\Data\Client;
@@ -262,6 +263,7 @@ class GoralysKernel
     {
         $this->logger = new GoralysLogger();
         $this->logger->rotate();
+        ClassDiscoverer::$logger = $this->logger;
     }
 
     /**

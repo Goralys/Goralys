@@ -4,16 +4,13 @@ namespace Goralys\App\Cron;
 
 use Goralys\App\Context\Data\CurrentSchool;
 use Goralys\App\Cron\Data\CronJob;
-use Goralys\App\Cron\Options\DbOption;
 use Goralys\App\Cron\Options\Interfaces\OptionInterface;
 use Goralys\Kernel\GoralysKernel;
 use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
 
 class JobDispatcher
 {
-    private array $optionsMap = [
-            "db" => DbOption::class
-    ];
+    private array $optionsMap;
     private GoralysKernel $kernel;
 
     /**
@@ -21,6 +18,7 @@ class JobDispatcher
      */
     public function __construct(GoralysKernel $kernel)
     {
+        $this->optionsMap = OptionsRegistry::discoverOptions();
         $this->kernel = $kernel;
     }
 

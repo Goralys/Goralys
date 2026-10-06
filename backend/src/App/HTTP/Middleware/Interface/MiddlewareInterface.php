@@ -7,13 +7,14 @@
 
 namespace Goralys\App\HTTP\Middleware\Interface;
 
+use Goralys\App\Cache\Interfaces\Discoverable;
 use Goralys\Kernel\GoralysKernel;
 
 /**
  * Contract for all HTTP middleware in the Goralys pipeline.
  * Each middleware receives the kernel and a `$next` callable to pass control downstream.
  */
-interface MiddlewareInterface
+interface MiddlewareInterface extends Discoverable
 {
     /**
      * @param string $route The matched route path.
