@@ -37,6 +37,7 @@ use Goralys\App\Context\AppContext;
 use Goralys\App\Context\Data\Client;
 use Goralys\App\Context\Data\CurrentSchool;
 use Goralys\App\Context\Data\ToastMode;
+use Goralys\App\Cron\JobDispatcher;
 use Goralys\App\HTTP\Files\GoralysFileManager;
 use Goralys\App\HTTP\Files\Interface\FileExtractor;
 use Goralys\App\HTTP\Files\Interface\FileMover;
@@ -110,6 +111,7 @@ class GoralysKernel
     private(set) CSRFService $csrf;
     private(set) UsernameManager $usernames;
     private(set) RouterInterface $router;
+    private(set) JobDispatcher $jobs;
     private string $rootPath;
     private RateLimiter $rateLimiter;
     /**
@@ -202,6 +204,7 @@ class GoralysKernel
         }
         $this->startSession();
         $this->initRouter();
+        $this->initJobs();
 
         // Initializes toast before the DB to be able to provide user feedback if the connection to the DB fails.
         $this->initToast();
@@ -347,6 +350,15 @@ class GoralysKernel
     private function initRouter(): void
     {
         $this->router = new GoralysRouter($this);
+    }
+
+    /**
+     * Initializes the job dispatcher used by the cron jobs.
+     * @return void
+     */
+    private function initJobs(): void
+    {
+        $this->jobs = new JobDispatcher($this);
     }
 
     /**

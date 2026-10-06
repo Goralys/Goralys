@@ -56,7 +56,7 @@ final class GoralysRouter implements RouterInterface
         $path = trim($uri, "/");
 
         if (!array_key_exists($method, $routes) || !array_key_exists($path, $routes[$method])) {
-            $this->kernel->logger->error(
+            $this->kernel->logger->fatal(
                 LoggerInitiator::APP,
                 "Unknow route $method $path, known:\n" . $this->formatKnownRoutes($routes),
             );
@@ -107,7 +107,7 @@ final class GoralysRouter implements RouterInterface
         foreach ($route->middlewares as $middleware) {
             $class = $this->middlewaresMap[$middleware->name] ?? null;
             if ($class === null) {
-                $this->kernel->logger->error(
+                $this->kernel->logger->warning(
                     LoggerInitiator::APP,
                     "Unknown middleware: " . $middleware->name,
                 );
