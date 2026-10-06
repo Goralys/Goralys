@@ -5,10 +5,12 @@ namespace Goralys\App\Cron;
 use Goralys\App\Context\Data\CurrentSchool;
 use Goralys\App\Cron\Data\CronJob;
 use Goralys\App\Cron\Options\Interfaces\OptionInterface;
+use Goralys\App\Cron\Scheduler\CronScheduler;
+use Goralys\App\Cron\Scheduler\Data\JobSchedule;
 use Goralys\Kernel\GoralysKernel;
 use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
 
-class JobDispatcher
+final class JobDispatcher
 {
     private array $optionsMap;
     private GoralysKernel $kernel;
@@ -47,34 +49,37 @@ class JobDispatcher
     }
 
     /**
-     * Runs a given job.
-     * @param string $name The name of the job to run.
+     * Runs all due jobs.
      * @return void
      */
-    public function dispatch(string $name): void
+    public function runDue(): void
     {
         $jobs = new Cron()->getAll();
-        $j = $jobs[$name] ?? null;
-        if ($j === null) {
-            $this->kernel->logger->fatal(
-                LoggerInitiator::CRON,
-                "Unknown job name: " . $name
-            );
+        foreach ($jobs as $n => $job) {
+            if (!is_a($job, JobSchedule::class)) {
+                unset($jobs[$n]);
+                $this->kernel->logger->warning(
+                    LoggerInitiator::CRON,
+                    "Found unscheduled job: " . $n . ", this job will be skipped"
+                );
+            }
         }
+        $jobs = CronScheduler::getDue($jobs);
 
+        foreach ($jobs as $j) {
+            $opt = $this->resolveOptions($j);
+            $schools = $this->kernel->highSchools->getAllSchools();
+            foreach ($schools as $school => $_) {
+                CurrentSchool::$CODE = $school;
+                CurrentSchool::$TOKEN = $this->kernel->highSchools->getTokenForSchool(CurrentSchool::$CODE);
 
-        $opt = $this->resolveOptions($j);
-        $schools = $this->kernel->highSchools->getAllSchools();
-        foreach ($schools as $school => $_) {
-            CurrentSchool::$CODE = $school;
-            CurrentSchool::$TOKEN = $this->kernel->highSchools->getTokenForSchool(CurrentSchool::$CODE);
-
-            $dest = function () use ($school, $opt, $j) {
-                $this->kernel->run(function () use ($school, $opt, $j) {
-                    ($j->callback)($this->kernel, $school);
-                });
-            };
-            $this->pipeline($school, $opt, $dest);
+                $dest = function () use ($school, $opt, $j) {
+                    $this->kernel->run(function () use ($school, $opt, $j) {
+                        ($j->callback)($this->kernel, $school);
+                    });
+                };
+                $this->pipeline($school, $opt, $dest);
+            }
         }
     }
 

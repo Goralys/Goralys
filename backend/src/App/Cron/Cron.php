@@ -4,6 +4,7 @@ namespace Goralys\App\Cron;
 
 use Closure;
 use Goralys\App\Cron\Data\CronJob;
+use Goralys\App\Cron\Scheduler\Data\JobSchedule;
 use Goralys\Kernel\GoralysKernel;
 
 final class Cron
@@ -19,14 +20,18 @@ final class Cron
      */
     public static function job(string $name, Closure $callback): CronJob
     {
-        $job = new CronJob($name, $callback);
+        $job = new CronJob(
+            $name,
+            $callback,
+            onSchedule: fn (JobSchedule $js, string $name) => self::$jobs[$name] = $js
+        );
         self::$jobs[$name] = $job;
         return $job;
     }
 
     /**
      * Returns all the registered jobs.
-     * @return array<string, CronJob> The array containing all the registered jobs, indexed by name.
+     * @return array<string, CronJob|JobSchedule> The array containing all the registered jobs, indexed by name.
      */
     public function getAll(): array
     {

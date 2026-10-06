@@ -3,7 +3,6 @@
 use Goralys\App\Context\Data\CurrentSchool;
 use Goralys\Kernel\Data\Enums\KernelType;
 use Goralys\Platform\Loader\Services\HighSchoolsService;
-use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
 
 require __DIR__ . "/../vendor/autoload.php";
 require __DIR__ . "/../src/Kernel/bootstrap.php";
@@ -22,17 +21,7 @@ CurrentSchool::$TOKEN = $schoolsService->getTokenForSchool(CurrentSchool::$CODE)
 $kernel = makeKernel(KernelType::CRON);
 $jobs = $kernel->jobs;
 
-if (count($argv) < 2) {
-    $kernel->logger->fatal(
-        LoggerInitiator::CRON,
-        "Expected at least two arguments, got: " . count($argv)
-    );
-    exit(1);
-}
-
 // Load the jobs
 (require __DIR__ . "/../Cron/jobs.php")();
-
-$name = $argv[1];
-$jobs->dispatch($name);
+$jobs->runDue();
 exit(0);

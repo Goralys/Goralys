@@ -150,7 +150,6 @@ function resolveOriginDomain(?string $token): ?string
  */
 function bootstrapAPI(GoralysKernel $kernel): void
 {
-    date_default_timezone_set('Europe/Paris');  // change if you are not french
     if (isset($_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'])) {
         $_SERVER['REQUEST_METHOD'] = $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'];
     }
@@ -212,8 +211,7 @@ function bootKernel(): GoralysKernel
         error_log("KERNEL - 1: public resource, skipping token checks");
         setCorsHeaders($env);
         handlePreflight();
-        $kernel = new GoralysKernel(__DIR__ . "/../../", skipHighSchoolToken: true);
-        $kernel->setHandlers();
+        $kernel = makeKernel(skipHighSchoolToken: true);
         bootstrapAPI($kernel);
         return $kernel;
     }
@@ -244,9 +242,10 @@ function bootKernel(): GoralysKernel
  * @param KernelType $type The type of the kernel to create, by default, the kernel is created for the API.
  * @return GoralysKernel The newly created kernel.
  */
-function makeKernel(KernelType $type = KernelType::API): GoralysKernel
+function makeKernel(KernelType $type = KernelType::API, bool $skipHighSchoolToken = false): GoralysKernel
 {
-    $kernel = new GoralysKernel(__DIR__ . "/../../", type: $type);
+    date_default_timezone_set('Europe/Paris');  // change if you are not french
+    $kernel = new GoralysKernel(__DIR__ . "/../../", skipHighSchoolToken: $skipHighSchoolToken, type: $type);
     $kernel->setHandlers();
     return $kernel;
 }
