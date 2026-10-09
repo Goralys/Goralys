@@ -28,7 +28,7 @@ export async function cacheUserDataClient(): Promise<void> {
     else cookiesRemove(EMAIL_KEY);
 }
 
-function arrayAny<T>(arr: T[], cond: (v: T) => boolean): boolean {
+export function arrayAny<T>(arr: T[], cond: (v: T) => boolean): boolean {
     for (let i = 0; i < arr.length; i++) {
         if (cond(arr[i])) return true;
     }

@@ -9,6 +9,7 @@ namespace Goralys\Core\Subjects\Repository\Interfaces;
 
 use Goralys\App\Topics\Data\StudentDTO;
 use Goralys\Core\Subjects\Data\Enums\SubjectStatus;
+use Goralys\Core\Subjects\Data\SubjectsFilter;
 use mysqli_result;
 
 /**
@@ -34,6 +35,29 @@ interface SubjectsRepositoryInterface
      * @return mysqli_result All subjects in the database.
      */
     public function findAll(): mysqli_result;
+
+    /**
+     * Returns the list of all classrooms and the students they contain.
+     * @return mysqli_result The query result.
+     */
+    public function getClassrooms(): mysqli_result;
+
+    /**
+     * Returns the list of all topic groups and the students they contain.
+     * @return mysqli_result The query result.
+     */
+    public function getTopicGroups(): mysqli_result;
+
+
+    /**
+     * @param SubjectsFilter $f The filter to apply to the subjects
+     * @return mysqli_result All subjects in the database which fits the given filter.
+     *
+     * Please note that this functions automatically retrieves all subjects associated to a student if at least one of
+     * his subjects fits the filter. This is mainly due to the fact that this function is mainly used during subjects
+     * export. Thus, we need to have all the subjects for every student to do a proper export.
+     */
+    public function findFiltered(SubjectsFilter $f): mysqli_result;
 
     /**
      * @param string $teacherUsername The teacher's username.

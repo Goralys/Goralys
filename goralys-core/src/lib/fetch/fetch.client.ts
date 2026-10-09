@@ -6,7 +6,7 @@
 import { emitAuthEvent } from "@/lib/auth/auth-event";
 import { emitNavigationEvent } from "./navigation-event";
 import { GoralysActionHandler } from "./goralys-action-handler";
-import type { GoralysFetchOptions, HttpMethod } from "@/types/http";
+import type { GoralysFetchOptions, HttpMethod, Json } from "@/types/http";
 import { getGoralysClientConfig } from "./config";
 import { ToastFn } from "@/types/toast";
 
@@ -15,7 +15,7 @@ const actionHandler = new GoralysActionHandler();
 export async function goralysFetchClient(
     method: HttpMethod,
     input: string | URL | Request,
-    payload?: Record<string, string | number | boolean | null> | FormData,
+    payload?: Record<string, Json> | FormData,
     requestOptions?: GoralysFetchOptions,
 ): Promise<Response> {
     if (requestOptions?.body)

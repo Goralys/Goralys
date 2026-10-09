@@ -22,3 +22,5 @@ export declare function isHTTPMethod(maybeMethod: string): maybeMethod is HttpMe
 export type GoralysFetchOptions = RequestInit & {
     suppressRedirect?: boolean;
 };
+
+export type Json = string | number | boolean | null | Json[] | { [k: string]: Json };

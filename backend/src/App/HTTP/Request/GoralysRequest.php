@@ -84,7 +84,7 @@ final class GoralysRequest implements RequestInterface
             $value = $this->input[$k] ?? null;
 
             foreach ($constraints as $constraint) {
-                if ($constraint === 'required') {
+                if (str_starts_with($constraint, 'required')) {
                     if (!array_key_exists($k, $this->input)) {
                         throw new InvalidInputException("$k is required");
                     }
@@ -95,6 +95,24 @@ final class GoralysRequest implements RequestInterface
 
                     if ($value === null) {
                         throw new InvalidInputException("$k is required");
+                    }
+
+                    // type checking
+                    $t = explode(":", $constraint)[1] ?? null;
+                    if ($t === null) {
+                        continue;
+                    }
+
+                    if ($t === "arr" && !is_array($value)) {
+                        throw new InvalidInputException("Expected type array, got " . gettype($value) . " for $k");
+                    }
+                    if ($t === "num" && !is_int($value) && !is_float($value)) {
+                        throw new InvalidInputException(
+                            "Expected type number (int/float), got " . gettype($value) . " for $k"
+                        );
+                    }
+                    if ($t === "str" && !is_string($value)) {
+                        throw new InvalidInputException("Expected type string, got " . gettype($value) . " for $k");
                     }
                 }
 

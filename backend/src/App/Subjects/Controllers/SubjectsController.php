@@ -21,6 +21,8 @@ use Goralys\Core\Subjects\Data\SubjectsCollection;
 use Goralys\Core\Subjects\Repository\Interfaces\SubjectsRepositoryInterface;
 use Goralys\Core\Subjects\Repository\SubjectsRepository;
 use Goralys\Core\Subjects\Services\GetSubjectsService;
+use Goralys\Core\Subjects\Services\SubjectsFilterer;
+use Goralys\Core\Subjects\Services\SubjectsFormatter;
 use Goralys\Core\Subjects\Services\SubjectsTemplateRenderer;
 use Goralys\Core\Subjects\Services\UpdateSubjectService;
 use Goralys\Core\User\Data\Enums\UserRole;
@@ -54,6 +56,7 @@ final class SubjectsController
     private UserRepositoryInterface $userRepo;
     private SubjectsTemplateRenderer $renderer;
     private PdfExporterInterface $exporter;
+    public SubjectsFilterer $filterer;
 
     /**
      * Initializes the logger and database container for the controller.
@@ -79,12 +82,14 @@ final class SubjectsController
         $this->fileManager = $fileManager;
         $this->draftsManager = new StudentDraftsManager($this->logger, $this->repo, $this->fileManager);
         $this->updateService = new UpdateSubjectService($this->logger, $this->repo);
+
+        $sFormatter = new SubjectsFormatter($this->formatter, $this->usernameManager);
         $this->getService = new GetSubjectsService(
             $this->logger,
             $this->repo,
-            $this->formatter,
-            $this->usernameManager,
+            $sFormatter,
         );
+        $this->filterer = new SubjectsFilterer($this->repo, $sFormatter);
         $this->exporter = $exporter;
         $this->renderer = new SubjectsTemplateRenderer();
     }

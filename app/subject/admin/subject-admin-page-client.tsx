@@ -4,6 +4,7 @@ import { useImportTopicsModal } from "@/app/src/ui/modals/import-topics/import-t
 import {
     buildApiUrl,
     cookiesSet,
+    emitNavigationEvent,
     fetchCsrfClient,
     goralysFetchClient,
     handleToastRequest,
@@ -87,38 +88,6 @@ export default function SubjectAdminPageClient(): ReactElement {
         }
     };
 
-    const exportSubjects = async (): Promise<void> => {
-        if (
-            !(await confirm.showConfirm({
-                title: "Export des sujets",
-                message: "Ête-vous sûr de vouloir exporter les sujets ? Cette opération peut prendre quelques minutes.",
-            }))
-        )
-            return;
-
-        const csrfToken = await fetchCsrfClient("export-subjects");
-        const payload = {
-            "csrf-token": csrfToken,
-        };
-
-        const res = await goralysFetchClient("POST", "subjects/export", payload);
-
-        if (res.ok) {
-            const blob = await res.blob();
-
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = "sujets-go.zip";
-            a.click();
-
-            URL.revokeObjectURL(url);
-            return;
-        }
-
-        await handleToastRequest(res, toast.showToast, false);
-    };
-
     const skeletons = Array.from({ length: 3 }, (_, i) => <AdminSubjectCardSkeleton key={i} />);
 
     return (
@@ -127,7 +96,11 @@ export default function SubjectAdminPageClient(): ReactElement {
                 <p className="underline text-xl self-start mb-2.5">Gestion des sujets:</p>
                 <div className="w-150">
                     <Button text="Importer les sujets" type="button" onClick={sendTopics} />
-                    <Button text="Exporter les sujets en PDF" type="button" onClick={exportSubjects} />
+                    <Button
+                        text="Exporter les sujets en PDF"
+                        type="button"
+                        onClick={() => emitNavigationEvent({ type: "redirect", url: "/admin/export" })}
+                    />
                     <Button text="Supprimer les sujets" type="button" onClick={deleteTopics} color="red" />
                 </div>
             </div>

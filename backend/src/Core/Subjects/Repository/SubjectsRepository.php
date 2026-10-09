@@ -9,8 +9,10 @@ namespace Goralys\Core\Subjects\Repository;
 
 use Goralys\App\Topics\Data\StudentDTO;
 use Goralys\Core\Subjects\Data\Enums\SubjectStatus;
+use Goralys\Core\Subjects\Data\SubjectsFilter;
 use Goralys\Core\Subjects\Repository\Interfaces\SubjectsRepositoryInterface;
 use Goralys\Platform\DB\Interfaces\DbContainerInterface;
+use Goralys\Shared\Error\GoralysValueError;
 use Goralys\Shared\Exception\User\UserNotFoundException;
 use Goralys\Shared\User\Data\FullNameDTO;
 use mysqli_result;
@@ -112,6 +114,90 @@ final class SubjectsRepository implements SubjectsRepositoryInterface
             join topic_teachers tt on t.id = tt.topic_id
             join student_topics st on t.id = st.topic_id
             group by st.student_username, st.topic_id",
+        );
+    }
+
+    /**
+     * Returns the list of all classrooms and the students they contain.
+     * @return mysqli_result The query result.
+     */
+    public function getClassrooms(): mysqli_result
+    {
+        return $this->db->fetchNoArgs(
+            "select 
+                sc.class as classroom,
+                pi.public_id as student
+                from students_classroom sc
+                join public_ids pi on sc.username = pi.username
+            "
+        );
+    }
+
+    /**
+     * Returns the list of all topic groups and the students they contain.
+     * @return mysqli_result The query result.
+     */
+    public function getTopicGroups(): mysqli_result
+    {
+        return $this->db->fetchNoArgs(
+            "select 
+                distinct pi.public_id as student, t.topic_code as topic
+                from student_topics st
+                join topics t on t.id = st.topic_id
+                join public_ids pi on pi.username = st.student_username;
+            "
+        );
+    }
+
+    /**
+     * @param SubjectsFilter $f The filter to apply to the subjects
+     * @return mysqli_result All subjects in the database which fits the given filter.
+     *
+     * Please note that this functions automatically retrieves all subjects associated to a student if at least one of
+     * his subjects fits the filter. This is mainly due to the fact that this function is mainly used during subjects
+     * export. Thus, we need to have all the subjects for every student to do a proper export.
+     */
+    public function findFiltered(SubjectsFilter $f): mysqli_result
+    {
+        if (empty($f->status) || empty($f->classrooms) || empty($f->topics)) {
+            throw new GoralysValueError("Invalid filter found: " . $f);
+        }
+
+        $statuses = array_map(fn(SubjectStatus $s) => $s->value, $f->status);
+        $classrooms = $f->classrooms;
+        $topics = $f->topics;
+        // assume non-empty arrays because it would produce an error (SQL) anyway if the array was empty
+        // (see error above)
+        $aPlaceholder = fn (array $arr) => '?' . str_repeat(',?', count($arr) - 1);
+        $aParam = fn (array $arr) => [implode("", array_map(fn(mixed $el) => is_int($el) ? 'i' : 's', $arr)), ...$arr];
+
+        // just a simple SQL query
+        return $this->db->fetch(
+            "select
+                st.student_username as student,
+                st.subject,
+                st.subject_status,
+                st.teacher_comment as comment,
+                st.last_rejected,
+                st.is_interdisciplinary,
+                st.last_updated_at,
+                t.name as topic,
+                t.topic_code as topic_code,
+                GROUP_CONCAT(distinct tt.teacher_username order by tt.teacher_username separator ', ') as teachers
+            from student_topics st
+            join topics t on t.id = st.topic_id
+            join topic_teachers tt on t.id = tt.topic_id
+            where st.student_username in (
+                select st.student_username from student_topics st
+                join topics t on t.id = st.topic_id
+                join students_classroom sc on sc.username = st.student_username
+                    where st.subject_status in ({$aPlaceholder($statuses)})
+                    and sc.class in ({$aPlaceholder($classrooms)})
+                    and t.topic_code in ({$aPlaceholder($topics)})
+            )
+            group by st.student_username, st.topic_id 
+            ",
+            ...$aParam([...$statuses, ...$classrooms, ...$topics])
         );
     }
 

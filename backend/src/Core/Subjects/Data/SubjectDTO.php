@@ -63,6 +63,7 @@ final readonly class SubjectDTO implements JsonSerializable
             "comment" => $this->comment,
             "lastRejected" => $this->lastRejected,
             "topic" => $this->topic,
+            "topicCode" => $this->topicCode,
             "teacher" => $this->teacherName,
             "teacherToken" => $this->teacherUsernameToken,
             "hasDraft" => $this->hasDraft,

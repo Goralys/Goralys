@@ -12,6 +12,7 @@ use Goralys\App\Router\Routes;
 use Goralys\App\Subjects\Data\Enums\SubjectFields;
 use Goralys\App\Utils\Toast\Data\Enums\ToastType;
 use Goralys\Core\Subjects\Data\Enums\SubjectStatus;
+use Goralys\Core\Subjects\Data\SubjectsFilter;
 use Goralys\Core\User\Data\Enums\UserRole;
 use Goralys\Kernel\GoralysKernel;
 
@@ -90,20 +91,44 @@ Routes::get('subjects/draft', function (GoralysKernel $kernel, RequestInterface 
 // ==================================================
 // [SECTION] Subject modifiers/setters
 // ==================================================
-Routes::post('subjects/export', function (GoralysKernel $kernel) {
+Routes::post('subjects/export', function (GoralysKernel $kernel, RequestInterface $request) {
     $kernel->subjects->cleanExports(); // Cleans all previous exports
     $kernel->subjects->prepareExports();
 
-    $subjects = $kernel->subjects->getForRole(UserRole::ADMIN); // Get all subjects
+    // Build the filter
+    $f = new SubjectsFilter(
+        array_map(fn (int $s) => SubjectStatus::from($s), $request->param("status")),
+        $request->param("classrooms"),
+        $request->param("topics")
+    );
+
+    if (empty($f->status) || empty($f->classrooms) || empty($f->topics)) {
+        $kernel->response(400)->http();
+    }
+
+    $subjects = $kernel->subjects->filterer->query($f); // Get all subjects matching the filter
     $path = $kernel->subjects->exportAll($subjects);
 
     $kernel->response()->download($path, "sujets-go.zip", after: fn() => $kernel->subjects->cleanExports());
-})
+}, ...RouterOptions::$INPUT::require(["status", "arr"], ["classrooms", "arr"], ["topics", "arr"])) // enforce array type
         ->middlewares(...MiddlewareSets::subjectsRoute(
             'export-subjects',
             UserRole::ADMIN,
             rateLimit: "export-subjects"
         ));
+
+// --------------------------------------------------
+// [SUBSECTION] Get filter options
+// --------------------------------------------------
+Routes::get(
+    'subjects/filter/opt',
+    fn (GoralysKernel $kernel) => $kernel->response()->json($kernel->subjects->filterer->opt())
+)
+    ->middlewares(...MiddlewareSets::subjectsRoute(
+        'get-filter-options',
+        UserRole::ADMIN,
+        rateLimit: "get-filter-options"
+    ));
 
 Routes::patch('subjects/status', function (GoralysKernel $kernel, RequestInterface $request) {
     if (!$kernel->auth->validatePassword($request->param("admin-password"))) {

@@ -83,6 +83,7 @@ use Goralys\Platform\Logger\Interfaces\LoggerInterface;
 use Goralys\Platform\Mail\Facade\MailContainer;
 use Goralys\Platform\Mail\Interfaces\MailContainerInterface;
 use Goralys\Shared\Config\GoralysConfig;
+use Goralys\Shared\Error\GoralysError;
 use Goralys\Shared\Exception\DB\GoralysConnectException;
 use Goralys\Shared\Exception\GoralysException;
 use Goralys\Shared\Exception\GoralysRuntimeException;
@@ -640,7 +641,7 @@ class GoralysKernel
             )
                 ->redirect($msg->redirect)
                 ->send();
-        } elseif ($e instanceof GoralysException) {
+        } elseif ($e instanceof GoralysException || $e instanceof GoralysError) {
             $this->deferredResponse(500)->error( // Internal Server Error
                 "Une erreur interne est survenue",
             )

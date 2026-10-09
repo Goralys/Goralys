@@ -15,7 +15,7 @@ use Goralys\Shared\Config\DirConfig as Config;
  */
 final class SubjectsExportConfig
 {
-    public const string ASSETS_PATH = Config::ASSETS . DIRECTORY_SEPARATOR . 'Template' . DIRECTORY_SEPARATOR;
+    public const string ASSETS_PATH = Config::ASSETS . 'Template' . DIRECTORY_SEPARATOR;
     public const string TEMPLATE_SOURCE_PATH = self::ASSETS_PATH . 'main.html';
     public const string TEMPLATE_STYLES_PATH = self::ASSETS_PATH . 'style.css';
     public const string EXPORT_BASE_NAME = 'FICHE_GO-';

@@ -43,6 +43,9 @@ export const SUBJECT_CACHES: Record<UserRole["role"], string> = {
     none: SUBJECT_CACHE_RADIX + "unknown",
 };
 
+export const FILTER_OPTIONS_SYNC = "filter-options-synced";
+export const FILTER_OPTIONS_CACHE = "filter-options-cache";
+
 export const AUTH_TOKEN_SYNCS: Record<AuthTokenContext, string | undefined> = {
     "admin-panel": undefined,
     profile: AUTH_TOKEN_SYNC_RADIX + "profile",

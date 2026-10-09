@@ -63,7 +63,13 @@ export type Subject = {
     teacher: string;
     teacherToken: string;
     topic: string;
+    topicCode: string;
     interdisciplinary: boolean;
+};
+
+export type SubjectsFilterOptions = {
+    classrooms: Record<string, string[]>;
+    topics: Record<string, string[]>;
 };
 
 export const searchFields = {
