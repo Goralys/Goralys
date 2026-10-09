@@ -34,6 +34,7 @@ export function AuthListener(): null {
                 setTimeout(() => {
                     routerRef.current.replace("/user/login");
                 }, 0);
+                emitUserEvent("logout");
             } else if (event === "unauthenticated") {
                 toastRef.current.showToast({
                     type: "info",

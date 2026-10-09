@@ -203,7 +203,7 @@ export default function AdminExportPageClient(): ReactElement {
                     onToggleAll={toggleAllClassrooms}
                 />
                 <FilterGroup
-                    title="Groupe de spés"
+                    title="Groupes de spécialité"
                     options={topicOptions}
                     selected={currentTopics}
                     onToggle={toggleTopic}
