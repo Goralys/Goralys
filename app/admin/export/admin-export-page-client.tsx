@@ -212,12 +212,17 @@ export default function AdminExportPageClient(): ReactElement {
                     expendDefault={true}
                 />
 
-                <Button text="Exporter ces sujets" type="button" onClick={exportSubjects} />
+                <Button text="Exporter ces sujets*" type="button" onClick={exportSubjects} />
+
+                <span className="h-25 w-full block" />
+
+                <p className="text-xs">*: si une fiche contient au moins un sujet vide alors elle ne sera pas exportée</p>
             </aside>
 
             <main className="mx-auto flex w-full max-w-3xl flex-col gap-4 pt-10">
                 <p>
-                    Prévisualisation des sujets exportés ({studentCount} fiche{studentCount > 1 ? "s" : ""} · {currentSubjects.length} sujet
+                    Prévisualisation des sujets exportés* ({studentCount} fiche{studentCount > 1 ? "s" : ""} · {currentSubjects.length}{" "}
+                    sujet
                     {currentSubjects.length > 1 ? "s" : ""})
                 </p>
                 {currentSubjects.map((s) => (
