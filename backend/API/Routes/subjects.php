@@ -1,5 +1,6 @@
 <?php
 
+use Goralys\App\Audit\Audit;
 use Goralys\App\Config\AppConfig;
 use Goralys\App\HTTP\Middleware\AuthMiddleware;
 use Goralys\App\HTTP\Middleware\DbMiddleware;
@@ -11,6 +12,7 @@ use Goralys\App\Router\Options\RouterOptions;
 use Goralys\App\Router\Routes;
 use Goralys\App\Subjects\Data\Enums\SubjectFields;
 use Goralys\App\Utils\Toast\Data\Enums\ToastType;
+use Goralys\Core\Audit\Data\Enums\AuditActionType;
 use Goralys\Core\Subjects\Data\Enums\SubjectStatus;
 use Goralys\Core\Subjects\Data\SubjectsFilter;
 use Goralys\Core\User\Data\Enums\UserRole;
@@ -109,6 +111,11 @@ Routes::post('subjects/export', function (GoralysKernel $kernel, RequestInterfac
     $subjects = $kernel->subjects->filterer->query($f); // Get all subjects matching the filter
     $path = $kernel->subjects->exportAll($subjects);
 
+    $len = fn(array $a) => count($a);
+    Audit::registerAction(
+        AuditActionType::OTHER,
+        "Export de {$len($subjects->subjects)} sujet" . $len($subjects->subjects) > 0 ? "s" : ""
+    );
     $kernel->response()->download($path, "sujets-go.zip", after: fn() => $kernel->subjects->cleanExports());
 }, ...RouterOptions::$INPUT::require(["status", "arr"], ["classrooms", "arr"], ["topics", "arr"])) // enforce array type
         ->middlewares(...MiddlewareSets::subjectsRoute(
@@ -141,12 +148,21 @@ Routes::patch('subjects/status', function (GoralysKernel $kernel, RequestInterfa
                 ->send();
     }
 
+    $student = $kernel->usernames->get($request->param('student'));
+    $topic = $request->param("topic");
+    $status = SubjectStatus::fromString($request->param("status"));
+
     $kernel->subjects->updateField(
         $kernel->usernames->get($request->param('teacher')),
-        $kernel->usernames->get($request->param('student')),
-        $request->param("topic"),
+        $student,
+        $topic,
         SubjectFields::STATUS,
-        SubjectStatus::fromString($request->param("status"))
+        $status
+    );
+
+    Audit::registerAction(
+        AuditActionType::UPDATE,
+        "Sujet de $student ($topic) passé au statut \"{$status->toFrench()}\"",
     );
 
     $kernel->deferredResponse()->toast(

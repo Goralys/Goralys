@@ -2,18 +2,21 @@
 
 import {
     buildApiUrl,
+    cookiesGet,
     cookiesSet,
     fetchCsrfClient,
     goralysFetchClient,
     handleToastRequest,
     HttpMethod,
     parsePhpDateTime,
+    PUB_ID_KEY,
     separateNames,
     useAuthTokens,
+    USER_SYNCS,
     UserProfile,
 } from "@goralys/core";
 import { ReactElement } from "react";
-import { useAdminPanelSubjects } from "@/app/src/hooks/use-admin-panel-subjects";
+import { useAdminPanelInfo } from "@/app/src/hooks/use-admin-panel-info";
 import { Card } from "@/app/src/ui/card";
 import { FloatingInput } from "@/app/src/ui/inputs/floating-input";
 import UserSubjectsTeacherCard from "@/app/src/ui/admin-panel/subjects/user-subjects-teacher-card";
@@ -27,6 +30,9 @@ import { useToast } from "@/app/src/ui/toast/toast-provider";
 import { Button } from "@/app/src/ui/button";
 import { UserSubjectsTeacherCardSkeleton } from "@/app/src/ui/skeletons/admin-panel/subjects/user-subjects-teacher-card";
 import { UserSubjectsStudentCardSkeleton } from "@/app/src/ui/skeletons/admin-panel/subjects/user-subjetcs-student-card";
+import clsx from "clsx";
+import AuditActionCard from "@/app/src/ui/admin-panel/audit-action-card";
+import { AuditActionCardSkeleton } from "@/app/src/ui/skeletons/admin-panel/audit-action-card";
 
 export default function UserPanelPageClient({ profile }: { profile: UserProfile }): ReactElement {
     // may have undesirable side effects, testing to do...
@@ -41,7 +47,7 @@ export default function UserPanelPageClient({ profile }: { profile: UserProfile 
     const confirmCtx = useConfirm();
     const toast = useToast();
     const { tokens, refetch: refetchTokens, syncKey: tokensSync } = useAuthTokens("admin-panel", profile.pubId);
-    const { subjects, refetch: refetchSubjects } = useAdminPanelSubjects(profile.pubId);
+    const { subjects, actions, refetchS: refetchSubjects } = useAdminPanelInfo(profile.pubId);
     const { firstName, lastName } = separateNames(profile.fullName);
 
     const onUpdate = async (): Promise<void> => {
@@ -94,18 +100,31 @@ export default function UserPanelPageClient({ profile }: { profile: UserProfile 
         }
     };
 
-    const resetAccount = async (): Promise<void> =>
+    const resetAccount = async (): Promise<void> => {
         await fetchAdmin("users/reset", "PATCH", "reset-account", "la réinitialisation du compte");
+        // invalidate caches
+        cookiesSet(USER_SYNCS[profile.role === "admin" ? "admins-real" : "users-real"], "0");
+        cookiesSet(USER_SYNCS[profile.role === "admin" ? "admins-virtual" : "users-virtual"], "0");
+    };
 
-    const deleteUser = async (): Promise<void> =>
-        await fetchAdmin("users", "DELETE", "delete-user", "la suppression de l'utilisateur", undefined, 500, true);
+    const deleteUser = async (): Promise<void> => {
+        if (profile.role == "admin")
+            await fetchAdmin("admin/revoke", "DELETE", "revoke-admin", "la révocation de l'administrateur", undefined, 500, true);
+        else await fetchAdmin("users", "DELETE", "delete-user", "la suppression de l'utilisateur", undefined, 500, true);
+        // invalidate caches
+        cookiesSet(USER_SYNCS[profile.role === "admin" ? "admins-real" : "users-real"], "0");
+        cookiesSet(USER_SYNCS[profile.role === "admin" ? "admins-virtual" : "users-virtual"], "0");
+    };
 
-    const replaceTeacher = async (firstName: string, lastName: string): Promise<void> =>
+    const replaceTeacher = async (firstName: string, lastName: string): Promise<void> => {
         await fetchAdmin("users/teacher/replace", "PUT", "replace-teacher", "le remplacement du professeur", {
             "first-name": firstName,
             "last-name": lastName,
         });
-
+        // invalidate caches, we know the user is not and admin
+        cookiesSet(USER_SYNCS["users-real"], "0");
+        cookiesSet(USER_SYNCS["users-virtual"], "0");
+    };
     const showUsername = async (): Promise<void> =>
         await fetchAdmin("users/username", "GET", "get-username", "la révélation de l'identifiant", {}, 10 * 1000);
 
@@ -125,7 +144,12 @@ export default function UserPanelPageClient({ profile }: { profile: UserProfile 
     return (
         <div className="flex flex-col grow items-center min-h-screen">
             <div className="flex flex-row mt-5 w-11/12 h-fit max-w-250">
-                <Card className="flex flex-col w-5/12! bg-sky-200 m-2 shrink-0">
+                <Card
+                    className={clsx("flex flex-col bg-sky-200 m-2 shrink-0", {
+                        "w-1/3!": profile.role === "admin",
+                        "w-5/12!": profile.role !== "admin",
+                    })}
+                >
                     <CardTitle title={profile.id >= 0 ? `Profil (# ${profile.id})` : "Profil (utilisateur non créé)"} />
 
                     <FloatingInput id="username" label="Nom d'utilisateur" defaultValue={profile.username} disabled />
@@ -155,6 +179,12 @@ export default function UserPanelPageClient({ profile }: { profile: UserProfile 
                     ) : (
                         <UserSubjectsStudentCardSkeleton />
                     )
+                ) : profile.role === "admin" ? (
+                    actions ? (
+                        <AuditActionCard actions={actions} />
+                    ) : (
+                        <AuditActionCardSkeleton />
+                    )
                 ) : (
                     <></>
                 )}
@@ -176,8 +206,22 @@ export default function UserPanelPageClient({ profile }: { profile: UserProfile 
                 )}
                 <Card className="flex flex-col flex-1 bg-sky-200 m-2">
                     <CardTitle title="Zone dangereuse" />
-                    {profile.id > 0 && <Button text="Réinitialiser le compte" type="button" onClick={resetAccount} color="red" />}
-                    <Button text="Supprimer l'utilisateur" type="button" onClick={deleteUser} color="red" />
+                    {profile.id > 0 && (
+                        <Button
+                            text="Réinitialiser le compte"
+                            type="button"
+                            onClick={resetAccount}
+                            color="red"
+                            disabled={profile.pubId === cookiesGet(PUB_ID_KEY)}
+                        />
+                    )}
+                    <Button
+                        text={profile.role === "admin" ? "Révoquer" : "Supprimer l'utilisateur"}
+                        type="button"
+                        onClick={deleteUser}
+                        color="red"
+                        disabled={profile.pubId === cookiesGet(PUB_ID_KEY)}
+                    />
                 </Card>
             </div>
         </div>

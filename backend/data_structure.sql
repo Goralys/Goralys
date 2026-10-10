@@ -183,6 +183,8 @@ create table topic_teachers
         on delete cascade
         on update cascade,
     foreign key (teacher_username) references users_info (username)
+        on delete cascade
+        on update cascade
 ) engine = innodb;
 
 -- -----------------------------------------------------

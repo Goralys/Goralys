@@ -12,8 +12,8 @@ interface RoleGuardOptions {
 }
 
 export async function roleGuard(request: NextRequest, { allowedRoles, onSuccess }: RoleGuardOptions): Promise<NextResponse> {
-    console.log("[roleGuard] all cookies:", request.cookies.getAll());
-    console.log("[roleGuard] has GORALYSSESSID:", request.cookies.has("GORALYSSESSID"));
+    // console.log("[roleGuard] all cookies:", request.cookies.getAll());
+    // console.log("[roleGuard] has GORALYSSESSID:", request.cookies.has("GORALYSSESSID"));
 
     if (!request.cookies.has("GORALYSSESSID")) {
         return redirectTo(request, "/user/login?reason=unauthenticated");

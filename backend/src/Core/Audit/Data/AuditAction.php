@@ -20,11 +20,11 @@ final readonly class AuditAction implements JsonSerializable
      * @param ?DateTime $at The precise date of the action.
      */
     public function __construct(
-        public ?int $id,
+        public ?int $id = null,
         public string $initiator,
         public AuditActionType $type,
         public string $description,
-        public ?DateTime $at,
+        public ?DateTime $at = null,
     ) {
     }
 

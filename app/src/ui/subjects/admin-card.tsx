@@ -46,7 +46,7 @@ export default function AdminCard({ subjectData, onUpdateAction, syncKey }: Prop
             student: subjectData.studentToken,
             teacher: subjectData.teacherToken,
             status: status,
-            topic: subjectData.topic,
+            topic: subjectData.topicCode,
             "admin-password": pwd,
             "csrf-token": csrfToken,
         };

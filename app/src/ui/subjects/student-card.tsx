@@ -45,7 +45,7 @@ export default function StudentCard({ subjectData, onUpdateAction }: Props): Rea
         const payload = {
             teacher: subjectData.teacherToken,
             student: subjectData.studentToken,
-            topic: subjectData.topic,
+            topic: subjectData.topicCode,
             draft: subject,
             interdisciplinary: isInterdisciplinary,
             "csrf-token": csrfToken,

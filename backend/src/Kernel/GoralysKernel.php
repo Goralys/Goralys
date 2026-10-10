@@ -32,6 +32,8 @@ namespace Goralys\Kernel;
 
 use ErrorException;
 use Exception;
+use Goralys\App\Audit\Audit;
+use Goralys\App\Audit\Controllers\AuditController;
 use Goralys\App\Cache\ClassDiscoverer;
 use Goralys\App\Config\RateLimiterConfig;
 use Goralys\App\Context\AppContext;
@@ -67,6 +69,7 @@ use Goralys\App\User\Data\Enums\UserAuthStatus;
 use Goralys\App\User\Data\UsernameTable;
 use Goralys\App\Utils\Toast\Controllers\ToastController;
 use Goralys\App\Utils\Toast\Data\Enums\ToastType;
+use Goralys\Core\Audit\Data\AuditActionsCollection;
 use Goralys\Core\User\Data\Enums\UserRole;
 use Goralys\Core\User\Repository\UserRepository;
 use Goralys\Core\User\Services\UsernameManager;
@@ -109,6 +112,7 @@ class GoralysKernel
     private(set) TopicsController $topics;
     private(set) ToastController $toast;
     private(set) SupportController $support;
+    private(set) AuditController $audit;
     private(set) GuardInterface $guard;
     private(set) CSRFService $csrf;
     private(set) UsernameManager $usernames;
@@ -157,6 +161,7 @@ class GoralysKernel
      * Initializes the kernel and all of its members.
      * @param string $rootPath The path to the .env file and that is considered to be the root path for the kernel.
      * @param FileMover|null $mover The file mover used by the kernel.
+     * @throws GoralysRuntimeException If the shutdown function fails (on shutdown).
      */
     public function __construct(
         string $rootPath,
@@ -217,6 +222,7 @@ class GoralysKernel
         $this->initUser();
         $this->initUsernameManager();
         $this->initSupport();
+        $this->initAudit();
         $this->bootFileSubsystem($mover);
         $this->initExporter();
         $this->initSubjects();
@@ -224,6 +230,16 @@ class GoralysKernel
         $this->initCSRF();
         $this->initGuard();
         $this->initRateLimiter();
+
+        register_shutdown_function(function () {
+            if (count(Audit::$registeredActions) > 0) {
+                $c = new AuditActionsCollection();
+                foreach (Audit::$registeredActions as $action) {
+                    $c->addAction($action);
+                }
+                $this->audit->insertCollection($c);
+            }
+        });
     }
 
     /**
@@ -437,6 +453,18 @@ class GoralysKernel
             $this->logger,
             $this->db,
             $this->usernames,
+        );
+    }
+
+    /**
+     * Initializes the audit controller of the kernel.
+     * @return void
+     */
+    private function initAudit(): void
+    {
+        $this->audit = new AuditController(
+            $this->logger,
+            $this->db,
         );
     }
 

@@ -53,3 +53,10 @@ export type AuthToken = {
     expires: PHPDateTime;
     created: PHPDateTime;
 };
+
+export type AuditAction = {
+    initiator: string;
+    type: "add" | "update" | "delete" | "other";
+    description: string;
+    at: PHPDateTime;
+};

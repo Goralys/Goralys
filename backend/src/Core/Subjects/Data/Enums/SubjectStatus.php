@@ -26,6 +26,17 @@ enum SubjectStatus: int
         return strtolower($this->name);
     }
 
+    public function toFrench(): string
+    {
+        return match ($this) {
+            self::UNKNOWN => "inconnu",
+            self::NOT_SUBMITTED => "non-soumis",
+            self::SUBMITTED => "soumis",
+            self::REJECTED => "rejetté",
+            self::APPROVED => "approuvé",
+        };
+    }
+
     public static function fromString(string $status): self
     {
         return match ($status) {

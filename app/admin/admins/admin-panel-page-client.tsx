@@ -36,7 +36,7 @@ export default function AdminPanelPageClient(): ReactElement {
                                 <AdminsSearchBar type="real" admins={admins} setCurrentAdminsAction={setCurrentAdmins} />
                                 <div className="flex flex-col gap-2">
                                     {currentAdmins?.map((u) => (
-                                        <AdminCard key={u.role + u.publicId} admin={u} onUpdateAction={refetch} syncKey={syncKey} />
+                                        <AdminCard key={u.role + u.publicId} admin={u} />
                                     ))}
                                 </div>
                             </>
@@ -61,12 +61,7 @@ export default function AdminPanelPageClient(): ReactElement {
                                 <AdminsSearchBar type="virtual" admins={virtualAdmins} setCurrentAdminsAction={setCurrentVirtualAdmins} />
                                 <div className="flex flex-col gap-2">
                                     {currentVirtualAdmins?.map((u) => (
-                                        <AdminCard
-                                            key={u.role + u.publicId + "-virtual"}
-                                            admin={u}
-                                            onUpdateAction={virtualRefetch}
-                                            syncKey={virtualSyncKey}
-                                        />
+                                        <AdminCard key={u.role + u.publicId + "-virtual"} admin={u} />
                                     ))}
                                 </div>
                             </>

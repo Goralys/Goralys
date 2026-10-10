@@ -101,12 +101,7 @@ final class UsernameTable
         if (!$found) {
             throw new GoralysUserException("To many users with username base: $base");
         }
-        $username = $base . $suffix . $number;
-        file_put_contents(
-            Config::USER::USERNAME_LIST_PATH,
-            PHP_EOL . $fullName . $suffix . "=" . $username,
-            FILE_APPEND
-        );
+        $username = $base . $number;
         self::$reverse[$username] = [
                 self::NAME_KEY => $fullName,
                 self::ADMIN_KEY => $role === UserRole::ADMIN
@@ -120,35 +115,7 @@ final class UsernameTable
             return false;
         }
 
-        $fullName = self::$reverse[$username];
-
-        $raw = file(Config::USER::USERNAME_LIST_PATH, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-        if (!$raw) {
-            return false;
-        }
-
-        $lineNumber = null;
-        foreach ($raw as $i => $line) {
-            [$f, $u] = array_map('trim', explode("=", $line)); // f = fullName, u = username
-            if ($u === $username && $f === $fullName) {
-                $lineNumber = $i;
-                break;
-            }
-        }
-
-        if ($lineNumber === null) {
-            return false;
-        }
-
-        unset($raw[$lineNumber]);
-        if (
-            !file_put_contents(Config::USER::USERNAME_LIST_PATH, $raw
-            |> array_values(...)
-            |> (fn($x) => implode(PHP_EOL, $x)))
-        ) {
-            return false;
-        }
-
+        $fullName = self::$reverse[$username][self::NAME_KEY];
         unset(self::$table[$fullName]);
         unset(self::$reverse[$username]);
         return true;

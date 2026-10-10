@@ -49,14 +49,19 @@ class AuditRepository implements Interfaces\AuditRepositoryInterface
      */
     public function getForInitiator(string $username, int $max): mysqli_result
     {
-        return $this->db->fetch(
-            "select id, initiator, action_type, action_description, action_at
-            from audit
-            where initiator = ?
-            limit ?",
-            "si",
-            $username,
-            $max
-        );
+        $sql = "select id, initiator, action_type, action_description, action_at
+        from audit
+        where initiator = ?
+        order by action_at desc";
+        $types = "s";
+        $params = [$username];
+
+        if ($max > 0) {
+            $sql .= " limit ?";
+            $types .= "i";
+            $params[] = $max;
+        }
+
+        return $this->db->fetch($sql, $types, ...$params);
     }
 }

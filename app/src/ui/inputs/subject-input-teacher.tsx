@@ -32,8 +32,8 @@ export function SubjectInputTeacher({ id, label, helper, subjectData, onChangeAc
                 "high-school-token": process.env.NEXT_PUBLIC_API_TOKEN ?? null,
                 teacher: subjectData.teacherToken,
                 student: subjectData.studentToken,
-                topic: subjectData.topic,
-                "file-name": `Brouillon - ${subjectData.student} ${subjectData.topic}`,
+                topic: subjectData.topicCode,
+                "file-name": `Brouillon - ${subjectData.student} ${subjectData.topicCode}`,
             },
             true,
         );

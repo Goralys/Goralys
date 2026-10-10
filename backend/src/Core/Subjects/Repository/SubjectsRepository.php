@@ -217,7 +217,7 @@ final class SubjectsRepository implements SubjectsRepositoryInterface
             join topic_teachers tt on t.id = tt.topic_id
             where tt.teacher_username = ?
               and st.student_username = ?
-              and t.name = ?",
+              and t.topic_code = ?",
             "sss",
             $teacherUsername,
             $studentUsername,
@@ -241,7 +241,7 @@ final class SubjectsRepository implements SubjectsRepositoryInterface
             join topic_teachers tt on t.id = tt.topic_id
             where tt.teacher_username = ?
               and st.student_username = ?
-              and t.name = ?",
+              and t.topic_code = ?",
             "sss",
             $teacherUsername,
             $studentUsername,
@@ -298,7 +298,7 @@ final class SubjectsRepository implements SubjectsRepositoryInterface
             set st.subject = ?, st.subject_status = 0, is_interdisciplinary = ?
             where tt.teacher_username = ?
             and st.student_username = ?
-            and t.name = ?
+            and t.topic_code = ?
             and (st.subject_status = 0 or st.subject_status = 2)",
             "sisss",
             $newSubject,
@@ -312,7 +312,7 @@ final class SubjectsRepository implements SubjectsRepositoryInterface
             join topic_teachers tt on t.id = tt.topic_id
             where tt.teacher_username = ?
             and st.student_username = ?
-            and t.name = ?
+            and t.topic_code = ?
             and (st.subject_status = 0 or st.subject_status = 2)
             and st.subject = ?",
             "ssss",
@@ -347,7 +347,7 @@ final class SubjectsRepository implements SubjectsRepositoryInterface
                 st.last_rejected = IF(? = 2, st.subject, st.last_rejected)
             where tt.teacher_username = ?
             and st.student_username = ?
-            and t.name = ?",
+            and t.topic_code = ?",
             "iisss",
             $newStatus->value,
             $newStatus->value,
@@ -380,7 +380,7 @@ final class SubjectsRepository implements SubjectsRepositoryInterface
             set st.teacher_comment = ?
             where tt.teacher_username = ?
             and st.student_username = ?
-            and t.name = ?",
+            and t.topic_code = ?",
             "ssss",
             $newComment,
             $teacherUsername,
@@ -412,7 +412,7 @@ final class SubjectsRepository implements SubjectsRepositoryInterface
             set st.draft_path = ?
             where tt.teacher_username = ?
             and st.student_username = ?
-            and t.name = ?",
+            and t.topic_code = ?",
             "ssss",
             $newPath,
             $teacherUsername,
@@ -430,7 +430,7 @@ final class SubjectsRepository implements SubjectsRepositoryInterface
             set st.draft_path = null
             where tt.teacher_username = ?
             and st.student_username = ?
-            and t.name = ?",
+            and t.topic_code = ?",
             "sss",
             $teacherUsername,
             $studentUsername,

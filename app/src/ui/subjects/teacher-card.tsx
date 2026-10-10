@@ -69,7 +69,7 @@ export default function TeacherCard({ subjectData, onUpdateAction }: Props): Rea
         const payload = {
             teacher: subjectData.teacherToken,
             student: subjectData.studentToken,
-            topic: subjectData.topic,
+            topic: subjectData.topicCode,
             comment: comment,
             "csrf-token": csrfToken,
         };
@@ -101,7 +101,7 @@ export default function TeacherCard({ subjectData, onUpdateAction }: Props): Rea
         const payload = {
             teacher: subjectData.teacherToken,
             student: subjectData.studentToken,
-            topic: subjectData.topic,
+            topic: subjectData.topicCode,
             "new-status": "approved",
             "csrf-token": csrfToken,
         };
