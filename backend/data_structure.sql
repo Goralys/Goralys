@@ -185,6 +185,24 @@ create table topic_teachers
     foreign key (teacher_username) references users_info (username)
 ) engine = innodb;
 
+-- -----------------------------------------------------
+-- audit table (used to track admin actions)
+-- -----------------------------------------------------
+drop table if exists audit;
+create table audit
+(
+    id                 bigint unsigned auto_increment primary key,
+    initiator          varchar(32)                               null,     -- fk -> admins_list.username
+    initiator_snapshot varchar(32)                               not null, -- name when the action is executed
+    action_type        enum ('add', 'update', 'delete', 'other') not null, -- fk -> topics.id
+    action_description varchar(128)                              not null,
+    action_at          datetime(3) default current_timestamp(3)  not null,
+    index (initiator, action_at),
+    foreign key (initiator) references admins_list (username)
+        on update cascade
+        on delete set null
+) engine = innodb;
+
 
 set foreign_key_checks = 1;
 
