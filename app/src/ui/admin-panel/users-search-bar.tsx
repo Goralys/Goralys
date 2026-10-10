@@ -1,5 +1,5 @@
 import { FloatingInput } from "@/app/src/ui/inputs/floating-input";
-import React, { FormEvent, ReactElement, useEffect, useState } from "react";
+import React, { ReactElement, SyntheticEvent, useEffect, useState } from "react";
 import { User } from "@goralys/core";
 
 type UserRoleFilter = "all" | "student" | "teacher";
@@ -20,7 +20,7 @@ export function UsersSearchBar({ type, users, setCurrentUsers }: Props): ReactEl
     const [currentRole, setCurrentRole] = useState<UserRoleFilter>("all");
     const [searchText, setSearchText] = useState("");
 
-    const handleSearch = (e: FormEvent<HTMLInputElement>): void => {
+    const handleSearch = (e: SyntheticEvent<HTMLInputElement, InputEvent>): void => {
         setSearchText(e.currentTarget.value);
     };
 
@@ -70,7 +70,7 @@ export function UsersSearchBar({ type, users, setCurrentUsers }: Props): ReactEl
                 </select>
 
                 <span
-                    className="absolute bottom-0 left-0 w-0 h-0.5 bg-sky-500
+                    className="absolute bottom-0 left-0 h-0.5 bg-sky-500
                      transition-all duration-300 ease-in-out
                      peer-focus:w-full subjects-search-underline"
                 />

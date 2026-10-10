@@ -1,7 +1,7 @@
 "use client";
 
 import { FloatingInput } from "@/app/src/ui/inputs/floating-input";
-import React, { FormEvent, ReactElement, useEffect, useState } from "react";
+import React, { ReactElement, SyntheticEvent, useEffect, useState } from "react";
 import { User } from "@goralys/core";
 
 interface Props {
@@ -13,7 +13,7 @@ interface Props {
 export function AdminsSearchBar({ type, admins, setCurrentAdminsAction }: Props): ReactElement {
     const [searchText, setSearchText] = useState("");
 
-    const handleSearch = (e: FormEvent<HTMLInputElement>): void => {
+    const handleSearch = (e: SyntheticEvent<HTMLInputElement, InputEvent>): void => {
         setSearchText(e.currentTarget.value);
     };
 

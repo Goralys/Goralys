@@ -1,5 +1,5 @@
 import { clsx } from "clsx";
-import React, { FormEventHandler, ReactElement, useState } from "react";
+import React, { InputEventHandler, ReactElement, useState } from "react";
 
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 
@@ -14,7 +14,7 @@ interface Props {
     required?: boolean;
     defaultValue?: string;
     value?: string;
-    onInput?: FormEventHandler<HTMLInputElement>;
+    onInput?: InputEventHandler<HTMLInputElement>;
 }
 
 export function FloatingInput({
@@ -76,7 +76,7 @@ export function FloatingInput({
                 className="
               pointer-events-none
               absolute left-0 bottom-0 h-0.5 w-full
-              origin-left scale-x-0
+              origin-left
               bg-sky-500
               transition-transform duration-250
               group-focus-within:scale-x-100
