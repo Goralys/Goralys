@@ -2,6 +2,7 @@
 
 import {
     AdminSubjectCardSkeleton,
+    AdminSubjectsCard,
     Button,
     SubjectsFilter,
     SubjectsSearchBar,
@@ -22,7 +23,6 @@ import {
     useSubjects,
 } from "@goralys/core";
 import { ReactElement, Suspense, useState } from "react";
-import { AdminSubjectsCard } from "@/goralys-ui/src";
 
 export default function SubjectAdminPageClient(): ReactElement {
     const modal = useImportTopicsModal();

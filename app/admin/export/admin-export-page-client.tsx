@@ -11,7 +11,7 @@ import {
     SubjectStatus,
     useSubjects,
 } from "@goralys/core";
-import Dropdown, { Button, Checkbox, ReadonlyCard, useConfirm, useToast } from "@goralys/ui";
+import { Button, Checkbox, Dropdown, ReadonlyCard, useConfirm, useToast } from "@goralys/ui";
 import Loading from "@/app/loading";
 
 const ALL_STATUSES: SubjectStatus[] = ["not_submitted", "submitted", "rejected", "approved"];

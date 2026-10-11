@@ -1,7 +1,7 @@
 "use client";
 
 import { ReactElement } from "react";
-import SupportForm, { Card } from "@goralys/ui";
+import { Card, SupportForm } from "@goralys/ui";
 import Image from "next/image";
 import Link from "next/link";
 

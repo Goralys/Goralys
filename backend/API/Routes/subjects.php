@@ -114,7 +114,7 @@ Routes::post('subjects/export', function (GoralysKernel $kernel, RequestInterfac
     $len = fn(array $a) => count($a);
     Audit::registerAction(
         AuditActionType::OTHER,
-        "Export de {$len($subjects->subjects)} sujet" . $len($subjects->subjects) > 0 ? "s" : ""
+        "Export de {$len($subjects->subjects)} sujet" . ($len($subjects->subjects) > 0 ? "s" : "")
     );
     $kernel->response()->download($path, "sujets-go.zip", after: fn() => $kernel->subjects->cleanExports());
 }, ...RouterOptions::$INPUT::require(["status", "arr"], ["classrooms", "arr"], ["topics", "arr"])) // enforce array type

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import RegisterForm, { Card } from "@goralys/ui";
+import { Card, RegisterForm } from "@goralys/ui";
 import { ReactElement } from "react";
 
 export default function RegisterPageClient(): ReactElement {

@@ -9,8 +9,11 @@ importers:
   .:
     dependencies:
       '@goralys/core':
-        specifier: ^1.6.5
-        version: 1.6.5(react@19.2.1)
+        specifier: ^1.6.6
+        version: 1.6.6(react@19.2.1)
+      '@goralys/ui':
+        specifier: ^0.1.2
+        version: 0.1.2(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
       '@heroicons/react':
         specifier: ^2.2.0
         version: 2.2.0(react@19.2.1)
@@ -422,10 +425,16 @@ packages:
     resolution: {integrity: sha512-43/qtrDUokr7LJqoF2c3+RInu/t4zfrpYdoSDfYyhg52rwLV6TnOvdG4fXm7IkSB3wErkcmJS9iEhjVtOSEjjA==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
-  '@goralys/core@1.6.5':
-    resolution: {integrity: sha512-K9pQAnVNHeMqpgofmFHNMUWwrt+D+hMkx7O8242OT/Vt60Eg+bhpmPIOQR9A7ERpctUM/aw3kQcDTHCJgM/GJQ==}
+  '@goralys/core@1.6.6':
+    resolution: {integrity: sha512-08E9CNK6rX9wcKTIejYQEhS4r61BM4FqjhKxrEPqsFRpaIPEvEWl82LBAAYP5GRwhl1JbE6XxS0DEmK//hZzyg==}
     peerDependencies:
       react: '>=18'
+
+  '@goralys/ui@0.1.2':
+    resolution: {integrity: sha512-UtzxuIL5+PSlnUdTyd423BbKRo+yP2saPy302GWA6YIAs7m8DgldquzkNsfppxQ4hBwS4tdPmQy4lOFs37uYGA==}
+    peerDependencies:
+      react: '>=19'
+      react-dom: '>=19'
 
   '@heroicons/react@2.2.0':
     resolution: {integrity: sha512-LMcepvRaS9LYHJGsF0zzmgKCUim/X3N/DQKc4jepAXJ7l8QxJ1PmxJzqplF2Z3FE4PqBAIGyJAQ/w4B5dsqbtQ==}
@@ -3246,9 +3255,17 @@ snapshots:
       '@eslint/core': 0.17.0
       levn: 0.4.1
 
-  '@goralys/core@1.6.5(react@19.2.1)':
+  '@goralys/core@1.6.6(react@19.2.1)':
     dependencies:
       react: 19.2.1
+
+  '@goralys/ui@0.1.2(react-dom@19.2.1(react@19.2.1))(react@19.2.1)':
+    dependencies:
+      '@goralys/core': link:goralys-core
+      '@heroicons/react': 2.2.0(react@19.2.1)
+      clsx: 2.1.1
+      react: 19.2.1
+      react-dom: 19.2.1(react@19.2.1)
 
   '@heroicons/react@2.2.0(react@19.2.1)':
     dependencies:

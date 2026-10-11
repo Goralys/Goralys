@@ -3,10 +3,11 @@ import "./globals.css";
 import { Lusitania } from "@/app/src/lib/fonts";
 import React, { ReactElement } from "react";
 import { AuthListener } from "@/app/src/lib/auth/auth-listener";
-import DynamicNav, { CookieBanner, FlashToastListener, Providers } from "@goralys/ui";
+import { CookieBanner, DynamicNav, FlashToastListener, Providers } from "@goralys/ui";
 import { UserListener } from "@/app/src/lib/auth/user-listerner";
 import { NavigationListener } from "@/app/src/lib/navigation/navigation-listener";
 import Bootstrap from "@/app/src/lib/bootstrap";
+import UIBootstrap from "@/app/ui-bootstrap";
 
 export const metadata: Metadata = {
     title: "Goralys",
@@ -28,21 +29,22 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
                     </h1>
                 </div>
                  */}
-
-                <Providers>
-                    <Bootstrap />
-                    <AuthListener />
-                    <UserListener />
-                    <NavigationListener />
-                    <FlashToastListener />
-                    <div className="flex flex-col-reverse sm:flex-row min-h-screen">
-                        <DynamicNav />
-                        <main className="flex pb-12 sm:pb-0 sm:ml-55 w-full">
-                            {children}
-                            <CookieBanner />
-                        </main>
-                    </div>
-                </Providers>
+                <UIBootstrap>
+                    <Providers>
+                        <Bootstrap />
+                        <AuthListener />
+                        <UserListener />
+                        <NavigationListener />
+                        <FlashToastListener />
+                        <div className="flex flex-col-reverse sm:flex-row min-h-screen">
+                            <DynamicNav />
+                            <main className="flex pb-12 sm:pb-0 sm:ml-55 w-full">
+                                {children}
+                                <CookieBanner />
+                            </main>
+                        </div>
+                    </Providers>
+                </UIBootstrap>
             </body>
         </html>
     );

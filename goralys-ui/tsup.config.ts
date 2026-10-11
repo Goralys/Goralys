@@ -7,4 +7,7 @@ export default defineConfig({
     esbuildOptions(options) {
         options.loader = { ...options.loader, ".tsx": "tsx" };
     },
+    banner: {
+        js: '"use client";',
+    },
 });

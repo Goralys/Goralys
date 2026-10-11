@@ -417,7 +417,7 @@ Routes::put("user/name", function (GoralysKernel $kernel, RequestInterface $requ
 Routes::get("admin/audit/short", function (GoralysKernel $kernel, RequestInterface $request) {
     $u = $kernel->usernames->get($request->param("target"));
 
-    $audit = $kernel->audit->get($u, 7); // 7 last audit logs for the admin
+    $audit = $kernel->audit->get($u, 9); // 9 last audit logs for the admin
     $kernel->response()->json($audit);
 }, ...RouterOptions::$INPUT::require("target"))
     ->middlewares(...MiddlewareSets::adminPanelRoute("get-admin-audit-short", "/admin/user"))

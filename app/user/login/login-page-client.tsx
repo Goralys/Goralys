@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import LoginForm, { Card, useToast } from "@goralys/ui";
+import { Card, LoginForm, useToast } from "@goralys/ui";
 import { ReactElement, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 

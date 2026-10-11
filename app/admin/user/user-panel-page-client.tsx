@@ -17,7 +17,8 @@ import {
 } from "@goralys/core";
 import { ReactElement } from "react";
 import { useAdminPanelInfo } from "@/app/src/hooks/use-admin-panel-info";
-import AuditActionCard, {
+import {
+    AuditActionCard,
     AuditActionCardSkeleton,
     AuthTokenCard,
     Button,

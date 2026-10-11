@@ -1,7 +1,7 @@
 "use client";
 
 import { cookiesSet, Subject, useSubjects } from "@goralys/core";
-import SubjectsFilter, { SubjectsSearchBar, TeacherCard, TeacherCardSkeleton } from "@goralys/ui";
+import { SubjectsFilter, SubjectsSearchBar, TeacherCard, TeacherCardSkeleton } from "@goralys/ui";
 import { ReactElement, Suspense, useState } from "react";
 
 export default function SubjectTeacherPageClient(): ReactElement {

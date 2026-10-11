@@ -12,7 +12,7 @@ export function LoginForm(): ReactElement {
     const [csrfToken, setCsrfToken] = useState<string | null>(null);
     const [submitting, setSubmitting] = useState<boolean>(false);
     const submittingRef = useRef(false);
-    const requestUrl = `${apiDomain}/user/login?high-school-token=${getSchoolToken}`;
+    const requestUrl = `${apiDomain}/user/login?high-school-token=${getSchoolToken()}`;
 
     useEffect(() => {
         const canceled = false;
