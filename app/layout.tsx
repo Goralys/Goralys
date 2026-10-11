@@ -3,13 +3,10 @@ import "./globals.css";
 import { Lusitania } from "@/app/src/lib/fonts";
 import React, { ReactElement } from "react";
 import { AuthListener } from "@/app/src/lib/auth/auth-listener";
-import FlashToastListener from "@/app/src/ui/toast/flash-toast-listener";
+import DynamicNav, { CookieBanner, FlashToastListener, Providers } from "@goralys/ui";
 import { UserListener } from "@/app/src/lib/auth/user-listerner";
-import { Providers } from "@/app/src/ui/modals/providers";
-import CookieBanner from "@/app/src/ui/basic/cookies-banner";
 import { NavigationListener } from "@/app/src/lib/navigation/navigation-listener";
 import Bootstrap from "@/app/src/lib/bootstrap";
-import DynamicNav from "@/app/src/ui/nav/dynamic-nav";
 
 export const metadata: Metadata = {
     title: "Goralys",

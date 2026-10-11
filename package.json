@@ -15,6 +15,7 @@
     },
     "dependencies": {
         "@goralys/core": "^1.6.5",
+        "@goralys/ui": "^0.1.0",
         "@heroicons/react": "^2.2.0",
         "@sidekickicons/react": "^0.15.0",
         "clsx": "^2.1.1",

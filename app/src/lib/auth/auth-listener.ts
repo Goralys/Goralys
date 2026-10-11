@@ -7,7 +7,7 @@
 
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { useToast } from "@/app/src/ui/toast/toast-provider";
+import { useToast } from "@goralys/ui";
 import { emitUserEvent, onAuthEvent } from "@goralys/core";
 
 export function AuthListener(): null {

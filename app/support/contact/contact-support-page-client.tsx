@@ -1,10 +1,9 @@
 "use client";
 
 import { ReactElement } from "react";
-import { Card } from "@/app/src/ui/card";
+import SupportForm, { Card } from "@goralys/ui";
 import Image from "next/image";
 import Link from "next/link";
-import SupportForm from "@/app/src/ui/support/support-form";
 
 export default function ContactSupportPageClient(): ReactElement {
     return (

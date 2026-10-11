@@ -1,10 +1,8 @@
 "use client";
 
 import { User, useUsers, useVirtualUsers } from "@goralys/core";
-import UserCard from "@/app/src/ui/admin-panel/user-card";
+import UserCardSkeleton, { UserCard, UsersSearchBar } from "@goralys/ui";
 import { ReactElement, Suspense, useState } from "react";
-import { UsersSearchBar } from "@/app/src/ui/admin-panel/users-search-bar";
-import UserCardSkeleton from "@/app/src/ui/skeletons/admin-panel/user-card";
 
 export default function UsersPanelPageClient(): ReactElement {
     const { users } = useUsers();

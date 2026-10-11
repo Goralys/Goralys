@@ -2,7 +2,7 @@
 
 import { configGoralysCore, CookiesAdapter, cookiesGet, USERNAME_KEY } from "@goralys/core";
 import Cookies from "universal-cookie";
-import { useToast } from "@/app/src/ui/toast/toast-provider";
+import { useToast } from "@goralys/ui";
 
 export default function Bootstrap(): null {
     const { showToast } = useToast();

@@ -17,22 +17,23 @@ import {
 } from "@goralys/core";
 import { ReactElement } from "react";
 import { useAdminPanelInfo } from "@/app/src/hooks/use-admin-panel-info";
-import { Card } from "@/app/src/ui/card";
-import { FloatingInput } from "@/app/src/ui/inputs/floating-input";
-import UserSubjectsTeacherCard from "@/app/src/ui/admin-panel/subjects/user-subjects-teacher-card";
-import UserSubjectsStudentCard from "@/app/src/ui/admin-panel/subjects/user-subjects-student-card";
-import CardTitle from "@/app/src/ui/card-title";
-import AuthTokenCard from "@/app/src/ui/admin-panel/auth-token-card";
-import ReplaceTeacherElement from "@/app/src/ui/admin-panel/replace-teacher-element";
-import { usePasswordModal } from "@/app/src/ui/modals/password/password-modal-provider";
-import { useConfirm } from "@/app/src/ui/modals/confirm/confirm-provider";
-import { useToast } from "@/app/src/ui/toast/toast-provider";
-import { Button } from "@/app/src/ui/button";
-import { UserSubjectsTeacherCardSkeleton } from "@/app/src/ui/skeletons/admin-panel/subjects/user-subjects-teacher-card";
-import { UserSubjectsStudentCardSkeleton } from "@/app/src/ui/skeletons/admin-panel/subjects/user-subjetcs-student-card";
+import AuditActionCard, {
+    AuditActionCardSkeleton,
+    AuthTokenCard,
+    Button,
+    Card,
+    CardTitle,
+    FloatingInput,
+    ReplaceTeacherElement,
+    useConfirm,
+    usePasswordModal,
+    UserSubjectsStudentCard,
+    UserSubjectsStudentCardSkeleton,
+    UserSubjectsTeacherCard,
+    UserSubjectsTeacherCardSkeleton,
+    useToast,
+} from "@goralys/ui";
 import clsx from "clsx";
-import AuditActionCard from "@/app/src/ui/admin-panel/audit-action-card";
-import { AuditActionCardSkeleton } from "@/app/src/ui/skeletons/admin-panel/audit-action-card";
 
 export default function UserPanelPageClient({ profile }: { profile: UserProfile }): ReactElement {
     // may have undesirable side effects, testing to do...

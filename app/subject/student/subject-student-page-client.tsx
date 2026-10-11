@@ -1,8 +1,7 @@
 "use client";
 
-import StudentCard from "@/app/src/ui/subjects/student-card";
+import { StudentCard, StudentCardSkeleton } from "@goralys/ui";
 import { ReactElement, Suspense } from "react";
-import StudentCardSkeleton from "@/app/src/ui/skeletons/subjects/student-card";
 import { cookiesSet, useSubjects } from "@goralys/core";
 
 export default function SubjectStudentPageClient(): ReactElement {

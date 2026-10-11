@@ -11,11 +11,7 @@ import {
     reasonsConfig,
     SupportTicket,
 } from "@goralys/core";
-import { Card } from "@/app/src/ui/card";
-import { Button } from "@/app/src/ui/button";
-import { TextArea } from "@/app/src/ui/inputs/text-area";
-import { FloatingInput } from "@/app/src/ui/inputs/floating-input";
-import { useToast } from "@/app/src/ui/toast/toast-provider";
+import { Button, Card, FloatingInput, TextArea, useToast } from "@goralys/ui";
 
 interface Props {
     ticket: SupportTicket;

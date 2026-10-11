@@ -1,4 +1,4 @@
-import GoralysLogoLoader from "@/app/src/ui/basic/goralys-logo-loader";
+import { GoralysLogoLoader } from "@goralys/ui";
 import { ReactElement } from "react";
 
 export default function Loading(): ReactElement {

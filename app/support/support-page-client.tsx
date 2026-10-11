@@ -2,8 +2,7 @@
 
 import { ReactElement, Suspense } from "react";
 import { useSupportTickets } from "@goralys/core";
-import SupportTicketCard from "@/app/src/ui/support/support-ticket-card";
-import SupportTicketCardSkeleton from "@/app/src/ui/skeletons/support/support-ticket-card";
+import { SupportTicketCard, SupportTicketCardSkeleton } from "@goralys/ui";
 
 export default function SupportPageClient(): ReactElement {
     const { supportTickets: tickets } = useSupportTickets();

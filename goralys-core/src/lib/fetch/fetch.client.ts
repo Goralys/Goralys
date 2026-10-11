@@ -104,7 +104,7 @@ export async function handleToastRequest(r: Response, showToast: ToastFn, redire
     const data = await res.json();
 
     if (data?.toast) {
-        showToast({ type: data.toastType, title: data.toastTitle, message: data.toastMessage }, duration);
+        showToast({ type: data.toastType, title: data.toastTitle, message: data.toastMessage }, true, duration);
         if (data?.redirect && redirect) {
             emitNavigationEvent({ type: "redirect", url: data.redirect });
         }

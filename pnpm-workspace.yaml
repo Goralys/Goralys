@@ -1,6 +1,7 @@
 packages:
   - '.'
   - 'goralys-core'
+  - 'goralys-ui'
 allowBuilds:
   esbuild: false
   sharp: true

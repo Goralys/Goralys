@@ -2,10 +2,7 @@
 
 import { useAdmins, User, useVirtualAdmins } from "@goralys/core";
 import { ReactElement, Suspense, useEffect, useState } from "react";
-import { AdminsSearchBar } from "@/app/src/ui/admin-panel/admins-search-bar";
-import AdminCard from "@/app/src/ui/admin-panel/admin-card";
-import CreateAdminElement from "@/app/src/ui/admin-panel/create-admin-element";
-import AdminPanelCardSkeleton from "@/app/src/ui/skeletons/admin-panel/admin-card";
+import { AdminCard, AdminPanelCardSkeleton, AdminsSearchBar, CreateAdminElement } from "@goralys/ui";
 
 export default function AdminPanelPageClient(): ReactElement {
     const { users: admins, refetch, syncKey } = useAdmins();

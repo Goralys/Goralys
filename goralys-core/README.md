@@ -3,12 +3,10 @@
 ---
 
 This package contains the shared business logic for the [Goralys](https://github.com/SAMSAM-55/Goralys) applications –
-web
-and mobile.
+web and mobile.
 
 This package bundles the reusable code for the web frontend and the mobile app to avoid code redundancy and duplication
-accross
-platforms.
+across platforms.
 
 ### Content Overview
 
@@ -16,9 +14,7 @@ platforms.
 - `lib/` – Fetch logic, event listeners, etc.
 - `types/` – Shared TypeScript types
 
-The UI components are **not** part of this package as they are specific to each platform (web / mobile), because the
-technologies
-used for rendering are different (HTML/CSS for the web vs React Native components).
+The UI components are **not** part of this package.
 
 ### Setup
 

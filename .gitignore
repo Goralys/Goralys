@@ -44,6 +44,10 @@ next-env.d.ts
 goralys-core/node_modules
 goralys-core/dist
 
+# goralys ui package
+goralys-ui/node_modules
+goralys-ui/dist
+
 #backend
 /backend/Logs
 /backend/Assets

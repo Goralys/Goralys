@@ -11,13 +11,8 @@ import {
     SubjectStatus,
     useSubjects,
 } from "@goralys/core";
-import ReadonlyCard from "@/app/src/ui/subjects/readonly-card";
-import Checkbox from "@/app/src/ui/inputs/checkbox";
-import { useConfirm } from "@/app/src/ui/modals/confirm/confirm-provider";
-import { useToast } from "@/app/src/ui/toast/toast-provider";
-import { Button } from "@/app/src/ui/button";
+import Dropdown, { Button, Checkbox, ReadonlyCard, useConfirm, useToast } from "@goralys/ui";
 import Loading from "@/app/loading";
-import Dropdown from "@/app/src/ui/basic/dropdown";
 
 const ALL_STATUSES: SubjectStatus[] = ["not_submitted", "submitted", "rejected", "approved"];
 

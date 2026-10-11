@@ -10,4 +10,4 @@ export type Toast = {
     expires?: number;
 };
 
-export type ToastFn = (toast: Toast, duration?: number) => void;
+export type ToastFn = (toast: Toast, animate?: boolean, duration?: number) => void;

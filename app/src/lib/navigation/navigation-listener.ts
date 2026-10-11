@@ -7,7 +7,7 @@
 
 import { useEffect } from "react";
 import { onNavigationEvent } from "@goralys/core";
-import { useToast } from "@/app/src/ui/toast/toast-provider";
+import { useToast } from "@goralys/ui";
 
 export function NavigationListener(): null {
     const toast = useToast();

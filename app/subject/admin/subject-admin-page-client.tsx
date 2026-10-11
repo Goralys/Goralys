@@ -1,6 +1,14 @@
 "use client";
 
-import { useImportTopicsModal } from "@/app/src/ui/modals/import-topics/import-topics-modal-provider";
+import {
+    AdminSubjectCardSkeleton,
+    Button,
+    SubjectsFilter,
+    SubjectsSearchBar,
+    useConfirm,
+    useImportTopicsModal,
+    useToast,
+} from "@goralys/ui";
 import {
     buildApiUrl,
     cookiesSet,
@@ -13,14 +21,8 @@ import {
     USER_SYNCS,
     useSubjects,
 } from "@goralys/core";
-import { useToast } from "@/app/src/ui/toast/toast-provider";
-import { Button } from "@/app/src/ui/button";
-import AdminCard from "@/app/src/ui/subjects/admin-card";
-import { SubjectsSearchBar } from "@/app/src/ui/subjects/subjects-search-bar";
 import { ReactElement, Suspense, useState } from "react";
-import AdminSubjectCardSkeleton from "@/app/src/ui/skeletons/subjects/admin-card";
-import { useConfirm } from "@/app/src/ui/modals/confirm/confirm-provider";
-import SubjectsFilter from "@/app/src/ui/subjects/subjects-filter";
+import { AdminSubjectsCard } from "@/goralys-ui/src";
 
 export default function SubjectAdminPageClient(): ReactElement {
     const modal = useImportTopicsModal();
@@ -119,7 +121,7 @@ export default function SubjectAdminPageClient(): ReactElement {
                             />
                             <div className="flex flex-col gap-2 items-center w-full">
                                 {currentSubjects?.map((s, i) => (
-                                    <AdminCard
+                                    <AdminSubjectsCard
                                         key={s.studentToken + s.teacherToken + "#" + i}
                                         subjectData={s}
                                         syncKey={SUBJECT_SYNCS["admin"]}

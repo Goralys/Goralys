@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/app/src/ui/button";
+import { Button, Card, FloatingInput, useEmailModal, useToast } from "@goralys/ui";
 import {
     buildApiUrl,
     cacheUserDataClient,
@@ -13,11 +13,7 @@ import {
     handleToastRequest,
     USERNAME_KEY,
 } from "@goralys/core";
-import { useToast } from "@/app/src/ui/toast/toast-provider";
-import { Card } from "@/app/src/ui/card";
-import { FloatingInput } from "@/app/src/ui/inputs/floating-input";
 import { ReactElement, useEffect, useState } from "react";
-import { useEmailModal } from "@/app/src/ui/modals/email/email-modal-provider";
 
 export default function MePageClient(): ReactElement {
     const { showToast } = useToast();

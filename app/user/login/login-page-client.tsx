@@ -2,11 +2,9 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Card } from "@/app/src/ui/card";
-import LoginForm from "@/app/src/ui/user/forms/login-form";
+import LoginForm, { Card, useToast } from "@goralys/ui";
 import { ReactElement, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useToast } from "@/app/src/ui/toast/toast-provider";
 
 export default function LoginPageClient(): ReactElement {
     const searchParams = useSearchParams();
