@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, ReactElement, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, ReactElement, ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { ToastElement } from "#lib/ui/toast/toast-element";
 import { FLASH_TOAST_KEY, storageSet, Toast } from "@goralys/core";
 import { createPortal } from "react-dom";
@@ -14,7 +14,12 @@ const ToastContext = createContext<ToastContext | null>(null);
 
 export function ToastProvider({ children }: { children: ReactNode }): ReactElement {
     const [toast, setToast] = useState<Toast | null>(null);
+    const toastRef = useRef<Toast | null>(toast);
     const [visible, setVisible] = useState(false);
+
+    useEffect(() => {
+        toastRef.current = toast;
+    }, [toast]);
 
     const cacheToast = useCallback((toastInput: Toast, duration: number = 5500) => {
         if (!toastInput.expires) toastInput.expires = Date.now() + duration;
@@ -26,14 +31,15 @@ export function ToastProvider({ children }: { children: ReactNode }): ReactEleme
             cacheToast(toastInput, duration);
 
             if (!toastInput.expires) toastInput.expires = Date.now() + duration;
-            if (toastInput.expires === toast?.expires) return;
+            if (toastInput.expires === toastRef.current?.expires) return;
 
+            toastRef.current = toastInput;
             setToast(toastInput);
             setVisible(!animate);
 
             if (animate) requestAnimationFrame(() => setVisible(true));
         },
-        [cacheToast, toast],
+        [cacheToast],
     );
 
     useEffect(() => {

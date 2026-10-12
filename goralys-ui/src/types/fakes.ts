@@ -4,6 +4,7 @@ export type GoralysLink = ComponentType<{
     href: string;
     className?: string;
     children: ReactNode;
+    prefetch?: boolean;
 }>;
 
 export type GoralysImage = ComponentType<{
@@ -35,4 +36,5 @@ export type GoralysUIConfig = {
     useRouter: () => GoralysRouter;
     useSearchParams: () => GoralysSearchParams;
     usePathname: () => string;
+    isMobile: boolean;
 };

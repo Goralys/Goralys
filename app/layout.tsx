@@ -7,7 +7,7 @@ import { CookieBanner, DynamicNav, FlashToastListener, Providers } from "@goraly
 import { UserListener } from "@/app/src/lib/auth/user-listerner";
 import { NavigationListener } from "@/app/src/lib/navigation/navigation-listener";
 import Bootstrap from "@/app/src/lib/bootstrap";
-import UIBootstrap from "@/app/ui-bootstrap";
+import UIBootstrap from "@/app/src/lib/ui-bootstrap";
 
 export const metadata: Metadata = {
     title: "Goralys",
