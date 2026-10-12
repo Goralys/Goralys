@@ -10,6 +10,7 @@ use Goralys\Kernel\GoralysKernel;
 use Goralys\Platform\Loader\Services\EnvService;
 use Goralys\Platform\Loader\Services\HighSchoolsService;
 use Goralys\Shared\Config\GoralysConfig;
+use Goralys\Shared\Exception\GoralysRuntimeException;
 
 function isPublic(string $uri): bool
 {
@@ -198,6 +199,7 @@ function bootstrapAPI(GoralysKernel $kernel): void
 /**
  * Creates, configures, and bootstraps the application kernel.
  * @return GoralysKernel The fully initialized kernel.
+ * @throws GoralysRuntimeException
  */
 function bootKernel(): GoralysKernel
 {
@@ -241,6 +243,7 @@ function bootKernel(): GoralysKernel
  * intended for API use.
  * @param KernelType $type The type of the kernel to create, by default, the kernel is created for the API.
  * @return GoralysKernel The newly created kernel.
+ * @throws GoralysRuntimeException
  */
 function makeKernel(KernelType $type = KernelType::API, bool $skipHighSchoolToken = false): GoralysKernel
 {

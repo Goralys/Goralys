@@ -7,7 +7,6 @@
 
 namespace Goralys\App\HTTP\Response\Interfaces;
 
-use Goralys\App\Context\AppContext;
 use Goralys\App\HTTP\JSON\Interfaces\JsonResponder;
 use Goralys\App\Utils\Toast\Data\Enums\ToastType;
 use JetBrains\PhpStorm\NoReturn;
@@ -19,11 +18,10 @@ use JsonSerializable;
 interface DeferredResponseInterface
 {
     /**
-     * @param AppContext $context The current context of the application.
      * @param JsonResponder $json The JSON responder service.
      * @param int $responseCode The HTTP code of the response.
      */
-    public function __construct(AppContext $context, JsonResponder $json, int $responseCode = 200);
+    public function __construct(JsonResponder $json, int $responseCode = 200);
 
     /**
      * Attaches a toast to the response.

@@ -3,7 +3,14 @@
 require __DIR__ . "/../vendor/autoload.php";
 require __DIR__ . "/../src/Kernel/bootstrap.php";
 
-$kernel = bootKernel();
+use Goralys\Shared\Exception\GoralysRuntimeException;
+
+try {
+    $kernel = bootKernel();
+} catch (GoralysRuntimeException $e) {
+    http_response_code(500);
+    exit(1);
+}
 $router = $kernel->router;
 
 (require __DIR__ . "/../API/api.php")();

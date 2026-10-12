@@ -29,27 +29,23 @@ final class ImmediateResponse implements ImmediateResponseInterface
     private LoggerInterface $logger;
     private FileResponder $files;
     private JsonResponder $json;
-    private AppContext $context;
 
     /**
      * @param int $code The HTTP code of the response.
      * @param LoggerInterface $logger The injected logger.
      * @param FileResponder $files The injected FileResponder service.
      * @param JsonResponder $json The injected JsonResponder service.
-     * @param AppContext $context The injected application context.
      */
     public function __construct(
         int $code,
         LoggerInterface $logger,
         FileResponder $files,
         JsonResponder $json,
-        AppContext $context
     ) {
         $this->code = $code;
         $this->logger = $logger;
         $this->files = $files;
         $this->json = $json;
-        $this->context = $context;
     }
 
     /**
@@ -137,9 +133,9 @@ final class ImmediateResponse implements ImmediateResponseInterface
      */
     public function redirect(string $dest): never
     {
-        if ($this->context->client === Client::WEB) {
+        if (AppContext::$CURRENT->client === Client::WEB) {
             header("Location: " . $dest);
-        } elseif ($this->context->client === Client::MOBILE) {
+        } elseif (AppContext::$CURRENT->client === Client::MOBILE) {
             $this->json->send(["redirect" => $dest]);
         }
         $this->logger->debug(LoggerInitiator::APP, "Redirected client to: " . $dest);

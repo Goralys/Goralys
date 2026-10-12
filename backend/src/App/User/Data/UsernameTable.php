@@ -8,6 +8,7 @@
 namespace Goralys\App\User\Data;
 
 use Goralys\App\Config\AppConfig;
+use Goralys\App\Context\AppContext;
 use Goralys\App\Context\Data\CurrentSchool;
 use Goralys\Core\User\Data\Enums\UserRole;
 use Goralys\Shared\Config\GoralysConfig as Config;
@@ -35,6 +36,10 @@ final class UsernameTable
      */
     public function reloadCache(): void
     {
+        if (AppContext::$CURRENT->isPublic) {
+            return;
+        }
+
         self::$table = [];
         self::$reverse = [];
         $filePath = Config::USER::USERNAME_LIST_PATH . "." . CurrentSchool::$CODE;
@@ -137,6 +142,10 @@ final class UsernameTable
      */
     public function writePool(array $contents): bool
     {
+        if (AppContext::$CURRENT->isPublic) {
+            return true;
+        }
+
         $filePath = Config::USER::USERNAME_LIST_PATH . "." . CurrentSchool::$CODE;
         array_walk(
             $contents,

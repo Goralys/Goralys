@@ -120,11 +120,6 @@ class GoralysKernel
     private(set) JobDispatcher $jobs;
     private string $rootPath;
     private RateLimiter $rateLimiter;
-    /**
-     * This variable is used to determine the context of the app.
-     * @var ?AppContext
-     */
-    private ?AppContext $context = null;
     private RequestInterface $request;
     private DomPdfExporter $exporter;
     private int $sessionLifetime;
@@ -180,9 +175,15 @@ class GoralysKernel
 
         switch ($type) {
             case KernelType::API:
-                CurrentSchool::$TOKEN = $this->request()->header("X-High-School-Token")
+                if ($skipHighSchoolToken) {
+                    CurrentSchool::$TOKEN = "";
+                    CurrentSchool::$CODE = "";
+                } else {
+                    CurrentSchool::$TOKEN = $this->request()->header("X-High-School-Token")
                         ?? $this->request()->param("high-school-token");
-                CurrentSchool::$CODE = $this->highSchools->getCodeForSchool(CurrentSchool::$TOKEN);
+                    CurrentSchool::$CODE = $this->highSchools->getCodeForSchool(CurrentSchool::$TOKEN);
+                }
+
 
                 $client = Client::fromRequest($this->request());
                 $origin = match ($client) {
@@ -190,22 +191,24 @@ class GoralysKernel
                     default => $this->getOriginDomain($skipHighSchoolToken),
                 };
 
-                $this->context = new AppContext(
+                AppContext::$CURRENT = new AppContext(
                     ToastMode::DEFAULT,
                     $client,
                     !$skipHighSchoolToken,
-                    trim($origin),
+                    trim($origin ?? ""),
                     $this->env->getByKey("GORALYS_ENVIRONMENT") === "dev",
+                    $skipHighSchoolToken
                 );
                 break;
 
             case KernelType::CRON:
-                $this->context = new AppContext(
+                AppContext::$CURRENT = new AppContext(
                     ToastMode::DEFAULT,
                     Client::WEB,
                     false,
                     "",
-                    false
+                    false,
+                    true,
                 );
                 break;
         }
@@ -298,7 +301,7 @@ class GoralysKernel
 
     public function getOriginDomain(bool $skip = false): ?string
     {
-        if ($skip || ($this->context && !$this->context->hasHighSchoolToken)) {
+        if ($skip || (AppContext::$CURRENT && !AppContext::$CURRENT->hasHighSchoolToken)) {
             return null;
         }
 
@@ -320,7 +323,7 @@ class GoralysKernel
     {
         $files = new HttpFileResponder();
         $json = new HttpJsonResponder();
-        return new ImmediateResponse($code, $this->logger, $files, $json, $this->context);
+        return new ImmediateResponse($code, $this->logger, $files, $json);
     }
 
     /**
@@ -330,7 +333,7 @@ class GoralysKernel
     private function startSession(): void
     {
         if (session_status() !== PHP_SESSION_ACTIVE) {
-            $isMobile = $this->context->client === Client::MOBILE;
+            $isMobile = AppContext::$CURRENT->client === Client::MOBILE;
             $domain = $isMobile ? null : $this->env->getByKey("COOKIES_DOMAIN");
             ini_set('session.gc_maxlifetime', $this->getSessionLifetime());
             ini_set('session.cookie_lifetime', $this->getSessionLifetime());
@@ -342,7 +345,7 @@ class GoralysKernel
                 'domain' => $domain,
                 'secure' => true,
                 'httponly' => true,
-                'samesite' => $this->context->isDev ? 'None' : ($isMobile ? 'None' : 'Lax'),
+                'samesite' => AppContext::$CURRENT->isDev ? 'None' : ($isMobile ? 'None' : 'Lax'),
             ]);
 
             session_name("GORALYSSESSID");
@@ -549,7 +552,7 @@ class GoralysKernel
      */
     private function initGuard(): void
     {
-        $this->guard = new HttpGuard($this->usernames, $this->context);
+        $this->guard = new HttpGuard($this->usernames, AppContext::$CURRENT);
     }
 
     /**
@@ -687,7 +690,7 @@ class GoralysKernel
     public function deferredResponse(int $code = 200): DeferredResponseInterface
     {
         $json = new HttpJsonResponder();
-        return new DeferredResponse($this->context, $json, $code);
+        return new DeferredResponse($json, $code);
     }
 
     /**
@@ -861,6 +864,6 @@ class GoralysKernel
      */
     public function useFlash(): void
     {
-        $this->context->mode = ToastMode::FLASH;
+        AppContext::$CURRENT->mode = ToastMode::FLASH;
     }
 }
