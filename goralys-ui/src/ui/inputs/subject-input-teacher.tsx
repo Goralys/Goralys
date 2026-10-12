@@ -3,6 +3,7 @@ import { ArrowDownTrayIcon } from "@heroicons/react/24/outline";
 import { SubjectTextArea } from "#lib/ui/inputs/subject-text-area";
 import { Checkbox } from "#lib/ui/inputs/checkbox";
 import React, { ChangeEventHandler, ReactElement } from "react";
+import { useToast } from "#lib/ui/toast/toast-provider";
 
 interface Props {
     helper?: string;
@@ -15,6 +16,7 @@ interface Props {
 
 export function SubjectInputTeacher({ id, label, helper, subjectData, onChangeAction }: Props): ReactElement {
     helper = getStatusHelper(subjectData.status, "teacher");
+    const { showToast } = useToast();
 
     const initialValue = subjectData.status == "rejected" ? (subjectData.lastRejected ?? "") : (subjectData.subject ?? "");
     const MAX_CHARS = 250;
@@ -27,6 +29,16 @@ export function SubjectInputTeacher({ id, label, helper, subjectData, onChangeAc
 
     const getDraft = (): void => {
         const cfg = getGoralysClientConfig();
+
+        if (cfg.isNative) {
+            showToast({
+                type: "info",
+                title: "Brouillon",
+                message: "Veuillez utiliser un ordinateur pour télécharger le brouillon d'un élève.",
+            });
+            return;
+        }
+
         window.location.href = buildApiUrl(
             "subjects/draft",
             {

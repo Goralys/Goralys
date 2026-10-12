@@ -36,6 +36,8 @@ export * from "./ui/inputs/subject-input-teacher";
 export * from "./ui/inputs/subject-text-area";
 export * from "./ui/inputs/text-area";
 export * from "./ui/modals/providers";
+export * from "./ui/modals/auth-token/confirm-token-element";
+export * from "./ui/modals/auth-token/confirm-token-provider";
 export * from "./ui/modals/confirm/confirm-element";
 export * from "./ui/modals/confirm/confirm-provider";
 export * from "./ui/modals/drafts/draft-modal-element";

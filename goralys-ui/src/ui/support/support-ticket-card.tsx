@@ -4,12 +4,15 @@ import { buildApiUrl, reasonsConfig, SupportTicket } from "@goralys/core";
 import React, { ReactElement } from "react";
 import { TextArea } from "#lib/ui/inputs/text-area";
 import { Button } from "#lib/ui/button";
+import { useGoralysUI } from "@goralys/ui";
 
 interface Props {
     ticket: SupportTicket;
 }
 
 export function SupportTicketCard({ ticket }: Props): ReactElement {
+    const router = useGoralysUI().useRouter();
+
     return (
         <div className="h-fit w-200 flex flex-col bg-sky-200 gap-1 gap-y-3 p-1 mt-1">
             <div className="flex flex-row w-full justify-between">
@@ -38,7 +41,7 @@ export function SupportTicketCard({ ticket }: Props): ReactElement {
                 text="Ce problème a été résolu"
                 type="button"
                 onClick={() => {
-                    window.location.href = "/support/ticket?t=" + ticket.id;
+                    router.push("/support/ticket?t=" + encodeURIComponent(ticket.id));
                 }}
             />
         </div>

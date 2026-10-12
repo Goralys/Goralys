@@ -76,7 +76,7 @@ export function FloatingInput({
                 className="
               pointer-events-none
               absolute left-0 bottom-0 h-0.5 w-full
-              origin-left
+              origin-left scale-x-0
               bg-sky-500
               transition-transform duration-250
               group-focus-within:scale-x-100
