@@ -12,6 +12,7 @@ const nextUIConfig: GoralysUIConfig = {
     useRouter,
     useSearchParams,
     usePathname,
+    isMobile: false,
 };
 
 export default function UIBootstrap({ children }: { children: ReactNode }): ReactElement {
