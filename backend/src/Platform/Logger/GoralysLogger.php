@@ -41,40 +41,41 @@ final class GoralysLogger implements LoggerInterface
             $lifetime = LoggerConfigLoader::getFileLifeTime($case);
             $path = LoggerConfigLoader::getInitiatorPath($case);
 
-            if (!file_exists($path)) {
-                continue;
-            }
-
-            $fileAge = time() - filemtime($path);
-
-            if ($fileAge >= $lifetime) {
-                unlink($path);
-
-                $dir = dirname($path);
-                if (!is_dir($dir)) {
-                    mkdir($dir, 0o755, true);
-                }
-
-                touch($path);
-                chmod($path, 0o644);
-            }
+            $this->rotateLog($path, strtolower($case->toString()) . ".log.created", $lifetime);
         }
 
         $lifetime = LoggerConfigLoader::getGlobalLifetime();
         $path = LoggerConfigLoader::getGlobalPath();
 
+        $this->rotateLog($path, "global.log.created", $lifetime);
+    }
+
+    private function rotateLog(string $path, string $refFile, int $lifetime): void
+    {
+        $dir = dirname($path);
+        if (!is_dir($dir)) {
+            mkdir($dir, 0o755, true);
+        }
+
+        $refPath = $dir . DIRECTORY_SEPARATOR . $refFile;
         if (!file_exists($path)) {
             return;
         }
 
-        $fileAge = time() - filemtime($path);
+        if (!file_exists($refPath)) {
+            touch($refPath);
+            chmod($refPath, 0o644);
+            return;
+        }
+
+        $fileAge = time() - filemtime($refPath);
 
         if ($fileAge >= $lifetime) {
-            unlink($path);
-
-            $dir = dirname($path);
-            if (!is_dir($dir)) {
-                mkdir($dir, 0o755, true);
+            if (file_exists($path)) {
+                unlink($path);
+            }
+            if (file_exists($refPath)) {
+                unlink($refPath); // will be re-created on next rotation
             }
 
             touch($path);

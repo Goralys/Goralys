@@ -36,6 +36,11 @@ final class SubjectsFilterer
      */
     public function query(SubjectsFilter $filter): SubjectsCollection
     {
+        // base safeguard
+        if (empty($filter->classrooms) || empty($filter->status) || empty($filter->topics)) {
+            throw new GoralysRuntimeException("Invalid filter found: " . $filter);
+        }
+
         return $this->formatter->all($this->repo->findFiltered($filter));
     }
 

@@ -165,14 +165,15 @@ class GoralysKernel
         KernelType $type = KernelType::API,
     ) {
         $this->rootPath = $rootPath;
+        $this->setHandlers();
 
         $this->initEnv();
-        $this->initHighSchools();
         $this->initUtils();
         $this->initLogger();
         $this->sessionLifetime = $this->env->getByKey("PHP_SESSION_LIFETIME");
         $this->sessionLifetimeMultiplier = $this->env->getByKey("PHP_SESSION_LIFETIME_MULTIPLIER");
 
+        $this->initHighSchools();
         switch ($type) {
             case KernelType::API:
                 if ($skipHighSchoolToken) {
@@ -213,11 +214,12 @@ class GoralysKernel
                 break;
         }
         $this->startSession();
-        $this->initRouter();
-        $this->initJobs();
 
         // Initializes toast before the DB to be able to provide user feedback if the connection to the DB fails.
         $this->initToast();
+
+        $this->initRouter();
+        $this->initJobs();
 
         $this->initDb();
         $this->initMailer();
@@ -301,7 +303,7 @@ class GoralysKernel
 
     public function getOriginDomain(bool $skip = false): ?string
     {
-        if ($skip || (AppContext::$CURRENT && !AppContext::$CURRENT->hasHighSchoolToken)) {
+        if ($skip || (AppContext::$CURRENT && !AppContext::$CURRENT->isPublic)) {
             return null;
         }
 
@@ -360,9 +362,26 @@ class GoralysKernel
         }
     }
 
+    private function destroySession(): void
+    {
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_unset();
+            session_destroy();
+        }
+    }
+
     public function getSessionLifetime(): float
     {
         return $this->sessionLifetime * $this->sessionLifetimeMultiplier;
+    }
+
+    /**
+     * Initializes the toast controller used by the kernel.
+     * @return void
+     */
+    private function initToast(): void
+    {
+        $this->toast = new ToastController();
     }
 
     /**
@@ -383,14 +402,6 @@ class GoralysKernel
         $this->jobs = new JobDispatcher($this);
     }
 
-    /**
-     * Initializes the toast controller used by the kernel.
-     * @return void
-     */
-    private function initToast(): void
-    {
-        $this->toast = new ToastController();
-    }
 
     /**
      * Initializes the database container of the kernel.
@@ -562,7 +573,7 @@ class GoralysKernel
     private function initRateLimiter(): void
     {
         $this->rateLimiter = new RateLimiter($this->logger);
-        if (strtolower($this->env->getByKey("GORALYS_ENVIRONMENT")) === "dev") {
+        if (AppContext::$CURRENT->isDev) {
             $this->rateLimiter->disable();
         }
     }
@@ -740,7 +751,7 @@ class GoralysKernel
      * @param string $endpoint The endpoint to require rate limiting on
      * (refer to {@see RateLimiterConfig} for endpoint-specific rates).
      * @param string $redirect The url to redirect the user to on failure.
-     * @param string $message The message to display on failure (vie toast notification).
+     * @param string $message The message to display on failure (via toast notification).
      * @return void
      */
     public function requireRateLimit(
@@ -789,14 +800,6 @@ class GoralysKernel
         }
     }
 
-    private function destroySession(): void
-    {
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            session_unset();
-            session_destroy();
-        }
-    }
-
     /**
      * Helper to check if the user is authenticated. Preserves the session on failure.
      * @return bool If the user is authenticated
@@ -815,12 +818,11 @@ class GoralysKernel
      */
     public function requireCSRF(string $formId, ?string $redirect = null): void
     {
-
         if (!$this->csrf->validate($formId, $this->request())) {
             $this->deferredResponse(403)->toast( // Forbidden
                 ToastType::WARNING,
                 "Lien externe",
-                "Ce lien semble inconnu. Ne faite pas confiance aux sources externes.",
+                "Ce lien semble inconnu. Ne faites pas confiance aux sources externes.",
             )
                 ->redirect($redirect ?? "/")
                 ->send();
@@ -851,7 +853,7 @@ class GoralysKernel
                 ($strict ? "==" : "=<") . " " . $role->toString() . ")"
             );
             $this->deferredResponse(403)->error( // Forbidden
-                "Il semblerait que vous n'ayez pas les permissions nécéssaires . ",
+                "Il semblerait que vous n'ayez pas les permissions nécessaires . ",
             )
                 ->redirect("/user/login")
                 ->send();

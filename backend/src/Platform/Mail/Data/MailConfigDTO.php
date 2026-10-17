@@ -12,12 +12,14 @@ final readonly class MailConfigDTO
      * @param int $port The SMTP port on the host.
      * @param string $username Your mail username (e.g. foo@exemple.com).
      * @param string $password Your mail account password.
+     * @param ?string $domain An optionnal parameter to overwrite the domain.
      */
     public function __construct(
         public string $host,
         public int $port,
         public string $username,
         public string $password,
+        public ?string $domain,
     ) {
     }
 }

@@ -11,6 +11,7 @@ use Goralys\Platform\Mail\Data\MailConfigDTO;
 use Goralys\Platform\Mail\Data\MailDTO;
 use Goralys\Platform\Mail\Interfaces\MailContainerInterface;
 use Goralys\Platform\Mail\Services\MailSendService;
+use Goralys\Shared\Error\GoralysLogicError;
 use PHPMailer\PHPMailer\Exception;
 
 class MailContainer implements MailContainerInterface
@@ -18,7 +19,7 @@ class MailContainer implements MailContainerInterface
     private LoggerInterface $logger;
     private MailSendService $sender;
     private MailConfigDTO $config;
-    private string $adminMail;
+    private ?string $adminMail;
 
     /**
      * @param EnvService $env The injected environnement.
@@ -32,6 +33,7 @@ class MailContainer implements MailContainerInterface
             $env->getByKey("MAIL_PORT"),
             $env->getByKey("MAIL_USERNAME"),
             $env->getByKey("MAIL_PASSWORD"),
+            $env->getByKey("MAIL_DOMAIN"),
         );
 
         $this->sender = new MailSendService();
@@ -49,10 +51,26 @@ class MailContainer implements MailContainerInterface
      */
     public function sendMail(string $alias, string $subject, string $content, string $to): void
     {
-        $account = new MailAccountDTO($alias . MailerConfig::MAIL_DOMAIN, MailerConfig::ALIASES_DISPLAY_NAME[$alias]);
+        $alias = array_key_exists($alias, MailerConfig::ALIASES_DISPLAY_NAME) ? $alias : MailerConfig::BASE_ALIAS;
+
+        $account = new MailAccountDTO(
+            $alias . $this->config->domain ?? MailerConfig::MAIL_DOMAIN,
+            MailerConfig::ALIASES_DISPLAY_NAME[$alias]
+        );
         $recipients = [$to];
         if (trim($to) === "@admin") {
-            $recipients = explode(",", $this->adminMail);
+            if (!$this->adminMail) {
+                throw new GoralysLogicError(
+                    "Cannot send mail to admin address if it is not configured inside the environment."
+                );
+            }
+            $recipients = explode(",", $this->adminMail)
+                    |> (fn($x) => array_map('trim', $x))
+                    |> (fn($x) => array_filter($x, fn($v) => $v !== ""));
+
+            if (empty($recipients)) {
+                throw new GoralysLogicError("Cannot send mail to admins without valid recipients.");
+            }
         }
         $this->sender->send($this->config, new MailDTO($account, $subject, $content, $recipients));
         $this->logger->debug(LoggerInitiator::PLATFORM, "Sent email (" . $subject . ") to: " . $to);

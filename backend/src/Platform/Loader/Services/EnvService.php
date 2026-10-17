@@ -19,9 +19,9 @@ use Dotenv\Exception\ValidationException;
 final class EnvService
 {
     /**
-     * Load the environment variables inside $_ENV
-     * @param string $path The path to the .env file
-     * @return bool `true` if the loading was successful, `false` elsewise
+     * Load the environment variables inside $_ENV.
+     * @param string $path The path to the .env file.
+     * @return bool `true` if the loading was successful, `false` elsewise.
      */
     public function load(string $path): bool
     {
@@ -35,9 +35,9 @@ final class EnvService
     }
 
     /**
-     * Returns the environment value for the specified key
-     * @param string $key The environment variable to get
-     * @return mixed The environment variable value
+     * Returns the environment value for the specified key.
+     * @param string $key The environment variable to get.
+     * @return mixed The environment variable value.
      */
     public function getByKey(string $key): mixed
     {

@@ -21,6 +21,7 @@ use Goralys\Shared\Exception\DB\GoralysQueryException;
 use JetBrains\PhpStorm\Language;
 use mysqli;
 use mysqli_result;
+use mysqli_sql_exception;
 use mysqli_stmt;
 
 /**
@@ -108,8 +109,13 @@ final class DbContainer implements DbContainerInterface
 
         $stmt = $service->prepareAndBind($stmtData);
 
-        if (!$stmt->execute()) {
-            throw new GoralysQueryException("Could not run the statement");
+        try {
+            if (!$stmt->execute()) {
+                throw new GoralysQueryException("Could not run the statement");
+            }
+        } catch (mysqli_sql_exception $e) {
+            throw new GoralysQueryException("Could not run statement: " . $stmtData->query . "\n"
+                    . "Error: " . $e->getMessage());
         }
 
         return $stmt;

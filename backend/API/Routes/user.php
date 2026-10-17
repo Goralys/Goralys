@@ -593,7 +593,7 @@ Routes::patch('users/reset', function (GoralysKernel $kernel, RequestInterface $
             "Bonjour, <br>
                     Nous vous informons que votre compte <b>Goralys</b> a été réinitialisé par un 
                     administrateur le " . date("d/m/y à H:i") . ".<br>Vous pouvez <a href=$registerLink>recréer
-                    votre compte </a>avec le même identifiant <b>({$kernel->usernames->get($target)}</b>).<br>
+                    votre compte </a>avec le même identifiant <b>({$kernel->usernames->get($target)})</b>.<br>
                     <b>Note :</b> Cela peut notamment être dû à une erreur de saisie dans vos informations
                     (ex : Nom/Prénom) ou un oubli de mot de passe.",
             $email
