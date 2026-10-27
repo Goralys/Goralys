@@ -12,4 +12,5 @@ class DirConfig
     public const string ASSETS = self::ROOT . "Assets" . DIRECTORY_SEPARATOR;
     public const string LOGS = self::ROOT . "Logs" . DIRECTORY_SEPARATOR;
     public const string RATE_LIMITER = self::ROOT . "RateLimiter" . DIRECTORY_SEPARATOR;
+    public const string CACHE = self::ASSETS . "Cache" . DIRECTORY_SEPARATOR;
 }

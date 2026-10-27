@@ -7,19 +7,20 @@
 
 namespace Goralys\Platform\Doc\PDF;
 
-use Dompdf\Dompdf;
-use Dompdf\Options;
+use Exception;
 use Goralys\Core\Subjects\Config\SubjectsExportConfig;
-use Goralys\Platform\Doc\PDF\Data\PdfSourceDTO;
 use Goralys\Platform\Doc\PDF\Interfaces\PdfExporterInterface;
 use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
 use Goralys\Platform\Logger\Interfaces\LoggerInterface;
+use Goralys\Shared\Config\GoralysConfig as Config;
 use Goralys\Shared\Exception\GoralysRuntimeException;
+use Random\RandomException;
 
 /**
- * Wrapper around the base {@see Dompdf} implementation used to export HTML documents to PDF.
+ * Wrapper around the Rust goralys template renderer extension. This extension is located in the backend/native folder
+ * and uses the Rust crate ironpress to render pdf.
  */
-final class DomPdfExporter implements PdfExporterInterface
+final class NativePdfExporter implements PdfExporterInterface
 {
     private LoggerInterface $logger;
 
@@ -58,47 +59,31 @@ final class DomPdfExporter implements PdfExporterInterface
     }
 
     /**
-     * Exports an HTML template to a PDF file.
-     * @param PdfSourceDTO $pdf The PDF to export.
-     * @param string $path The path to export the PDF to.
-     * @param string $basePath The root path for assets used during PDF export.
+     * Exports a batch of jobs based on an HTML template to PDF files.
+     * @param array $batch The list of PDFs to export.
      * @return void
+     * @throws GoralysRuntimeException If the export fails.
      */
-    public function export(PdfSourceDTO $pdf, string $path, string $basePath): void
+    public function export(array $batch): void
     {
-        if (!is_dir(dirname($path))) {
-            mkdir(dirname($path), recursive: true);
+        try {
+            $suffix = bin2hex(random_bytes(1));
+        } catch (RandomException) {
+            $suffix = "rand0m";
+        }
+        $tmpFile = Config::DIRECTORIES::CACHE . "export_batch_" . $suffix;
+
+        // put batch into file
+        file_put_contents($tmpFile, json_encode($batch, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+
+        try {
+            export_jobs_from($tmpFile); // renders and exports the jobs
+        } catch (Exception $e) {
+            throw new GoralysRuntimeException("Error occurred during job rendering: " . $e->getMessage());
         }
 
-        $finalSource = str_replace(
-            '</head>',
-            "<style>\n$pdf->CSS\n</style>\n</head>",
-            $pdf->HTML,
-        );
-
-        // --- Dompdf options ---
-        $options = new Options();
-        $options->set('isRemoteEnabled', true);     // allow images
-        $options->set('isHtml5ParserEnabled', true);
-        $options->set('defaultFont', 'Marianne');   // matches @font-face name
-        $options->set('chroot', $basePath);
-
-        $dompdf = new Dompdf($options);
-
-        // Important: base path for images/fonts
-        $dompdf->setBasePath($basePath);
-
-        // Load HTML
-        $dompdf->loadHtml($finalSource, 'UTF-8');
-
-        // Paper size
-        $dompdf->setPaper('A4');
-
-        // Render PDF
-        $dompdf->render();
-
-        // Save to file
-        file_put_contents($path, $dompdf->output());
+        // remove temporary file
+        // unlink($tmpFile);
     }
 
     /**

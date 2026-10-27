@@ -77,7 +77,7 @@ use Goralys\Kernel\Data\Enums\KernelType;
 use Goralys\Kernel\Data\ErrorMessageConfig;
 use Goralys\Platform\DB\Facade\DbContainer;
 use Goralys\Platform\DB\Interfaces\DbContainerInterface;
-use Goralys\Platform\Doc\PDF\DomPdfExporter;
+use Goralys\Platform\Doc\PDF\NativePdfExporter;
 use Goralys\Platform\Loader\Services\EnvService;
 use Goralys\Platform\Loader\Services\HighSchoolsService;
 use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
@@ -121,7 +121,7 @@ class GoralysKernel
     private string $rootPath;
     private RateLimiter $rateLimiter;
     private RequestInterface $request;
-    private DomPdfExporter $exporter;
+    private NativePdfExporter $exporter;
     private int $sessionLifetime;
     /**
      * Multiplier applied to the base session lifetime to determine the upper bound
@@ -522,7 +522,7 @@ class GoralysKernel
      */
     private function initExporter(): void
     {
-        $this->exporter = new DomPdfExporter($this->logger);
+        $this->exporter = new NativePdfExporter($this->logger);
     }
 
     /**

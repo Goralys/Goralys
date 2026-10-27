@@ -1,6 +1,12 @@
 # Goralys Backend Architecture
 
-This document describes the layered architecture of the Goralys backend, how the code is organized, and how components interact at runtime. It is intended as a concise reference for developers working on the backend implementation.
+This document describes the layered architecture of the Goralys backend, how the code is organized, and how components
+interact at runtime. It is intended as a concise reference for developers working on the backend implementation.
+
+## Requirements
+
+The backend uses a custom-built Rust ffi extension for PHP 8.5: [goralys-template-renderer](native/template_renderer).
+You must compile this extension, copy it to your PHP extension folder, and add it to your `php.ini` config.
 
 ## Overview
 
@@ -12,67 +18,69 @@ The backend is organized into distinct layers to separate responsibilities and i
 - Shared (cross-cutting types and exceptions): `backend/src/Shared`
 - Kernel (bootstrapping and runtime wiring): `backend/src/Kernel`
 
-Layers are designed to keep dependencies directional — higher layers may depend on lower ones, and Shared contains common types used across layers.
+Layers are designed to keep dependencies directional — higher layers may depend on lower ones, and Shared contains
+common types used across layers.
 
 ## Layer descriptions
 
 1. Platform — Infrastructure (`backend/src/Platform`)
 
-    Provides low-level, environment and specific services used by the rest of the system.
+   Provides low-level, environment and specific services used by the rest of the system.
 
-    Platform content:
+   Platform content:
     - DB (`backend/src/Platform/DB`): connection handling and query helpers.
     - Loader (`backend/src/Platform/Loader`): environment and configuration loading (wrapper around `DotEnv` by vlucas).
     - Logger (`backend/src/Platform/Logger`): centralized logging APIs and configuration.
 
-    Platform responsibilities:
+   Platform responsibilities:
     - Provide database connectivity and execution helpers.
     - Load and validate environment/configuration values.
     - Expose logging and other infrastructure services to upper layers.
 
 2. Core — Domain (`backend/src/Core`)
 
-    Encapsulates domain entities, business rules, and use-cases. Organize code by domain (for example `User`, `Subject`).
+   Encapsulates domain entities, business rules, and use-cases. Organize code by domain (for example `User`, `Subject`).
 
-    Core content:
+   Core content:
     - Data transfer objects and enums.
     - Services implementing business use-cases.
     - Repository interfaces and domain-facing repository implementations.
 
-    Core responsibilities:
+   Core responsibilities:
     - Implement business rules and orchestrate domain workflows.
     - Depend on repository abstractions to persist/retrieve data; repository implementations delegate to Platform.
 
 3. App — Application (`backend/src/App`)
 
-    Hosts HTTP/web concerns, controllers, request/response mapping, session handling, and presentation helpers.
+   Hosts HTTP/web concerns, controllers, request/response mapping, session handling, and presentation helpers.
 
-    App content:
+   App content:
     - Controllers.
     - Security helpers (CSRF utilities).
     - UI helpers (toast system).
 
-    App responsibilities:
+   App responsibilities:
     - Map transport-layer inputs (HTTP, forms) to Core DTOs and services.
     - Manage session state and user-facing utilities (toasts, messages).
     - Return HTTP responses and handle input validation.
 
 4. Shared — Cross-cutting (`backend/src/Shared`)
 
-    Contains reusable, domain-agnostic components used by multiple layers.
+   Contains reusable, domain-agnostic components used by multiple layers.
 
-    Shared content:
+   Shared content:
     - Exceptions: `backend/src/Shared/Exception` (typed exceptions for DB, User, etc.)
 
 5. Kernel — Bootstrapping and runtime (`backend/src/Kernel`)
 
-    Initializes and wires runtime services and global application policies (error handling, logging).
+   Initializes and wires runtime services and global application policies (error handling, logging).
 
-    Kernel content:
-    - `GoralysKernel`: constructs and exposes services such as the logger, env loader, DB container, and toast controller; configures exception/error handlers and provides helpers for request handling.
+   Kernel content:
+    - `GoralysKernel`: constructs and exposes services such as the logger, env loader, DB container, and toast
+      controller; configures exception/error handlers and provides helpers for request handling.
     - `bootstrap.php`: small helpers to create and start the kernel.
 
-    Kernel responsibilities:
+   Kernel responsibilities:
     - Provide a single place to initialize platform services and to expose them to App and Core.
     - Enforce application-wide behaviors (logging, global error handling, configuration loading).
 
@@ -94,16 +102,20 @@ Maintaining these boundaries keeps the system modular and easier to test.
 4. The controller maps request data to Core DTOs and invokes Core services (use-cases).
 5. Core services execute business logic and use repository interfaces to persist or fetch data.
 6. Repository implementations delegate to Platform services (DB, logger) to execute queries.
-7. Core returns results/DTOs to the controller. The controller formats and returns an HTTP response and emits toasts or messages if needed.
-8. Errors are logged via Platform logger and handled either by Kernel-level handlers or controller-level try/catch logic.
+7. Core returns results/DTOs to the controller. The controller formats and returns an HTTP response and emits toasts or
+   messages if needed.
+8. Errors are logged via Platform logger and handled either by Kernel-level handlers or controller-level try/catch
+   logic.
 
 ## Conventions
 
-- Namespaces mirror directory structure: `Goralys\\Platform\\...`, `Goralys\\Core\\...`, `Goralys\\App\\...`, `Goralys\\Shared\\...`, `Goralys\\Kernel\\...`.
+- Namespaces mirror directory structure: `Goralys\\Platform\\...`, `Goralys\\Core\\...`, `Goralys\\App\\...`,
+  `Goralys\\Shared\\...`, `Goralys\\Kernel\\...`.
 - DTOs live under `Data/` directories.
 - Services implement business use-cases and depend on repository interfaces.
 - Repositories handle data access; implementations that depend on Platform live near their domain when interfaces exist.
-- Enums are placed under `Data/Enums` for domain-specific types or under `Platform`/`Shared` for cross-cutting enums (not-recommended).
+- Enums are placed under `Data/Enums` for domain-specific types or under `Platform`/`Shared` for cross-cutting enums
+  (not-recommended).
 
 ## Environment and configuration
 

@@ -59,9 +59,13 @@ goralys-ui/dist
 # IDE
 /.idea
 /.vscode
+/backend/native/template_renderer/.idea
 
 # reverse proxy / certificates
 /.certs
+
+# Rust ffi build
+/backend/native/template_renderer/target
 
 deploy-local.bat
 flush-logs.bat

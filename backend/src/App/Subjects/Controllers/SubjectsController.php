@@ -183,21 +183,21 @@ final class SubjectsController
     {
         $grouped = $this->groupByStudents($subjects);
         $exportedPaths = [];
+        $batch = ['template_dir' => Config::TEMPLATE_DIR_PATH];
 
         foreach ($grouped as $s) {
             $filename = Config::EXPORT_BASE_NAME . date("Y") . "-" . $s->student->classroom . " - "
                         . $s->student->fullName->reversed() . ".pdf";
             $filePath = Config::EXPORT_BASE_DIR . $s->exportSuffix . $filename;
 
-            $pdf = $this->renderer->render($s);
-            $this->exporter->export(
-                $pdf,
-                $filePath,
-                Config::ASSETS_PATH,
-            );
+            $this->renderer->addToBatch($batch, $s, $filePath);
 
             $exportedPaths[] = $filePath;
         }
+
+        $this->exporter->export(
+            $batch,
+        );
 
         return $this->zipExports($exportedPaths);
     }

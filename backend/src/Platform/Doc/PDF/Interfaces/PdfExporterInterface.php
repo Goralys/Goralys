@@ -7,8 +7,6 @@
 
 namespace Goralys\Platform\Doc\PDF\Interfaces;
 
-use Goralys\Platform\Doc\PDF\Data\PdfSourceDTO;
-
 /**
  * Contract for PDF exporters.
  */
@@ -27,10 +25,8 @@ interface PdfExporterInterface
     public function clean(): void;
 
     /**
-     * Renders a PDF document and writes it to disk.
-     * @param PdfSourceDTO $pdf The source data describing the PDF to generate.
-     * @param string $path The destination file path where the PDF will be written.
-     * @param string $basePath The base path used to resolve relative assets (images, fonts, etc.).
+     * Renders a batch of PDF documents and writes them to disk.
+     * @param array $batch The source data describing the PDFs to generate.
      */
-    public function export(PdfSourceDTO $pdf, string $path, string $basePath): void;
+    public function export(array $batch): void;
 }

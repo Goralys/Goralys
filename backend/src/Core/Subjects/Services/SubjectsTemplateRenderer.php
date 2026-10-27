@@ -9,7 +9,6 @@ namespace Goralys\Core\Subjects\Services;
 
 use Goralys\Core\Subjects\Config\SubjectsExportConfig as Config;
 use Goralys\Core\Subjects\Data\StudentSubjectsDTO;
-use Goralys\Platform\Doc\PDF\Data\PdfSourceDTO;
 use InvalidArgumentException;
 
 /**
@@ -19,45 +18,22 @@ use InvalidArgumentException;
 final class SubjectsTemplateRenderer
 {
     /**
-     * Renders the PDF source (HTML + CSS) for a given student's subjects.
-     * Resolves column widths, pathway detection, and all template variables before returning the source DTO.
+     * Adds a given student's subjects to a batch.
+     * Resolves all template variables before adding them to the batch.
+     * @param array $batch The batch to put the result into.
      * @param StudentSubjectsDTO $student The student data to render.
-     * @return PdfSourceDTO The rendered HTML and CSS ready for PDF generation.
+     * @param string $out The path to export the subjects to (output file).
+     * @return void
      * @throws InvalidArgumentException If the student has fewer than 2 subjects.
      */
-    public function render(StudentSubjectsDTO $student): PdfSourceDTO
+    public function addToBatch(array &$batch, StudentSubjectsDTO $student, string $out): void
     {
-        if (count($student->subjects) < 2) {
-            throw new InvalidArgumentException(
-                "Student {$student->student->fullName} must have at least 2 subjects. Got: "
-                . print_r($student->subjects, true),
-            );
-        }
-
-        $html = file_get_contents(Config::TEMPLATE_SOURCE_PATH);
-        $css = file_get_contents(Config::TEMPLATE_STYLES_PATH);
-
-        $colMm = [
-            'label'  => 22,
-            'intitulé' => 100,
-            'spe'    => 45,
-            'trans'  => 35,
-        ];
-
-        // Compute percentages that sum to exactly 100%
-        $totalMm = array_sum($colMm);
-        $pct = [];
-        $assigned = 0;
-        $keys = array_keys($colMm);
-        foreach ($keys as $i => $k) {
-            if ($i === count($keys) - 1) {
-                $pct[$k] = round(100 - $assigned, 2);
-            } else {
-                $p = round($colMm[$k] / $totalMm * 100, 2);
-                $pct[$k] = $p;
-                $assigned += $p;
-            }
-        }
+        // if (count($student->subjects) < 2) {
+        //     throw new InvalidArgumentException(
+        //         "Student {$student->student->fullName} must have at least 2 subjects. Got: "
+        //         . print_r($student->subjects, true),
+        //     );
+        // }
 
         $pathway = "générale";
 
@@ -65,19 +41,10 @@ final class SubjectsTemplateRenderer
             foreach ($student->subjects as $subject) {
                 if ($subject->topicCode && str_contains($subject->topicCode, $p->detectPattern)) {
                     $pathway = "technologique - " . $p->full;
-                    break 2;
+                    break 2; // break both outer loops
                 }
             }
         }
-
-        // CSS block injected alongside the main stylesheet
-        $css .= PHP_EOL . PHP_EOL . "
-            .questions-table { width: {$totalMm}mm; }
-            .qt-col1 { width: {$pct['label']}%; }
-            .qt-col2 { width: {$pct['intitulé']}%; }
-            .qt-col3 { width: {$pct['spe']}%; }
-            .qt-col4 { width: {$pct['trans']}%; }
-            ";
 
         $vars = [
             'nom'    => $student->student->fullName->last,
@@ -85,6 +52,7 @@ final class SubjectsTemplateRenderer
             'série'  => $pathway,
             'year'   => date("Y"),
         ];
+        $flags = [];
 
         foreach ($student->subjects as $i => $subject) {
             $n = $i + 1;
@@ -92,41 +60,17 @@ final class SubjectsTemplateRenderer
             $vars["prof$n"]             = $subject->teacherName;
             $vars["q$n"]                = $subject->subject;
             $vars["dateQ$n"]            = $subject->validatedAt->format("d/m/Y");
-            $vars["interdisciplinary$n"] = $subject->interdisciplinary;
+            $flags["interdisciplinary$n"] = $subject->interdisciplinary;
         }
 
-        $html = $this->resolveConditionals($html, $vars);
+        if (!isset($batch['jobs'])) {
+            $batch['jobs'] = [];
+        }
 
-        // Simple replacements
-        $replacements = array_combine(
-            array_map(fn($k) => "{{{$k}}}", array_keys($vars)),
-            array_values($vars),
-        );
-        $html = strtr($html, $replacements);
-
-        return new PdfSourceDTO($html, $css);
-    }
-
-    /**
-     * Resolves inline ternary conditionals of the form `{{ [not ]varName ? 'ifTrue' : 'ifFalse' }}` in an HTML string.
-     * @param string $html The HTML template content.
-     * @param array $vars The variable map used to evaluate conditions.
-     * @return string The HTML with all conditionals replaced by their resolved values.
-     */
-    private function resolveConditionals(string $html, array $vars): string
-    {
-        // Ternary operator match
-        return preg_replace_callback(
-            '/\{\{\s*(not\s+|!)?(\w+)\s*\?\s*["\']([^"\']*)["\']?\s*:\s*["\']([^"\']*)["\']?\s*}}/',
-            function (array $matches) use ($vars): string {
-                [, $negation, $varName, $ifTrue, $ifFalse] = $matches;
-                $value = $vars[$varName] ?? null;
-                if ($negation !== '') {
-                    $value = !$value;
-                }
-                return $value ? $ifTrue : $ifFalse;
-            },
-            $html,
-        );
+        $batch['jobs'][] = [
+            'output_file' => $out,
+            'vars' => $vars,
+            'flags' => $flags
+        ];
     }
 }

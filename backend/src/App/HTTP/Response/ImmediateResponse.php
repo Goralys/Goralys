@@ -69,7 +69,9 @@ final class ImmediateResponse implements ImmediateResponseInterface
                     "Post response callback failed. \n Error: " . $e->getMessage(),
                 );
             }
-            http_response_code($this->code);
+            if (!headers_sent()) {
+                http_response_code($this->code);
+            }
             exit;
         } catch (Throwable $e) {
             $this->logger->error(LoggerInitiator::APP, "Failed to download file: $path\n Error: " . $e->getMessage());
