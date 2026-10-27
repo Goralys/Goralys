@@ -83,6 +83,7 @@ use Goralys\Platform\Loader\Services\HighSchoolsService;
 use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
 use Goralys\Platform\Logger\GoralysLogger;
 use Goralys\Platform\Logger\Interfaces\LoggerInterface;
+use Goralys\Platform\Logger\PanicLogger;
 use Goralys\Platform\Mail\Facade\MailContainer;
 use Goralys\Platform\Mail\Interfaces\MailContainerInterface;
 use Goralys\Shared\Config\GoralysConfig;
@@ -105,6 +106,7 @@ class GoralysKernel
     private(set) DbContainerInterface $db;
     private(set) MailContainerInterface $mailer;
     private(set) LoggerInterface $logger;
+    private bool $loggerInitiated = false;
     private(set) AuthController $auth;
     private(set) UserController $users;
     private(set) GoralysFileManager $fileManager;
@@ -286,6 +288,7 @@ class GoralysKernel
         $this->logger = new GoralysLogger();
         $this->logger->rotate();
         ClassDiscoverer::$logger = $this->logger;
+        $this->loggerInitiated = true;
     }
 
     /**
@@ -669,6 +672,10 @@ class GoralysKernel
             $file = $frame['file'] ?? '[internal]';
             $line = $frame['line'] ?? '?';
             $callStack .= "\n\t" . $file . ":" . $line;
+        }
+
+        if (!$this->loggerInitiated) {
+            $this->logger = new PanicLogger();
         }
 
         $this->logger->error(

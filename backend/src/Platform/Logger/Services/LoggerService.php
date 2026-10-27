@@ -18,6 +18,7 @@ use Goralys\Platform\Logger\LoggerConfigLoader;
 final class LoggerService
 {
     private static string $logDirectory;
+    private const string PANIC_LOG_FILE = "Goralys_Panic";
 
     /**
      * Initializes the log path for all instances of the service.
@@ -44,13 +45,16 @@ final class LoggerService
      * using the following format: ["initiator" => <initiator>, "level" => <type>, "message" => <message>,
      * "timestamp" => <now>]. All fields in the array are strings.
      * NOTE: this array is currently only used for testing but is also useful for future audit features.
+     * @param ?bool $panic Wether the log is writtent in panic mode. In this mode, the log is only written to a single
+     * file configured inside the service.
      * @return void
      */
     final public static function log(
         LoggerInitiator $initiator,
         LoggerType $type,
         string $message,
-        ?array &$logStore
+        ?array &$logStore = null,
+        ?bool $panic = false
     ): void {
         if ($type === LoggerType::Debug && LoggerConfigLoader::getGoralysEnv() === 'prod') {
             return;
@@ -60,15 +64,17 @@ final class LoggerService
             mkdir(LoggerService::$logDirectory, 0755, true);
         }
 
-        $filename = LoggerConfigLoader::getInitiatorFile($initiator);
+        $filename = $panic ? self::PANIC_LOG_FILE : LoggerConfigLoader::getInitiatorFile($initiator);
         $time = date("Y-m-d H:i:s");
 
-        $logStore[] = [
-            "initiator" => $initiator->toString(),
-            "level" => $type->toString(),
-            "message" => $message,
-            "timestamp" => $time
-        ];
+        if ($logStore) {
+            $logStore[] = [
+                "initiator" => $initiator->toString(),
+                "level" => $type->toString(),
+                "message" => $message,
+                "timestamp" => $time
+            ];
+        }
 
         // Logs to the layer-specific log file
         if ($file = fopen(LoggerService::$logDirectory . $filename . ".log", "a")) {
