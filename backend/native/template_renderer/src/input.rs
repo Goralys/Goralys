@@ -11,6 +11,7 @@ pub struct Job {
 
 #[derive(Deserialize)]
 pub struct ExportBatch {
+    pub max_threads: usize,
     pub template_dir: String,
     pub jobs: Vec<Job>,
 }

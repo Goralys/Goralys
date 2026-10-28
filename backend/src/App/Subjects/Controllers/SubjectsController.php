@@ -32,6 +32,7 @@ use Goralys\Core\User\Services\UsernameManager;
 use Goralys\Core\Utils\User\Services\UsernameFormatterService;
 use Goralys\Platform\DB\Interfaces\DbContainerInterface;
 use Goralys\Platform\Doc\PDF\Interfaces\PdfExporterInterface;
+use Goralys\Platform\Loader\Services\EnvService;
 use Goralys\Platform\Logger\Interfaces\LoggerInterface;
 use Goralys\Shared\Config\GoralysConfig;
 use Goralys\Shared\Exception\GoralysRuntimeException;
@@ -45,6 +46,7 @@ use ZipArchive;
 final class SubjectsController
 {
     public StudentDraftsManager $draftsManager;
+    private EnvService $env;
     private LoggerInterface $logger;
     private DbContainerInterface $db;
     private SubjectsRepositoryInterface $repo;
@@ -61,17 +63,20 @@ final class SubjectsController
     /**
      * Initializes the logger and database container for the controller.
      * Also instantiates all of its sub-services.
+     * @param EnvService $env The injected env container.
      * @param LoggerInterface $logger The injected logger.
      * @param DbContainerInterface $db The injected db.
      * @param GoralysFileManager $fileManager The injected file manager.
      * @param PdfExporterInterface $exporter The injected PDF exporter.
      */
     public function __construct(
+        EnvService $env,
         LoggerInterface $logger,
         DbContainerInterface $db,
         GoralysFileManager $fileManager,
         PdfExporterInterface $exporter,
     ) {
+        $this->env = $env;
         $this->logger = $logger;
         $this->db = $db;
 
@@ -183,7 +188,10 @@ final class SubjectsController
     {
         $grouped = $this->groupByStudents($subjects);
         $exportedPaths = [];
-        $batch = ['template_dir' => Config::TEMPLATE_DIR_PATH];
+        $batch = [
+            'template_dir' => Config::TEMPLATE_DIR_PATH,
+            'max_threads' => (int) ($this->env->getByKey("EXPORT_MAX_THREADS") ?? 1)
+        ];
 
         foreach ($grouped as $s) {
             $filename = Config::EXPORT_BASE_NAME . date("Y") . "-" . $s->student->classroom . " - "

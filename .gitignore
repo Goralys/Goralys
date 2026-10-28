@@ -65,7 +65,7 @@ goralys-ui/dist
 /.certs
 
 # Rust ffi build
-/backend/native/template_renderer/target
+/backend/native/template_renderer/target*
 
 deploy-local.bat
 flush-logs.bat

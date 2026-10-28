@@ -534,7 +534,13 @@ class GoralysKernel
      */
     private function initSubjects(): void
     {
-        $this->subjects = new SubjectsController($this->logger, $this->db, $this->fileManager, $this->exporter);
+        $this->subjects = new SubjectsController(
+            $this->env,
+            $this->logger,
+            $this->db,
+            $this->fileManager,
+            $this->exporter
+        );
     }
 
     /**

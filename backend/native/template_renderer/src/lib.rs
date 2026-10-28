@@ -154,31 +154,28 @@ pub fn export_jobs(path: String) -> Result<(), Box<dyn std::error::Error>> {
         .sanitize(false);
     let converter = Arc::new(converter);
 
-    let results: Vec<Result<(), String>> = batch
-        .jobs
-        .par_iter()
-        .map(|job| {
-            let output = job.output_file.clone();
-            let resolved = replace_placeholders(&template, job);
-            let pdf = Arc::clone(&converter)
-                .convert(&resolved)
-                .map_err(|e| format!("Ironpress error: {}", e))?;
+    let pool = rayon::ThreadPoolBuilder::new().num_threads(batch.max_threads).build().map_err(|e| e.to_string())?;
 
-            if let Some(dir) = Path::new(&output).parent() {
-                fs::create_dir_all(dir).map_err(|e| e.to_string())?;
-            }
-            fs::write(output, pdf).map_err(|e| e.to_string())?;
-            Ok(())
-        })
-        .collect();
+    pool.install(|| {
+        batch
+            .jobs
+            .par_iter()
+            .map(|job| -> Result<(), String> {
+                let output = job.output_file.clone();
+                let resolved = replace_placeholders(&template, job);
+                let pdf = Arc::clone(&converter)
+                    .convert(&resolved)
+                    .map_err(|e| format!("Ironpress error: {}", e))?;
 
-    for result in results {
-        if let Err(e) = result {
-            eprintln!("Job failed: {}", e);
-        }
-    }
-
-    Ok(())
+                if let Some(dir) = Path::new(&output).parent() {
+                    fs::create_dir_all(dir).map_err(|e| e.to_string())?;
+                }
+                fs::write(output, pdf).map_err(|e| e.to_string())?;
+                Ok(())
+            })
+            .collect::<Result<(), String>>()
+        })?;
+        Ok(())
 }
 
 /// Exports all jobs from a given JSON file.
