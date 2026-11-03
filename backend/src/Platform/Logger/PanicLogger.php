@@ -66,4 +66,9 @@ final class PanicLogger implements LoggerInterface
     {
         LoggerService::log($initiator, LoggerType::Fatal, $message, panic: true);
     }
+
+    public function store(): array
+    {
+        return [];
+    }
 }

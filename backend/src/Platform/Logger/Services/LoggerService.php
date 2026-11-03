@@ -67,7 +67,7 @@ final class LoggerService
         $filename = $panic ? self::PANIC_LOG_FILE : LoggerConfigLoader::getInitiatorFile($initiator);
         $time = date("Y-m-d H:i:s");
 
-        if ($logStore) {
+        if (is_array($logStore)) {
             $logStore[] = [
                 "initiator" => $initiator->toString(),
                 "level" => $type->toString(),

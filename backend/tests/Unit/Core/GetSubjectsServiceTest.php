@@ -5,6 +5,7 @@ namespace Goralys\Tests\Unit\Core;
 use DateMalformedStringException;
 use DateTime;
 use Goralys\Core\Subjects\Services\GetSubjectsService;
+use Goralys\Core\Subjects\Services\SubjectsFormatter;
 use Goralys\Core\User\Data\Enums\UserRole;
 use Goralys\Core\User\Data\UserFullDTO;
 use Goralys\Core\User\Services\UsernameManager;
@@ -23,7 +24,7 @@ class GetSubjectsServiceTest extends TestCase
     private FakeGoralysLogger $logger;
     private FakeSubjectsRepository $repo;
     private FakeUserRepository $userRepo;
-    private UsernameFormatterService $formatter;
+    private SubjectsFormatter $formatter;
     private UsernameManager $usernameManager;
     private GetSubjectsService $service;
     private mysqli_result&MockObject $mysqliResult;
@@ -38,6 +39,7 @@ class GetSubjectsServiceTest extends TestCase
                 'teachers'        => 'j.doe1',
                 'student'         => 'e.doe3',
                 'topic'           => 'Maths',
+                'topic_code'      => 'MATHS7',
                 'subject'         => 'Étude des fonctions',
                 'last_rejected'   => null,
                 'subject_status'  => 3,
@@ -49,6 +51,7 @@ class GetSubjectsServiceTest extends TestCase
                 'teachers'        => 'm.smith2',
                 'student'         => 'e.doe3',
                 'topic'           => 'Physique',
+                'topic_code'      => 'PH5',
                 'subject'         => 'Ondes et interférences',
                 'last_rejected'   => null,
                 'subject_status'  => 1,
@@ -60,7 +63,8 @@ class GetSubjectsServiceTest extends TestCase
                 'teachers'        => 'j.doe1',
                 'student'         => 'l.dupont4',
                 'topic'           => 'Informatique',
-                'comment'         => "foo",
+                'topic_code'      => 'INFO2',
+                'comment'         => 'foo',
                 'subject'         => 'Algorithmes de tri',
                 'last_rejected'   => 'Algorithmes de tri',
                 'subject_status'  => 2,
@@ -72,6 +76,7 @@ class GetSubjectsServiceTest extends TestCase
                 'teachers'        => 'm.smith2',
                 'student'         => 'l.dupont4',
                 'topic'           => 'Sciences',
+                'topic_code'      => 'SCI6',
                 'subject'         => 'Intelligence artificielle',
                 'last_rejected'   => null,
                 'subject_status'  => 3,
@@ -90,6 +95,7 @@ class GetSubjectsServiceTest extends TestCase
                 'comment'        => "",
                 'lastRejected'   => "",
                 'topic'          => 'Maths',
+                'topicCode'      => 'MATHS7',
                 'teacher'        => 'DOE J.',
                 'hasDraft'       => false,
                 'interdisciplinary' => true,
@@ -101,6 +107,7 @@ class GetSubjectsServiceTest extends TestCase
                 'comment'        => "",
                 'lastRejected'   => "",
                 'topic'          => 'Physique',
+                'topicCode'      => 'PH5',
                 'teacher'        => 'SMITH M.',
                 'hasDraft'       => false,
                 'interdisciplinary' => false,
@@ -112,6 +119,7 @@ class GetSubjectsServiceTest extends TestCase
                 'comment'        => "foo",
                 'lastRejected'   => 'Algorithmes de tri',
                 'topic'          => 'Informatique',
+                'topicCode'      => 'INFO2',
                 'teacher'        => "DOE J.",
                 'hasDraft'       => false,
                 'interdisciplinary' => false,
@@ -123,6 +131,7 @@ class GetSubjectsServiceTest extends TestCase
                 'comment'        => "",
                 'lastRejected'   => "",
                 'topic'          => 'Sciences',
+                'topicCode'      => 'SCI6',
                 'teacher'        => 'SMITH M.',
                 'hasDraft'       => false,
                 'interdisciplinary' => false,
@@ -152,6 +161,7 @@ class GetSubjectsServiceTest extends TestCase
                 'teachers'        => 'j.doe1',
                 'student'         => 'e.doe3',
                 'topic'           => 'Maths',
+                'topic_code'       => 'MATHS7',
                 'subject'         => 'Étude des fonctions',
                 'last_rejected'   => null,
                 'subject_status'  => 3,
@@ -163,6 +173,7 @@ class GetSubjectsServiceTest extends TestCase
                 'teachers'        => 'm.smith2',
                 'student'         => 'e.doe3',
                 'topic'           => 'Physique',
+                'topic_code'       => 'PH5',
                 'subject'         => 'Ondes et interférences',
                 'last_rejected'   => null,
                 'subject_status'  => 1,
@@ -181,6 +192,7 @@ class GetSubjectsServiceTest extends TestCase
                 'comment'        => "",
                 'lastRejected'   => "",
                 'topic'          => 'Maths',
+                'topicCode'      => 'MATHS7',
                 'teacher'        => 'DOE J.',
                 'hasDraft'       => false,
                 'interdisciplinary' => false,
@@ -192,6 +204,7 @@ class GetSubjectsServiceTest extends TestCase
                 'comment'        => "",
                 'lastRejected'   => "",
                 'topic'          => 'Physique',
+                'topicCode'      => 'PH5',
                 'teacher'        => 'SMITH M.',
                 'hasDraft'       => false,
                 'interdisciplinary' => true,
@@ -230,6 +243,7 @@ class GetSubjectsServiceTest extends TestCase
                 'teachers'        => 'j.doe1',
                 'student'         => 'e.doe3',
                 'topic'           => 'Maths',
+                'topic_code'      => 'MATHS7',
                 'subject'         => 'Étude des fonctions',
                 'last_rejected'   => null,
                 'subject_status'  => 3,
@@ -241,6 +255,7 @@ class GetSubjectsServiceTest extends TestCase
                 'teachers'        => 'j.doe1',
                 'student'         => 'l.dupont4',
                 'topic'           => 'Informatique',
+                'topic_code'      => 'INFO2',
                 'comment'         => "foo",
                 'subject'         => 'Algorithmes de tri',
                 'last_rejected'   => 'Algorithmes de tri',
@@ -260,6 +275,7 @@ class GetSubjectsServiceTest extends TestCase
                 'comment'        => "",
                 'lastRejected'   => "",
                 'topic'          => 'Maths',
+                'topicCode'      => 'MATHS7',
                 'teacher'        => 'DOE J.',
                 'hasDraft'       => true,
                 'interdisciplinary' => false,
@@ -271,6 +287,7 @@ class GetSubjectsServiceTest extends TestCase
                 'comment'        => "foo",
                 'lastRejected'   => 'Algorithmes de tri',
                 'topic'          => 'Informatique',
+                'topicCode'      => 'INFO2',
                 'teacher'        => "DOE J.",
                 'hasDraft'       => false,
                 'interdisciplinary' => true,
@@ -343,15 +360,14 @@ class GetSubjectsServiceTest extends TestCase
         $this->logger = new FakeGoralysLogger();
         $this->repo = new FakeSubjectsRepository();
         $this->userRepo = new FakeUserRepository();
-        $this->formatter = new UsernameFormatterService();
         $this->usernameManager = new UsernameManager($this->userRepo);
+        $this->formatter = new SubjectsFormatter(new UsernameFormatterService(), $this->usernameManager);
         $this->mysqliResult = $this->createMock(mysqli_result::class);
 
         $this->service = new GetSubjectsService(
             $this->logger,
             $this->repo,
             $this->formatter,
-            $this->usernameManager,
         );
 
         $this->seedUsers();

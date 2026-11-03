@@ -4,6 +4,7 @@ namespace Goralys\Tests\Fakes;
 
 use Goralys\App\Topics\Data\StudentDTO;
 use Goralys\Core\Subjects\Data\Enums\SubjectStatus;
+use Goralys\Core\Subjects\Data\SubjectsFilter;
 use Goralys\Core\Subjects\Repository\Interfaces\SubjectsRepositoryInterface;
 use mysqli_result;
 
@@ -91,13 +92,6 @@ class FakeSubjectsRepository implements SubjectsRepositoryInterface
         return $this->updateResult;
     }
 
-    /**
-     * @param string $teacherUsername
-     * @param string $studentUsername
-     * @param string $topic
-     * @param string $newPath
-     * @return bool
-     */
     public function updateDraftPath(
         string $teacherUsername,
         string $studentUsername,
@@ -115,5 +109,20 @@ class FakeSubjectsRepository implements SubjectsRepositoryInterface
     public function getStudentInfo(string $username): StudentDTO
     {
         return $this->studentInfo;
+    }
+
+    public function getClassrooms(): mysqli_result
+    {
+        return $this->queryResult;
+    }
+
+    public function getTopicGroups(): mysqli_result
+    {
+        return $this->queryResult;
+    }
+
+    public function findFiltered(SubjectsFilter $f): mysqli_result
+    {
+        return $this->queryResult;
     }
 }

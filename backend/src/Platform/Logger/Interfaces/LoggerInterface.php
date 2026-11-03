@@ -59,4 +59,10 @@ interface LoggerInterface
      * @param string $message The message to log.
      */
     public function fatal(LoggerInitiator $initiator, string $message): void;
+
+    /**
+     * Returns all the logs stored by the logger.
+     * @return array The list of all logs registered by the logger.
+     */
+    public function store(): array;
 }

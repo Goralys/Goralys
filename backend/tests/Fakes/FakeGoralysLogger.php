@@ -52,4 +52,9 @@ class FakeGoralysLogger implements LoggerInterface
     public function rotate(): void
     {
     }
+
+    public function store(): array
+    {
+        return $this->logs;
+    }
 }
