@@ -1,3 +1,4 @@
+use crate::types::GResult;
 use serde::Deserialize;
 use serde_json::from_str;
 use std::collections::HashMap;
@@ -13,10 +14,13 @@ pub struct Job {
 pub struct ExportBatch {
     pub max_threads: usize,
     pub template_dir: String,
+    pub logo_file: String,
+    pub base_font: String,
+    pub pdfium: String,
     pub jobs: Vec<Job>,
 }
 
-pub fn parse_input(path: &str) -> Result<ExportBatch, Box<dyn std::error::Error>> {
+pub fn parse_input(path: &str) -> GResult<ExportBatch> {
     let raw = std::fs::read_to_string(path)?;
     let b: ExportBatch = from_str(raw.as_str())?;
     Ok(b)

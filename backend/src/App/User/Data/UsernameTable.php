@@ -15,6 +15,7 @@ use Goralys\Shared\Config\GoralysConfig as Config;
 use Goralys\Shared\Exception\User\GoralysUserException;
 use Goralys\Shared\Lib\GoralysLib as Lib;
 use Goralys\Shared\Lib\String\StringCase;
+use Goralys\Shared\User\Data\FullNameDTO;
 
 final class UsernameTable
 {
@@ -112,6 +113,20 @@ final class UsernameTable
                 self::ADMIN_KEY => $role === UserRole::ADMIN
         ];
         return self::$table[$fullName . $suffix] = $username;
+    }
+
+    /**
+     * Retrieves a user's full name from the cache.
+     * @param string $username The username of the target user.
+     * @return ?FullNameDTO The full name of the user, or null if the username does not exist in cache.
+     */
+    public function fullName(string $username): ?FullNameDTO
+    {
+        if (!$name = self::$reverse[$username]['name']) {
+            return null;
+        }
+
+        return new FullNameDTO(...Lib::STRING::separateNames($name));
     }
 
     public function remove(string $username): bool

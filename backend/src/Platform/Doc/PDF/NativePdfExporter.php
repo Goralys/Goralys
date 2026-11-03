@@ -7,14 +7,13 @@
 
 namespace Goralys\Platform\Doc\PDF;
 
-use Exception;
 use Goralys\Core\Subjects\Config\SubjectsExportConfig;
 use Goralys\Platform\Doc\PDF\Interfaces\PdfExporterInterface;
 use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
 use Goralys\Platform\Logger\Interfaces\LoggerInterface;
-use Goralys\Shared\Config\GoralysConfig as Config;
 use Goralys\Shared\Exception\GoralysRuntimeException;
-use Random\RandomException;
+use TemplateRenderer\Renderer;
+use TemplateRenderer\RendererException;
 
 /**
  * Wrapper around the Rust goralys template renderer extension. This extension is located in the backend/native folder
@@ -67,23 +66,10 @@ final class NativePdfExporter implements PdfExporterInterface
     public function export(array $batch): void
     {
         try {
-            $suffix = bin2hex(random_bytes(1));
-        } catch (RandomException) {
-            $suffix = "rand0m";
-        }
-        $tmpFile = Config::DIRECTORIES::CACHE . "export_batch_" . $suffix;
-
-        // put batch into file
-        file_put_contents($tmpFile, json_encode($batch, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
-
-        try {
-            export_jobs_from($tmpFile); // renders and exports the jobs
-        } catch (Exception $e) {
+            Renderer::render($batch); // renders and exports the jobs
+        } catch (RendererException $e) {
             throw new GoralysRuntimeException("Error occurred during job rendering: " . $e->getMessage());
         }
-
-        // remove temporary file
-        // unlink($tmpFile);
     }
 
     /**

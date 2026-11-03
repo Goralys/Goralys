@@ -9,6 +9,7 @@ namespace Goralys\App\Subjects\Controllers;
 
 use DateMalformedStringException;
 use DateTime;
+use Exception;
 use Goralys\App\HTTP\Files\GoralysFileManager;
 use Goralys\App\Subjects\Data\Enums\SubjectFields;
 use Goralys\Core\Drafts\Services\StudentDraftsManager;
@@ -32,7 +33,6 @@ use Goralys\Core\User\Services\UsernameManager;
 use Goralys\Core\Utils\User\Services\UsernameFormatterService;
 use Goralys\Platform\DB\Interfaces\DbContainerInterface;
 use Goralys\Platform\Doc\PDF\Interfaces\PdfExporterInterface;
-use Goralys\Platform\Loader\Services\EnvService;
 use Goralys\Platform\Logger\Interfaces\LoggerInterface;
 use Goralys\Shared\Config\GoralysConfig;
 use Goralys\Shared\Exception\GoralysRuntimeException;
@@ -46,7 +46,6 @@ use ZipArchive;
 final class SubjectsController
 {
     public StudentDraftsManager $draftsManager;
-    private EnvService $env;
     private LoggerInterface $logger;
     private DbContainerInterface $db;
     private SubjectsRepositoryInterface $repo;
@@ -63,20 +62,17 @@ final class SubjectsController
     /**
      * Initializes the logger and database container for the controller.
      * Also instantiates all of its sub-services.
-     * @param EnvService $env The injected env container.
      * @param LoggerInterface $logger The injected logger.
      * @param DbContainerInterface $db The injected db.
      * @param GoralysFileManager $fileManager The injected file manager.
      * @param PdfExporterInterface $exporter The injected PDF exporter.
      */
     public function __construct(
-        EnvService $env,
         LoggerInterface $logger,
         DbContainerInterface $db,
         GoralysFileManager $fileManager,
         PdfExporterInterface $exporter,
     ) {
-        $this->env = $env;
         $this->logger = $logger;
         $this->db = $db;
 
@@ -184,15 +180,26 @@ final class SubjectsController
      * @return string The path to the generated zip file.
      * @throws GoralysRuntimeException If the zip export goes wrong.
      */
-    public function exportAll(SubjectsCollection $subjects): string
+    public function exportAll(SubjectsCollection $subjects, array &$time): string
     {
         $grouped = $this->groupByStudents($subjects);
         $exportedPaths = [];
+
+        try {
+            $raw = @file_get_contents(Config::TEMPLATE_DIR_PATH . "preset.json");
+            $preset = $raw === false ? [] : json_decode($raw, true, flags: JSON_THROW_ON_ERROR);
+        } catch (Exception $e) {
+            throw new GoralysRuntimeException("Could not parse the preset: " . $e->getMessage());
+        }
+
         $batch = [
             'template_dir' => Config::TEMPLATE_DIR_PATH,
-            'max_threads' => (int) ($this->env->getByKey("EXPORT_MAX_THREADS") ?? 1)
+            'max_threads' => 1,
+            'base_font' => "Marianne",
+            ...$preset,
         ];
 
+        $time['setup'] = hrtime(true);
         foreach ($grouped as $s) {
             $filename = Config::EXPORT_BASE_NAME . date("Y") . "-" . $s->student->classroom . " - "
                         . $s->student->fullName->reversed() . ".pdf";
@@ -202,12 +209,16 @@ final class SubjectsController
 
             $exportedPaths[] = $filePath;
         }
+        $time['jobs'] = hrtime(true);
 
         $this->exporter->export(
             $batch,
         );
+        $time['render'] = hrtime(true);
 
-        return $this->zipExports($exportedPaths);
+        $r = $this->zipExports($exportedPaths);
+        $time['zip'] = hrtime(true);
+        return $r;
     }
 
     /**
@@ -238,7 +249,7 @@ final class SubjectsController
                             $teacherMissing = false;
                             foreach ($subjects as $subject) {
                                 $teacherUsername =  $this->usernameManager->get($subject->teacherUsernameToken);
-                                $teacherName = $this->userRepo->getFullNameForUsername($teacherUsername);
+                                $teacherName = $this->usernameManager->bucket->fullName($teacherUsername);
                                 // Use reversed formatted name (J. DOE instead of DOE J.) for consistency
                                 // between 'real' users (DB names) and 'virtual' users (formatted names)
                                 $specialities[] = new SpecialityDTO(
@@ -289,7 +300,9 @@ final class SubjectsController
                 $zip->close();
                 throw new GoralysRuntimeException("File not found when zipping: $path");
             }
-            $zip->addFile($path, str_replace(Config::EXPORT_BASE_DIR, "", $path));
+            $entry = str_replace(Config::EXPORT_BASE_DIR, "", $path);
+            $zip->addFile($path, $entry);
+            $zip->setCompressionName($entry, ZipArchive::CM_STORE);
         }
 
         $zip->close();

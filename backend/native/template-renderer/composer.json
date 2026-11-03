@@ -1,0 +1,15 @@
+{
+    "name": "goralys/template-renderer",
+    "description": "The wrapper for goralys' rust template renderer.",
+    "type": "library",
+    "license": "AGPL-3.0-or-later",
+    "minimum-stability": "stable",
+    "require": {
+        "php": ">= 8.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "TemplateRenderer\\": "./src"
+        }
+    }
+}

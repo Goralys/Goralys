@@ -5,7 +5,7 @@ interact at runtime. It is intended as a concise reference for developers workin
 
 ## Requirements
 
-The backend uses a custom-built Rust ffi extension for PHP 8.5: [goralys-template-renderer](native/template_renderer).
+The backend uses a custom-built Rust ffi extension for PHP 8.5: [goralys-template-renderer](native/template-renderer).
 You must compile this extension, copy it to your PHP extension folder, and add it to your `php.ini` config.
 
 ## Overview

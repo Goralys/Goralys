@@ -1,0 +1,1 @@
+pub type GResult<R> = Result<R, Box<dyn std::error::Error>>;

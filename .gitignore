@@ -52,20 +52,20 @@ goralys-ui/dist
 /backend/Logs
 /backend/Assets
 *.cache
-/backend/vendor
+/backend/**/vendor
 /backend/RateLimiter
 /backend/migration.sql
 
 # IDE
-/.idea
-/.vscode
-/backend/native/template_renderer/.idea
+*.idea
+*.vscode
 
 # reverse proxy / certificates
 /.certs
 
-# Rust ffi build
-/backend/native/template_renderer/target*
+# Rust builds
+/backend/native/**/target*
+/backend/native/**/x64/*
 
 deploy-local.bat
 flush-logs.bat

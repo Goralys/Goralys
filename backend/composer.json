@@ -4,15 +4,24 @@
     "license": [
         "AGPL-3.0-or-later"
     ],
+    "repositories": [
+        {
+            "type": "path",
+            "url": "native/template-renderer",
+            "options": {
+                "symlink": true
+            }
+        }
+    ],
     "require": {
         "php": ">=8.5.0",
         "ext-json": "*",
-        "ext-goralys-template-renderer": "*",
         "ext-mysqli": "*",
         "vlucas/phpdotenv": "^5.8",
         "ext-zip": "*",
         "ext-fileinfo": "*",
-        "phpmailer/phpmailer": "^7.1"
+        "phpmailer/phpmailer": "^7.1",
+        "goralys/template-renderer": "@dev"
     },
     "autoload": {
         "psr-4": {

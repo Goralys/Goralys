@@ -535,7 +535,6 @@ class GoralysKernel
     private function initSubjects(): void
     {
         $this->subjects = new SubjectsController(
-            $this->env,
             $this->logger,
             $this->db,
             $this->fileManager,

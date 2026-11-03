@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@source not "../backend/";
+
 @source "../app/**/*.{ts,tsx}";
 
 @theme {

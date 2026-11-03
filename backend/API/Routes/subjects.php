@@ -17,6 +17,7 @@ use Goralys\Core\Subjects\Data\Enums\SubjectStatus;
 use Goralys\Core\Subjects\Data\SubjectsFilter;
 use Goralys\Core\User\Data\Enums\UserRole;
 use Goralys\Kernel\GoralysKernel;
+use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
 
 /*
  * Copyright (C) 2026 Sami Saubion
@@ -94,8 +95,11 @@ Routes::get('subjects/draft', function (GoralysKernel $kernel, RequestInterface 
 // [SECTION] Subject modifiers/setters
 // ==================================================
 Routes::post('subjects/export', function (GoralysKernel $kernel, RequestInterface $request) {
+    $time = ['start' => hrtime(true)];
+
     $kernel->subjects->cleanExports(); // Cleans all previous exports
     $kernel->subjects->prepareExports();
+    $time['clean'] = hrtime(true);
 
     // Build the filter
     $f = new SubjectsFilter(
@@ -109,13 +113,25 @@ Routes::post('subjects/export', function (GoralysKernel $kernel, RequestInterfac
     }
 
     $subjects = $kernel->subjects->filterer->query($f); // Get all subjects matching the filter
-    $path = $kernel->subjects->exportAll($subjects);
+    $time['query'] = hrtime(true);
+    $path = $kernel->subjects->exportAll($subjects, $time);
 
     $len = fn(array $a) => count($a);
     Audit::registerAction(
         AuditActionType::OTHER,
         "Export de {$len($subjects->subjects)} sujet" . ($len($subjects->subjects) > 0 ? "s" : "")
     );
+
+    $prev = null;
+    $parts = [];
+    foreach ($time as $label => $ns) {
+        if ($prev !== null) {
+            $parts[] = sprintf('%s=%.1fms', $label, ($ns - $prev) / 1e6);
+        }
+        $prev = $ns;
+    }
+    $kernel->logger->info(LoggerInitiator::APP, 'export: ' . implode(' ', $parts));   // adapt to your logger access
+
     $kernel->response()->download($path, "sujets-go.zip", after: fn() => $kernel->subjects->cleanExports());
 }, ...RouterOptions::$INPUT::require(["status", "arr"], ["classrooms", "arr"], ["topics", "arr"])) // enforce array type
         ->middlewares(...MiddlewareSets::subjectsRoute(
