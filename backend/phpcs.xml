@@ -2,7 +2,19 @@
 <ruleset name="Goralys">
     <arg name="colors"/>
     <arg name="parallel" value="8"/>
-    <arg name="ignore" value="vendor"/>
+    <arg name="extensions" value="php"/>
+    <arg name="extensions" value="mysqli"/>
+    <arg name="extensions" value="json"/>
+    <arg name="extensions" value="fileinfo"/>
+    <arg name="extensions" value="zip"/>
+
+    <file>.</file>
+
+    <exclude-pattern>*/vendor/*</exclude-pattern>
+    <exclude-pattern>*/target/*</exclude-pattern>
+    <exclude-pattern>*/bin/*</exclude-pattern>
+
+    <exclude-pattern>*/Assets/*</exclude-pattern>
 
     <rule ref="PSR12"/>
 
