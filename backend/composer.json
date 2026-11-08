@@ -9,7 +9,10 @@
             "type": "path",
             "url": "native/template-renderer",
             "options": {
-                "symlink": true
+                "symlink": true,
+                "versions": {
+                    "goralys/template-renderer": "0.1.0"
+                }
             }
         }
     ],
@@ -21,7 +24,7 @@
         "ext-zip": "*",
         "ext-fileinfo": "*",
         "phpmailer/phpmailer": "^7.1",
-        "goralys/template-renderer": "@dev"
+        "goralys/template-renderer": "^0.1.0"
     },
     "autoload": {
         "psr-4": {
