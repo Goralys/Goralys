@@ -17,13 +17,6 @@ use JetBrains\PhpStorm\Deprecated;
 final class AppContext
 {
     /**
-     * This variable is used to determine the context of the app in the global scope.
-     * @var ?AppContext
-     */
-    public static ?self $CURRENT = null;
-
-
-    /**
      * @param ToastMode $mode The current toast mode used by the app.
      * @param Client $client The current client fetching the backend.
      * @param bool $hasHighSchoolToken If the current request has a high school token.

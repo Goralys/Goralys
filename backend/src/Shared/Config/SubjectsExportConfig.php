@@ -5,7 +5,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace Goralys\Core\Subjects\Config;
+namespace Goralys\Shared\Config;
 
 use Goralys\Core\Subjects\Data\PathwayDTO;
 use Goralys\Shared\Config\DirConfig as Config;

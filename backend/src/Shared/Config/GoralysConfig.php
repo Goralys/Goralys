@@ -12,4 +12,5 @@ final readonly class GoralysConfig
     public const string USER = UserConfig::class;
     public const string AUTH = AuthConfig::class;
     public const string DIRECTORIES = DirConfig::class;
+    public const string SUBJECTS_EXPORT = SubjectsExportConfig::class;
 }

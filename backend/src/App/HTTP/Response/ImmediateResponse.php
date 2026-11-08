@@ -7,7 +7,7 @@
 
 namespace Goralys\App\HTTP\Response;
 
-use Goralys\App\Context\AppContext;
+use Goralys\App\Context\Context;
 use Goralys\App\Context\Data\Client;
 use Goralys\App\HTTP\Files\Interface\FileResponder;
 use Goralys\App\HTTP\JSON\Interfaces\JsonResponder;
@@ -135,9 +135,9 @@ final class ImmediateResponse implements ImmediateResponseInterface
      */
     public function redirect(string $dest): never
     {
-        if (AppContext::$CURRENT->client === Client::WEB) {
+        if (Context::$CURRENT->app->client === Client::WEB) {
             header("Location: " . $dest);
-        } elseif (AppContext::$CURRENT->client === Client::MOBILE) {
+        } elseif (Context::$CURRENT->app->client === Client::MOBILE) {
             $this->json->send(["redirect" => $dest]);
         }
         $this->logger->debug(LoggerInitiator::APP, "Redirected client to: " . $dest);

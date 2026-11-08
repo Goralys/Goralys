@@ -21,6 +21,12 @@ interface OptionInterface
     public function handle(string $school, GoralysKernel $kernel, callable $next): void;
 
     /**
+     * Runs when the option is resolved inside the job dispatcher.
+     * @return void
+     */
+    public function onResolve(): void;
+
+    /**
      * Returns the name of the option.
      * @return string The name of the option.
      */

@@ -7,8 +7,8 @@
 
 namespace Goralys\Core\Subjects\Services;
 
-use Goralys\Core\Subjects\Config\SubjectsExportConfig as Config;
 use Goralys\Core\Subjects\Data\StudentSubjectsDTO;
+use Goralys\Shared\Config\SubjectsExportConfig as Config;
 use InvalidArgumentException;
 
 /**

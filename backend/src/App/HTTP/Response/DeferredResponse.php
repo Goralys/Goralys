@@ -8,6 +8,7 @@
 namespace Goralys\App\HTTP\Response;
 
 use Goralys\App\Context\AppContext;
+use Goralys\App\Context\Context;
 use Goralys\App\Context\Data\Client;
 use Goralys\App\Context\Data\ToastMode;
 use Goralys\App\HTTP\JSON\Interfaces\JsonResponder;
@@ -62,7 +63,7 @@ final class DeferredResponse implements Interfaces\DeferredResponseInterface
             $title,
             $message,
             null,
-            AppContext::$CURRENT->mode === ToastMode::FLASH,
+            Context::$CURRENT->app->mode === ToastMode::FLASH,
         );
         return $this;
     }
@@ -79,7 +80,7 @@ final class DeferredResponse implements Interfaces\DeferredResponseInterface
             "Erreur",
             $message,
             "/",
-            AppContext::$CURRENT->mode === ToastMode::FLASH,
+            Context::$CURRENT->app->mode === ToastMode::FLASH,
         );
         return $this;
     }
@@ -94,7 +95,7 @@ final class DeferredResponse implements Interfaces\DeferredResponseInterface
      */
     public function redirect(string $path): self
     {
-        $this->toast->redirect = trim(AppContext::$CURRENT->originDomain, "/") . "/" . trim($path, "/");
+        $this->toast->redirect = trim(Context::$CURRENT->app->originDomain, "/") . "/" . trim($path, "/");
         return $this;
     }
 
@@ -126,14 +127,14 @@ final class DeferredResponse implements Interfaces\DeferredResponseInterface
                 "Can not send null toast, if you meant to only send JSON data, please use an immediate response instead"
             );
         }
-        if (AppContext::$CURRENT->mode === ToastMode::FLASH) {
+        if (Context::$CURRENT->app->mode === ToastMode::FLASH) {
             http_response_code(302);
             $this->controller->responder->sendToast($this->toast, $this->action ?? "");
             error_log("KERNEL - 3: redirecting to: " . $this->toast->redirect ?? "NONE");
-            if (AppContext::$CURRENT->client === Client::WEB && $this->toast->redirect) {
+            if (Context::$CURRENT->app->client === Client::WEB && $this->toast->redirect) {
                 header("Location: " . $this->toast->redirect);
                 $this->json->send($this->data ?? [], 302);
-            } elseif (AppContext::$CURRENT->client === Client::MOBILE && $this->toast->redirect) {
+            } elseif (Context::$CURRENT->app->client === Client::MOBILE && $this->toast->redirect) {
                 $this->json->send(array_merge(["redirect" => $this->toast->redirect], $this->data ?? []), 302);
             }
             exit;

@@ -2,6 +2,7 @@
 
 namespace Goralys\App\Cron;
 
+use Goralys\App\Context\Context;
 use Goralys\App\Context\Data\CurrentSchool;
 use Goralys\App\Cron\Data\CronJob;
 use Goralys\App\Cron\Options\Interfaces\OptionInterface;
@@ -9,6 +10,7 @@ use Goralys\App\Cron\Scheduler\CronScheduler;
 use Goralys\App\Cron\Scheduler\Data\JobSchedule;
 use Goralys\Kernel\GoralysKernel;
 use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
+use Goralys\Shared\Exception\GoralysRuntimeException;
 
 final class JobDispatcher
 {
@@ -42,7 +44,10 @@ final class JobDispatcher
                 );
                 continue;
             }
-            $resolved[] = new $class($option->name, ...$option->params);
+
+            $opt = new $class($option->name, ...$option->params);
+            $opt->onResolve();
+            $resolved[] = $opt;
         }
 
         return $resolved;
@@ -51,6 +56,7 @@ final class JobDispatcher
     /**
      * Runs all due jobs.
      * @return void
+     * @throws GoralysRuntimeException
      */
     public function runDue(): void
     {
@@ -69,9 +75,19 @@ final class JobDispatcher
         foreach ($jobs as $j) {
             $opt = $this->resolveOptions($j);
             $schools = $this->kernel->highSchools->getAllSchools();
+            $ran = false;
             foreach ($schools as $school => $_) {
-                CurrentSchool::$CODE = $school;
-                CurrentSchool::$TOKEN = $this->kernel->highSchools->getTokenForSchool(CurrentSchool::$CODE);
+                if (Context::$CURRENT->jobs->runOnce) {
+                    if ($ran) {
+                        break;
+                    }
+
+                    CurrentSchool::$CODE = "unavailable";
+                    CurrentSchool::$TOKEN = "unavailable";
+                } else {
+                    CurrentSchool::$CODE = $school;
+                    CurrentSchool::$TOKEN = $this->kernel->highSchools->getTokenForSchool(CurrentSchool::$CODE);
+                }
 
                 $dest = function () use ($school, $opt, $j) {
                     $this->kernel->run(function () use ($school, $opt, $j) {
@@ -79,6 +95,7 @@ final class JobDispatcher
                     });
                 };
                 $this->pipeline($school, $opt, $dest);
+                $ran = true;
             }
         }
     }

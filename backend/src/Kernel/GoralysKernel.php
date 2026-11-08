@@ -37,9 +37,11 @@ use Goralys\App\Audit\Controllers\AuditController;
 use Goralys\App\Cache\ClassDiscoverer;
 use Goralys\App\Config\RateLimiterConfig;
 use Goralys\App\Context\AppContext;
+use Goralys\App\Context\Context;
 use Goralys\App\Context\Data\Client;
 use Goralys\App\Context\Data\CurrentSchool;
 use Goralys\App\Context\Data\ToastMode;
+use Goralys\App\Context\JobsContext;
 use Goralys\App\Cron\JobDispatcher;
 use Goralys\App\HTTP\Files\GoralysFileManager;
 use Goralys\App\HTTP\Files\Interface\FileExtractor;
@@ -194,24 +196,30 @@ class GoralysKernel
                     default => $this->getOriginDomain($skipHighSchoolToken),
                 };
 
-                AppContext::$CURRENT = new AppContext(
-                    ToastMode::DEFAULT,
-                    $client,
-                    !$skipHighSchoolToken,
-                    trim($origin ?? ""),
-                    $this->env->getByKey("GORALYS_ENVIRONMENT") === "dev",
-                    $skipHighSchoolToken
+                Context::$CURRENT = new Context(
+                    new AppContext(
+                        ToastMode::DEFAULT,
+                        $client,
+                        !$skipHighSchoolToken,
+                        trim($origin ?? ""),
+                        $this->env->getByKey("GORALYS_ENVIRONMENT") === "dev",
+                        $skipHighSchoolToken
+                    ),
+                    new JobsContext(false)
                 );
                 break;
 
             case KernelType::CRON:
-                AppContext::$CURRENT = new AppContext(
-                    ToastMode::DEFAULT,
-                    Client::WEB,
-                    false,
-                    "",
-                    false,
-                    true,
+                Context::$CURRENT = new Context(
+                    new AppContext(
+                        ToastMode::DEFAULT,
+                        Client::WEB,
+                        false,
+                        "",
+                        false,
+                        true
+                    ),
+                    new JobsContext(false)
                 );
                 break;
         }
@@ -306,7 +314,7 @@ class GoralysKernel
 
     public function getOriginDomain(bool $skip = false): ?string
     {
-        if ($skip || (AppContext::$CURRENT && !AppContext::$CURRENT->isPublic)) {
+        if ($skip || (Context::$CURRENT->app && !Context::$CURRENT->app->isPublic)) {
             return null;
         }
 
@@ -338,7 +346,7 @@ class GoralysKernel
     private function startSession(): void
     {
         if (session_status() !== PHP_SESSION_ACTIVE) {
-            $isMobile = AppContext::$CURRENT->client === Client::MOBILE;
+            $isMobile = Context::$CURRENT->app->client === Client::MOBILE;
             $domain = $isMobile ? null : $this->env->getByKey("COOKIES_DOMAIN");
             ini_set('session.gc_maxlifetime', $this->getSessionLifetime());
             ini_set('session.cookie_lifetime', $this->getSessionLifetime());
@@ -350,7 +358,7 @@ class GoralysKernel
                 'domain' => $domain,
                 'secure' => true,
                 'httponly' => true,
-                'samesite' => AppContext::$CURRENT->isDev ? 'None' : ($isMobile ? 'None' : 'Lax'),
+                'samesite' => Context::$CURRENT->app->isDev ? 'None' : ($isMobile ? 'None' : 'Lax'),
             ]);
 
             session_name("GORALYSSESSID");
@@ -571,7 +579,7 @@ class GoralysKernel
      */
     private function initGuard(): void
     {
-        $this->guard = new HttpGuard($this->usernames, AppContext::$CURRENT);
+        $this->guard = new HttpGuard($this->usernames, Context::$CURRENT->app);
     }
 
     /**
@@ -581,7 +589,7 @@ class GoralysKernel
     private function initRateLimiter(): void
     {
         $this->rateLimiter = new RateLimiter($this->logger);
-        if (AppContext::$CURRENT->isDev) {
+        if (Context::$CURRENT->app->isDev) {
             $this->rateLimiter->disable();
         }
     }
@@ -878,6 +886,6 @@ class GoralysKernel
      */
     public function useFlash(): void
     {
-        AppContext::$CURRENT->mode = ToastMode::FLASH;
+        Context::$CURRENT->app->mode = ToastMode::FLASH;
     }
 }

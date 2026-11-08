@@ -40,12 +40,17 @@ final readonly class DbOption implements Interfaces\OptionInterface
     }
 
     /**
-     * Returns a preconfigured set of params and the name of the option (db) to connect to the database before running
+     * Returns a preconfigured set of pa
+     * rams and the name of the option (db) to connect to the database before running
      * the job.
      * @return string[] The preconfigured name and param to connect to the databse.
      */
     public static function connect(): array
     {
         return [self::NAME];
+    }
+
+    public function onResolve(): void
+    {
     }
 }

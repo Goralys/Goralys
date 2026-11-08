@@ -7,10 +7,10 @@
 
 namespace Goralys\Platform\Doc\PDF;
 
-use Goralys\Core\Subjects\Config\SubjectsExportConfig;
 use Goralys\Platform\Doc\PDF\Interfaces\PdfExporterInterface;
 use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
 use Goralys\Platform\Logger\Interfaces\LoggerInterface;
+use Goralys\Shared\Config\SubjectsExportConfig as Config;
 use Goralys\Shared\Exception\GoralysRuntimeException;
 use TemplateRenderer\Renderer;
 use TemplateRenderer\RendererException;
@@ -38,7 +38,7 @@ final class NativePdfExporter implements PdfExporterInterface
      */
     public function clean(): void
     {
-        $exportsDir = SubjectsExportConfig::EXPORT_BASE_DIR;
+        $exportsDir = Config::EXPORT_BASE_DIR;
 
         if (!is_dir($exportsDir)) {
             throw new GoralysRuntimeException("Exports directory not found at: $exportsDir");
@@ -78,13 +78,13 @@ final class NativePdfExporter implements PdfExporterInterface
      */
     public function prepare(): void
     {
-        $exportDir = SubjectsExportConfig::EXPORT_BASE_DIR;
+        $exportDir = Config::EXPORT_BASE_DIR;
         if (!is_dir($exportDir)) {
             if (!mkdir($exportDir, 0o777)) {
                 $this->logger->warning(LoggerInitiator::PLATFORM, "Failed to create dir: " . $exportDir);
             }
         }
-        foreach (SubjectsExportConfig::EXPORT_BROKEN_DIRS as $dir) {
+        foreach (Config::EXPORT_BROKEN_DIRS as $dir) {
             if (!is_dir($exportDir . $dir)) {
                 if (!mkdir($exportDir . $dir, 0o777)) {
                     $this->logger->warning(LoggerInitiator::PLATFORM, "Failed to create dir: " . $exportDir . $dir);
