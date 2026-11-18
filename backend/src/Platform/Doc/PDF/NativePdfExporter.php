@@ -80,13 +80,13 @@ final class NativePdfExporter implements PdfExporterInterface
     {
         $exportDir = Config::EXPORT_BASE_DIR;
         if (!is_dir($exportDir)) {
-            if (!mkdir($exportDir, 0o777)) {
+            if (!mkdir($exportDir, 0o700)) {
                 $this->logger->warning(LoggerInitiator::PLATFORM, "Failed to create dir: " . $exportDir);
             }
         }
         foreach (Config::EXPORT_BROKEN_DIRS as $dir) {
             if (!is_dir($exportDir . $dir)) {
-                if (!mkdir($exportDir . $dir, 0o777)) {
+                if (!mkdir($exportDir . $dir, 0o700)) {
                     $this->logger->warning(LoggerInitiator::PLATFORM, "Failed to create dir: " . $exportDir . $dir);
                 }
             }

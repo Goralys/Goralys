@@ -118,20 +118,26 @@ final class TopicsController
 
         $topics = [];
 
-        foreach ($this->findTopicsCsv($extractTo) as $csvPath) {
-            $descriptor = $this->parseTopicFilename($csvPath);
-            if ($descriptor === null) {
-                continue;
+        try {
+            foreach ($this->findTopicsCsv($extractTo) as $csvPath) {
+                $descriptor = $this->parseTopicFilename($csvPath);
+                if ($descriptor === null) {
+                    continue;
+                }
+
+                $students = $this->CSVBuilder->buildStudents($csvPath);
+                $teachers = $groupsToTeachers[$descriptor->code] ?? [];
+
+                $topics[] = $this->makeTopic($descriptor->name, $descriptor->code, $students, $teachers);
             }
 
-            $students = $this->CSVBuilder->buildStudents($csvPath);
-            $teachers = $groupsToTeachers[$descriptor->code] ?? [];
-
-            $topics[] = $this->makeTopic($descriptor->name, $descriptor->code, $students, $teachers);
-        }
-
-        if (count($topics) === 0) {
-            throw new GoralysRuntimeException("No topic CSV files found in ZIP (expected files like CODE_Name.csv).");
+            if (count($topics) === 0) {
+                throw new GoralysRuntimeException(
+                    "No topic CSV files found in ZIP (expected files like CODE_Name.csv)."
+                );
+            }
+        } finally {
+            Lib::DIR::rmDirRecursive($extractTo);
         }
 
         return $topics;

@@ -8,6 +8,7 @@
 namespace Goralys\Shared\Lib;
 
 use Goralys\Shared\Lib\String\StringUtils;
+use Goralys\Shared\Lib\Sys\DirUtils;
 
 /**
  * Central access point for shared utility services.
@@ -16,10 +17,5 @@ use Goralys\Shared\Lib\String\StringUtils;
 final readonly class GoralysLib
 {
     public const string STRING = StringUtils::class;
-    public StringUtils $string;
-
-    public function __construct()
-    {
-        $this->string = new StringUtils();
-    }
+    public const string DIR = DirUtils::class;
 }

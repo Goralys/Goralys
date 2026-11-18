@@ -28,7 +28,9 @@ Routes::post('topics/import', function (GoralysKernel $kernel) {
     }
 
     $kernel->db->commit();
-    $kernel->response()->download($kernel->topics->exportUsernames($topics), "utilisateurs.txt");
+
+    $file = $kernel->topics->exportUsernames($topics);
+    $kernel->response()->download($file, "utilisateurs.txt", after: fn() => @unlink($file));
 })
         ->middlewares(...MiddlewareSets::topicsRoute('import-topics'));
 
