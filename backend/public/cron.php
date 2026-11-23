@@ -16,6 +16,7 @@ $schools = $schoolsService->getAllSchools();
 
 CurrentSchool::$CODE = array_key_first($schools);
 CurrentSchool::$TOKEN = $schoolsService->getTokenForSchool(CurrentSchool::$CODE);
+CurrentSchool::$SECRET = $schoolsService->getSecretForSchool(CurrentSchool::$CODE);
 
 // Actual dispatch
 $kernel = makeKernel(KernelType::CRON);

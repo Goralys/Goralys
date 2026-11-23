@@ -84,9 +84,11 @@ final class JobDispatcher
 
                     CurrentSchool::$CODE = "unavailable";
                     CurrentSchool::$TOKEN = "unavailable";
+                    CurrentSchool::$SECRET = "unavailable";
                 } else {
                     CurrentSchool::$CODE = $school;
                     CurrentSchool::$TOKEN = $this->kernel->highSchools->getTokenForSchool(CurrentSchool::$CODE);
+                    CurrentSchool::$SECRET = $this->kernel->highSchools->getSecretForSchool(CurrentSchool::$CODE);
                 }
 
                 $dest = function () use ($school, $opt, $j) {

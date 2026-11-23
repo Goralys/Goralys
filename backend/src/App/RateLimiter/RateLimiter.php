@@ -7,8 +7,13 @@
 
 namespace Goralys\App\RateLimiter;
 
+use Goralys\App\Config\Data\RateLimit;
 use Goralys\App\Config\Data\RateLimitTimeMethod;
 use Goralys\App\Config\RateLimiterConfig;
+use Goralys\App\Context\Data\CurrentSchool;
+use Goralys\App\Cookies\Cookies;
+use Goralys\App\RateLimiter\Data\ClientToken;
+use Goralys\Core\RateLimiter\Repository\Interfaces\RateLimiterRepositoryInterface;
 use Goralys\Platform\Logger\Data\Enums\LoggerInitiator;
 use Goralys\Platform\Logger\Interfaces\LoggerInterface;
 use Goralys\Shared\Config\GoralysConfig as Config;
@@ -21,20 +26,39 @@ use Random\RandomException;
 final class RateLimiter
 {
     private const string ALGO = "sha256";
+    private const int PURE_MULTIPLIER = 5;
+
+    private static bool $IS_ACCOUNTED = true;
     private LoggerInterface $logger;
+    private RateLimiterRepositoryInterface $repo;
     private bool $disabled = false;
 
     /**
      * @param LoggerInterface $logger The injected logger.
+     * @param RateLimiterRepositoryInterface $repo The injected repository.
      */
-    public function __construct(LoggerInterface $logger)
+    public function __construct(LoggerInterface $logger, RateLimiterRepositoryInterface $repo)
     {
         $this->logger = $logger;
+        $this->repo = $repo;
     }
 
+    /**
+     * Disables the rate limiter for the current request.
+     * @return void
+     */
     public function disable(): void
     {
         $this->disabled = true;
+    }
+
+    /**
+     * This function makes the current request unaccounted for rate limiting.
+     * @return void
+     */
+    public static function unaccounted(): void
+    {
+        self::$IS_ACCOUNTED = false;
     }
 
     /**
@@ -51,96 +75,67 @@ final class RateLimiter
             return true;
         }
 
-        $rate = RateLimiterConfig::getRateLimits()[$endpoint] ?? null;
+        $rate = RateLimiterConfig::getRateLimits()[$endpoint] ?? new RateLimit(...RateLimiterConfig::GENERAL);
+        $limit = $rate->maxRequests;
+        $period = $rate->timeWindowSeconds;
 
-        $filename = Config::DIRECTORIES::RATE_LIMITER . hash(self::ALGO, $endpoint) . ".txt";
+        $token = $this->resolveToken();
+        $this->repo->select($token->token, $endpoint);
+        $this->repo->increment();
 
-        if (!is_dir(dirname($filename))) {
-            mkdir(dirname($filename), 0o777, true);
-        }
-
-        if (!$token = $this->resolveToken()) {
+        if (!self::checkToken($token)) {
             return false;
         }
 
-        $fp = fopen($filename, 'c+');
-        if (!$fp) {
-            return true;
-        }
+        $info = $this->repo->getInfo();
+        $count = $info->count;
+        $failures = (int) floor($info->count / $limit);
 
-        flock($fp, LOCK_EX);
-
-        rewind($fp);
-        $contents = stream_get_contents($fp);
-        $data = json_decode($contents ?: '[]', true);
-
-        if (!is_array($data)) {
-            $data = [];
-        }
-
-        // init
-        if (!isset($data[$token])) {
-            $data[$token] = [
-                'count' => 0,
-                'reset_time' => 0,
-                'failures' => 0,
-            ];
-        }
-
-        $now = time();
-        $limit = $rate?->maxRequests ?? RateLimiterConfig::GENERAL[0];
-        $period = $rate?->timeWindowSeconds ?? RateLimiterConfig::GENERAL[1];
-
-        $n = min(
-            $rate?->maxLevels ?? 1,
-            $data[$token]['failures'] ?? 0,
-        );
-
-        $timeMethod = $rate?->timeMethod ?? RateLimitTimeMethod::CONSTANT;
-
-        $penalty = match ($timeMethod) {
-            RateLimitTimeMethod::CONSTANT => $period,
-            RateLimitTimeMethod::LINEAR => $period * $n,
-            RateLimitTimeMethod::EXPONENTIAL => min($period * (2 ** $n), 3600), // 1 hour max
-        };
-
-        $this->logger->debug(LoggerInitiator::APP, "Penalty for $endpoint(max: $rate?->maxLevels): $penalty");
-
-        if ($data[$token]['reset_time'] <= $now) {
-            $data[$token]['count'] = 0;
-            $data[$token]['reset_time'] = 0;
-        }
-
-        // limit check
-        if ($data[$token]['count'] >= $limit) {
-            $data[$token]['failures'] = min(
-                $data[$token]['failures'] + 1,
-                $rate?->maxLevels ?? 1,
-            );
-            $data[$token]['reset_time'] = $now + $penalty;
-            $this->finalWrite($fp, json_encode($data));
+        if ($info->banFor > 0) {
+            // do not count requests during a ban
+            $this->repo->increment(-1);
             return false;
         }
 
-        $data[$token]['count']++;
-        $data[$token]['reset_time'] = $now + $penalty;
-        // clean up old entries
-        foreach ($data as $tokenKey => $entry) {
-            if (($entry['reset_time'] ?? 0) < $now) {
-                unset($data[$tokenKey]);
+        if ($info->sinceLastZero > $period) {
+            $count = 1 + max(0, $failures - 1) * $limit;
+            $failures = max(0, $failures - 1);
+            $this->repo->set($count, refreshZero: true);
+        }
+
+        register_shutdown_function(function () use ($token, $endpoint, $count, $limit, $rate, $period, $failures) {
+            // We only write the new data if the request should be accounted for rate limiting.
+            // For example, a successful login request is not accounted for.
+            $this->repo->select($token->token, $endpoint);
+            if (!self::$IS_ACCOUNTED) {
+                $this->repo->increment(-1);
+            } else {
+                if ($count % $limit === 0 && $count > 0) {
+                    $n = min($rate->maxLevels, $failures);
+                    $penalty = match ($rate->timeMethod) {
+                        RateLimitTimeMethod::CONSTANT => $period,
+                        RateLimitTimeMethod::LINEAR => $period * $n,
+                        RateLimitTimeMethod::EXPONENTIAL => min($period * (2 ** ($n - 1)), 3600), // 1 hour max
+                    };
+
+                    $this->logger->debug(
+                        LoggerInitiator::APP,
+                        "Penalty for $endpoint(max: $rate->maxLevels): $penalty"
+                    );
+                    $this->repo->ban($penalty);
+                }
             }
-        }
+        });
 
-        $this->finalWrite($fp, json_encode($data));
         return true;
     }
 
     /**
      * Resolves a unique token for rate limiting. This includes the generation of a unique rate limiting token,
      * if the random generation fails, the system falls back to ip only.
-     * @return ?string The token that identifies the current client.
+     * @return ?ClientToken The token that identifies the current client.
      */
-    private function resolveToken(): ?string
+    private function resolveToken(): ?ClientToken
     {
         try {
             $ip = $_SERVER['REMOTE_ADDR'];
@@ -150,35 +145,38 @@ final class RateLimiter
             }
 
             $token = $_COOKIE[Config::COOKIES::RATE_LIMITER_TOKEN] ?? null;
-
             if (!$token) {
-                $token = bin2hex(random_bytes(16));
-                setcookie(Config::COOKIES::RATE_LIMITER_TOKEN, $token, [
-                    'expires' => time() + 86400 * 30,
-                    'httponly' => true,
-                    'secure' => true,
-                    'samesite' => 'Strict',
-                ]);
+                $base = bin2hex(random_bytes(4));
+                $token = hash_hmac(self::ALGO, CurrentSchool::$CODE . $base, CurrentSchool::$SECRET) . ">>$base";
+                Cookies::set(Config::COOKIES::RATE_LIMITER_TOKEN, $token, 3600 * 24 * 30);
             }
 
-            return "$ip:$token";
+            return new ClientToken("$ip>>$token", $ip, false);
         } catch (RandomException) {
-            return $_SERVER['REMOTE_ADDR'] ?? null;
+            return !!$ip ? new ClientToken($ip, $ip, true) : null;
         }
     }
 
     /**
-     * Atomically writes `$data` to the file, truncating any previous content, then releases the lock.
-     * @param resource $f The locked file handle.
-     * @param string $data The serialized data to persist.
-     * @return void
+     * Checks if a given token is valid.
+     * @param ClientToken $ct The token to check.
+     * @return bool If the token is valid.
      */
-    private function finalWrite($f, string $data): void
+    private static function checkToken(ClientToken $ct): bool
     {
-        rewind($f);
-        ftruncate($f, 0);
-        fwrite($f, $data);
-        flock($f, LOCK_UN);
-        fclose($f);
+        if ($ct->isPure) {
+            return false;
+        }
+
+        $t = $ct->token;
+        // extract token (format: ip>>token>>id)
+        $data = explode(">>", $t);
+        if (count($data) !== 3) {
+            return false;
+        }
+
+        [, $hash, $id] = $data;
+        $check = hash_hmac(self::ALGO, CurrentSchool::$CODE . $id, CurrentSchool::$SECRET);
+        return hash_equals($check, $hash);
     }
 }

@@ -9,4 +9,5 @@ final class CurrentSchool
 {
     public static string $TOKEN = "";
     public static string $CODE = "";
+    public static string $SECRET = "";
 }

@@ -35,6 +35,7 @@ use Exception;
 use Goralys\App\Audit\Audit;
 use Goralys\App\Audit\Controllers\AuditController;
 use Goralys\App\Cache\ClassDiscoverer;
+use Goralys\App\Config\CookiesConfig;
 use Goralys\App\Config\RateLimiterConfig;
 use Goralys\App\Context\AppContext;
 use Goralys\App\Context\Context;
@@ -72,6 +73,7 @@ use Goralys\App\User\Data\UsernameTable;
 use Goralys\App\Utils\Toast\Controllers\ToastController;
 use Goralys\App\Utils\Toast\Data\Enums\ToastType;
 use Goralys\Core\Audit\Data\AuditActionsCollection;
+use Goralys\Core\RateLimiter\Repository\RateLimiterRepository;
 use Goralys\Core\User\Data\Enums\UserRole;
 use Goralys\Core\User\Repository\UserRepository;
 use Goralys\Core\User\Services\UsernameManager;
@@ -183,10 +185,12 @@ class GoralysKernel
                 if ($skipHighSchoolToken) {
                     CurrentSchool::$TOKEN = "";
                     CurrentSchool::$CODE = "";
+                    CurrentSchool::$SECRET = "";
                 } else {
                     CurrentSchool::$TOKEN = $this->request()->header("X-High-School-Token")
                         ?? $this->request()->param("high-school-token");
                     CurrentSchool::$CODE = $this->highSchools->getCodeForSchool(CurrentSchool::$TOKEN);
+                    CurrentSchool::$SECRET = $this->highSchools->getSecretForSchool(CurrentSchool::$CODE);
                 }
 
 
@@ -314,7 +318,7 @@ class GoralysKernel
 
     public function getOriginDomain(bool $skip = false): ?string
     {
-        if ($skip || (Context::$CURRENT->app && !Context::$CURRENT->app->isPublic)) {
+        if ($skip || (Context::$CURRENT?->app && !Context::$CURRENT?->app->isPublic)) {
             return null;
         }
 
@@ -348,17 +352,23 @@ class GoralysKernel
         if (session_status() !== PHP_SESSION_ACTIVE) {
             $isMobile = Context::$CURRENT->app->client === Client::MOBILE;
             $domain = $isMobile ? null : $this->env->getByKey("COOKIES_DOMAIN");
+
+            // set the global cookie config
+            CookiesConfig::params([
+                'path' => '/',
+                'domain' => $domain,
+                'secure' => true,
+                'httponly' => true,
+                'samesite' => Context::$CURRENT->app->isDev ? 'None' : ($isMobile ? 'None' : 'Lax'),
+            ]);
+
             ini_set('session.gc_maxlifetime', $this->getSessionLifetime());
             ini_set('session.cookie_lifetime', $this->getSessionLifetime());
             error_log("SESSION - domain used: '" . ($domain ?? 'NULL/EMPTY') . "'");
             session_set_cookie_params([
                 // Ensure the session expiration logic works as intended. Refer to variable docs for more info.
                 'lifetime' => $this->getSessionLifetime(),
-                'path' => '/',
-                'domain' => $domain,
-                'secure' => true,
-                'httponly' => true,
-                'samesite' => Context::$CURRENT->app->isDev ? 'None' : ($isMobile ? 'None' : 'Lax'),
+                ...CookiesConfig::params()
             ]);
 
             session_name("GORALYSSESSID");
@@ -588,7 +598,7 @@ class GoralysKernel
      */
     private function initRateLimiter(): void
     {
-        $this->rateLimiter = new RateLimiter($this->logger);
+        $this->rateLimiter = new RateLimiter($this->logger, new RateLimiterRepository($this->db));
         if (Context::$CURRENT->app->isDev) {
             $this->rateLimiter->disable();
         }
@@ -773,12 +783,14 @@ class GoralysKernel
      * @param string $redirect The url to redirect the user to on failure.
      * @param string $message The message to display on failure (via toast notification).
      * @return void
+     * @throws GoralysConnectException If the required db connection can not be established.
      */
     public function requireRateLimit(
         string $endpoint,
         string $redirect = "/",
         string $message = "Vous avez atteint la limite périodique de requêtes. Veuillez réessayer ultérieurement.",
     ): void {
+        $this->connect();
         if (!$this->rateLimiter->forwardRequest($endpoint)) {
             $this->deferredResponse(429)->toast(ToastType::WARNING, "Limite atteinte", $message)
                 ->redirect($redirect)

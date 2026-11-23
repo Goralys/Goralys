@@ -34,6 +34,7 @@ final class HighSchoolsService
                 "NAME" => $info["NAME"],
                 "DOMAIN" => $info["DOMAIN"],
                 "DB" => $info["DB"],
+                "SECRET" => $info["SECRET"],
             ];
         }
     }
@@ -76,6 +77,16 @@ final class HighSchoolsService
     public function getTokenForSchool(string $code): ?string
     {
         return $this->schools[$code]["TOKEN"] ?? null;
+    }
+
+    /**
+     * Gets the private secret for a given school.
+     * @param string $code The code of the school to get the token for.
+     * @return ?string The secret of the school.
+     */
+    public function getSecretForSchool(string $code): ?string
+    {
+        return $this->schools[$code]["SECRET"] ?? null;
     }
 
     /**

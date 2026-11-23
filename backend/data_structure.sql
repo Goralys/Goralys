@@ -196,7 +196,7 @@ create table audit
     id                 bigint unsigned auto_increment primary key,
     initiator          varchar(32)                               null,     -- fk -> admins_list.username
     initiator_snapshot varchar(32)                               not null, -- name when the action is executed
-    action_type        enum ('add', 'update', 'delete', 'other') not null, -- fk -> topics.id
+    action_type        enum ('add', 'update', 'delete', 'other') not null,
     action_description varchar(128)                              not null,
     action_at          datetime(3) default current_timestamp(3)  not null,
     index (initiator, action_at),
@@ -205,6 +205,23 @@ create table audit
         on delete set null
 ) engine = innodb;
 
+
+-- -----------------------------------------------------
+-- rate limits table
+-- -----------------------------------------------------
+drop table if exists rate_limits;
+create table rate_limits
+(
+    token     varchar(256)                       not null primary key,
+    count     int                                not null default 0,
+
+    last_zero datetime default current_timestamp not null,
+    created   datetime default current_timestamp not null,
+    ban_until datetime default null,
+
+    index (last_zero),
+    index (created)
+) engine = innodb;
 
 set foreign_key_checks = 1;
 

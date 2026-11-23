@@ -13,6 +13,7 @@ use Goralys\App\HTTP\Middleware\MiddlewareSets;
 use Goralys\App\HTTP\Middleware\RateLimitMiddleware;
 use Goralys\App\HTTP\Middleware\RoleMiddleware;
 use Goralys\App\HTTP\Request\Interfaces\RequestInterface;
+use Goralys\App\RateLimiter\RateLimiter;
 use Goralys\App\Router\Options\RouterOptions;
 use Goralys\App\Router\Routes;
 use Goralys\App\User\Controllers\AuthController;
@@ -202,6 +203,7 @@ Routes::post('user/login', function (GoralysKernel $kernel, RequestInterface $re
         }
     }
 
+    RateLimiter::unaccounted(); // avoid breaking the limit with successful requests
     $kernel->deferredResponse()->toast(
         ToastType::SUCCESS,
         "Connexion",
