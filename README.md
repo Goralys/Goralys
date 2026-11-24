@@ -124,7 +124,7 @@ Alternatively, you can clone this repo and build the project from source.
 
 ### Database Schema
 
-Here is a complete overview of the full schema for Goralys:
+Here is a complete overview of the full schema, except for the `rate_limit` table, of Goralys:
 
 ![Database schema for Goralys](assets/readme/db_diagram.svg)
 
